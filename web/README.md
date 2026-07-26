@@ -8,7 +8,7 @@ Compañero creativo: idea → 3 enfoques → guía/guion listo para grabar.
 cd web
 npm install
 cp .env.example .env.local
-# Edita .env.local y añade OPENAI_API_KEY
+# Edita .env.local → GEMINI_API_KEY (gratis: https://aistudio.google.com/apikey)
 npm run dev
 ```
 

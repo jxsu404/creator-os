@@ -63,14 +63,14 @@ function DraftEditor() {
 
   function markReady() {
     const now = new Date().toISOString();
-    persist(
-      {
-        ...idea!,
-        status: "ready",
-        updatedAt: now,
-      },
-      "Lista para grabar. Cuando quieras, abre esto y graba."
-    );
+    const next: Idea = {
+      ...idea!,
+      status: "ready",
+      updatedAt: now,
+    };
+    upsertIdea(next);
+    setIdea(next);
+    router.push("/");
   }
 
   const { draft } = idea;

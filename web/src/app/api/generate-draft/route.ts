@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getModel, getOpenAIClient } from "@/lib/ai";
+import { generateJson, parseJsonLoose } from "@/lib/ai";
 
 export async function POST(request: Request) {
   try {
@@ -28,15 +28,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Faltan datos del borrador." }, { status: 400 });
     }
 
-    const client = getOpenAIClient();
-    const completion = await client.chat.completions.create({
-      model: getModel(),
-      temperature: 0.7,
-      response_format: { type: "json_object" },
-      messages: [
-        {
-          role: "system",
-          content: `Eres un compañero creativo. Armas un borrador listo para grabar (short-form).
+    const prompt = `Eres un compañero creativo. Armas un borrador listo para grabar (short-form).
 Idioma: español. Sin relleno tipo "¡claro!". Sin promesas de viralidad.
 Responde SOLO JSON:
 {
@@ -51,13 +43,13 @@ Responde SOLO JSON:
 Si format es "script": beats puede ser [].
 Si format es "beats": scriptBody puede ser "".
 Si format es "both": llena script y beats alineados.
-4–7 beats típicos para un short.`,
-        },
-        {
-          role: "user",
-          content: `Contexto del creador:\n${profileContext || "No especificado"}
+4–7 beats típicos para un short.
 
-Idea:\n${ideaText.trim()}
+Contexto del creador:
+${profileContext || "No especificado"}
+
+Idea:
+${ideaText.trim()}
 
 Enfoque elegido:
 - Nombre: ${direction.name}
@@ -67,26 +59,16 @@ Enfoque elegido:
 - Por qué: ${direction.why}
 
 Ajuste del creador: ${adjustment?.trim() || "Ninguno"}
-Formato pedido: ${format}`,
-        },
-      ],
-    });
+Formato pedido: ${format}`;
 
-    const raw = completion.choices[0]?.message?.content;
-    if (!raw) {
-      return NextResponse.json(
-        { error: "No pude crear el borrador. Intenta de nuevo." },
-        { status: 502 }
-      );
-    }
-
-    const parsed = JSON.parse(raw) as {
+    const raw = await generateJson(prompt);
+    const parsed = parseJsonLoose<{
       hook: string;
       scriptBody: string;
       closing: string;
       beats: Array<{ say: string; show: string; notes?: string }>;
       estimatedSeconds: number;
-    };
+    }>(raw);
 
     return NextResponse.json({ draft: parsed });
   } catch (err) {

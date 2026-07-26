@@ -2,7 +2,7 @@
 
 **Fecha:** 26 de julio de 2026  
 **Nombre:** Creator OS (provisional)  
-**Versión:** **0.1.0**  
+**Versión:** **0.1.1**  
 **Fase:** Primer build para Usuario 1 (dogfooding)
 
 ---
@@ -14,9 +14,14 @@
 | App | **Next.js** (App Router) + TypeScript | Web móvil-first rápida de iterar; una sola codebase |
 | UI | React + CSS modules / CSS variables | Simple, sin design system pesado |
 | Datos (fase dogfood) | **localStorage** + capa `storage` abstraída | Cero setup de DB para empezar a usar hoy; migrable |
-| IA | API route server-side + **OpenAI-compatible** (`OPENAI_API_KEY` o compatible) | Generar 3 enfoques + borrador; clave solo en servidor |
+| IA | **Google Gemini** (API gratuita AI Studio, `GEMINI_API_KEY`) | Dogfooding sin coste; OpenAI queda fuera del stack por defecto |
 | Auth | Ninguna en dogfood local | Un solo usuario (tú); añadir después si hace falta |
-| Deploy | Vercel (cuando quieras usarlo en el teléfono) | HTTPS + PWA-friendly |
+| Deploy | Vercel free (cuando quieras usarlo en el teléfono) | HTTPS + PWA-friendly |
+
+### Principio de coste
+
+> Stack de dogfooding = **gratis**: localStorage, Next.js local / Vercel hobby, Gemini free tier.  
+> Los free tiers tienen límites de ritmo; si se saturan, esperamos o cambiamos de modelo gratis — no metemos billing de OpenAI por defecto.
 
 ### Principios técnicos alineados al producto
 
@@ -32,14 +37,16 @@ Código en **`web/`** (Next.js).
 ```bash
 cd web
 npm install
-cp .env.example .env.local   # añade OPENAI_API_KEY
+cp .env.example .env.local   # añade GEMINI_API_KEY (gratis en aistudio.google.com)
 npm run dev
 ```
 
 
 ### Fuera de v1 tech (pero no descartado)
 
-Ver `BRAND_AND_ROADMAP.md`: voz, memoria de piezas, YT largo, miniaturas, agente async, analytics, multi-red.
+Ver `BRAND_AND_ROADMAP.md`: voz, memoria de piezas, YT largo, miniaturas, agente async, analytics, multi-red, **n8n como capa de automatización** (self-host / webhooks; no UI del loop creativo).
+
+**Decisión:** n8n **no** entra en v0.1. Posibilidad fuerte para pipelines post–listo-para-grabar y orquestación futura.
 
 ---
 

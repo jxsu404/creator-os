@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getModel, getOpenAIClient } from "@/lib/ai";
+import { generateJson, parseJsonLoose } from "@/lib/ai";
 
 export async function POST(request: Request) {
   try {
@@ -13,15 +13,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Falta la idea." }, { status: 400 });
     }
 
-    const client = getOpenAIClient();
-    const completion = await client.chat.completions.create({
-      model: getModel(),
-      temperature: 0.85,
-      response_format: { type: "json_object" },
-      messages: [
-        {
-          role: "system",
-          content: `Eres un compañero creativo para creadores de TikTok/Reels/Shorts.
+    const prompt = `Eres un compañero creativo para creadores de TikTok/Reels/Shorts.
 Generas exactamente 3 enfoques DISTINTOS para convertir una idea vaga en un video short-form.
 Cada enfoque debe diferir en ángulo, promesa y/o tono (no tres títulos del mismo video).
 Formato vertical corto (30–60s aprox). Idioma: español.
@@ -37,24 +29,16 @@ Responde SOLO JSON válido con esta forma:
     }
   ]
 }
-Sin introducción, sin viralidad garantizada, sin clichés forzados del nicho.`,
-        },
-        {
-          role: "user",
-          content: `Contexto del creador:\n${profileContext || "No especificado"}\n\nIdea:\n${ideaText.trim()}`,
-        },
-      ],
-    });
+Sin introducción, sin viralidad garantizada, sin clichés forzados del nicho.
 
-    const raw = completion.choices[0]?.message?.content;
-    if (!raw) {
-      return NextResponse.json(
-        { error: "No pude armar buenos enfoques. Intenta de nuevo." },
-        { status: 502 }
-      );
-    }
+Contexto del creador:
+${profileContext || "No especificado"}
 
-    const parsed = JSON.parse(raw) as {
+Idea:
+${ideaText.trim()}`;
+
+    const raw = await generateJson(prompt);
+    const parsed = parseJsonLoose<{
       directions: Array<{
         name: string;
         promise: string;
@@ -62,7 +46,7 @@ Sin introducción, sin viralidad garantizada, sin clichés forzados del nicho.`,
         hook: string;
         why: string;
       }>;
-    };
+    }>(raw);
 
     if (!parsed.directions || parsed.directions.length < 3) {
       return NextResponse.json(

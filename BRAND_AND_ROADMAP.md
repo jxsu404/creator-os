@@ -175,6 +175,7 @@ Ordenadas por cercanía conceptual al core. **No son compromiso de fechas** — 
 | **Memoria profunda de estilo y hits** | Aprende qué funcionó para *este* creador | Privacidad; sobreajuste; promesas de IA infladas |
 | **Frases / capa motivacional** | Apoyo emocional a la constancia | Teatro; diferenciación débil; acordado como **no-core** |
 | **Dashboard de progreso creativo** | Ver ideas avanzando, piezas en curso | App genérica de creador; complejidad |
+| **n8n (automatizaciones / orquestación)** | Motor fair-code self-hostable para pipelines: post-grabar, multi-app, agente async, webhooks. **Detrás del producto**, no como UI del creador | Ops (Docker/host); complejidad; licencia fair-code si se empaqueta en SaaS; diluir simplicidad si se expone al usuario |
 
 ### Visión lejana (ciclo completo idea → resultados)
 
@@ -185,6 +186,7 @@ Ordenadas por cercanía conceptual al core. **No son compromiso de fechas** — 
 | **Capa multi-red (“todas tus redes”)** | Un solo lugar de verdad para el creador | Scope explosivo; producto tibio en todo |
 | **Tips de crecimiento personalizados** | Empoderar con criterio, no con tips genéricos | Ruido; pérdida de foco creativo |
 | **Calendario / programación de publicación** | Del “listo para grabar” al “publicado” | Territory de Buffer/Later; diluye el wedge |
+| **Automatizaciones con n8n** (publicar, avisar, sync) | Encaja muy bien cuando el loop creativo ya enamora; conecta Creator OS con redes y tools | No meterlo en v0.1; el creador no debe “aprender n8n” |
 | **Colaboración / equipos / agencias** | Escalar el uso | Pierde intimidad del “compañero personal” |
 | **YouTube largo u otros formatos** | Expandir mercado; ya previsto como posibilidad (Usuario 1) | Rompe el flujo optimizado para short-form si se prioriza demasiado pronto |
 | **Ayuda a miniaturas / creatividades** | Posibilidad post-guion (Usuario 1 hoy usa ChatGPT para thumbs) | Guerra de diseño gráfico; fuera del companion de guion |
@@ -209,10 +211,10 @@ PRÓXIMO
   Voz · estilo · memoria ligera · investigación acotada
 
 DESPUÉS
-  Asistente conversacional · agente async · motivación ligera
+  Asistente conversacional · agente async · motivación ligera · n8n (orquestación)
 
 VISIÓN
-  Publicar · multi-red · stats · aprendizaje continuo · ciclo completo
+  Publicar · multi-red · stats · aprendizaje · automatizaciones (n8n detrás)
 ```
 
 ---

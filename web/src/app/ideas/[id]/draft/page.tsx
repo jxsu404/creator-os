@@ -105,13 +105,13 @@ function DraftPreview() {
           },
         }),
       });
-      const data = await safeJson(res);
+      const data = await safeAiJson(res);
       if (!res.ok) {
         if (res.status === 402 || isUsageLimitPayload(data)) {
           setNeedsUpgrade(true);
           trackFunnel("hit_limit");
         }
-        throw new Error(apiError(data));
+        throw new Error(aiResponseError(data));
       }
       void applyGenerationBilling(
         data && typeof data === "object" && "billing" in data

@@ -12,35 +12,11 @@ import { applyGenerationBilling } from "@/lib/apply-generation-billing";
 import { createId } from "@/lib/id";
 import { ideaPreview } from "@/lib/idea-preview";
 import { trackFunnel } from "@/lib/metrics";
-import { profileContextFor } from "@/lib/profile-context";
+import { aiResponseError, safeAiJson } from "@/lib/fetch-ai-json";
+import { ideaAiContext } from "@/lib/idea-ai-context";
 import { buildUnifiedScript } from "@/lib/script";
-import { getIdea, getProfile, upsertIdea } from "@/lib/storage";
+import { getIdea, upsertIdea } from "@/lib/storage";
 import type { Direction, Idea } from "@/lib/types";
-
-function ideaAiContext(idea: Idea) {
-  const profile = getProfile();
-  if (!profile) return "";
-  return profileContextFor(profile, {
-    gameId: idea.gameId,
-    contentAngle: idea.contentAngle,
-  });
-}
-
-async function safeJson(res: Response): Promise<unknown> {
-  const text = await res.text();
-  try {
-    return JSON.parse(text);
-  } catch {
-    throw new Error("No pude conectar. Intenta de nuevo.");
-  }
-}
-
-function apiError(data: unknown): string {
-  if (data && typeof data === "object" && "error" in data) {
-    return String((data as { error?: unknown }).error) || "Error";
-  }
-  return "Error";
-}
 
 function DirectionsFlow() {
   const params = useParams();
@@ -96,13 +72,13 @@ function DirectionsFlow() {
           profileContext: ideaAiContext(current),
         }),
       });
-      const data = await safeJson(res);
+      const data = await safeAiJson(res);
       if (!res.ok) {
         if (res.status === 402 || isUsageLimitPayload(data)) {
           setNeedsUpgrade(true);
           trackFunnel("hit_limit");
         }
-        throw new Error(apiError(data));
+        throw new Error(aiResponseError(data));
       }
       void applyGenerationBilling(
         data && typeof data === "object" && "billing" in data
@@ -179,13 +155,13 @@ function DirectionsFlow() {
           direction: selected,
         }),
       });
-      const data = await safeJson(res);
+      const data = await safeAiJson(res);
       if (!res.ok) {
         if (res.status === 402 || isUsageLimitPayload(data)) {
           setNeedsUpgrade(true);
           trackFunnel("hit_limit");
         }
-        throw new Error(apiError(data));
+        throw new Error(aiResponseError(data));
       }
       void applyGenerationBilling(
         data && typeof data === "object" && "billing" in data

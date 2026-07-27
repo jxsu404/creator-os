@@ -1,4 +1,4 @@
--- Creator OS v1.5 — schema Supabase
+-- Ideazo v1.5 — schema Supabase (repo: creator-os)
 -- Prefer applying via MCP `apply_migration` or: Dashboard → SQL Editor → Run
 
 create table if not exists public.creator_profiles (

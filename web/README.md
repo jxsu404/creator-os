@@ -1,6 +1,6 @@
-# Creator OS — app (provisional)
+# Ideazo — app
 
-Compañero creativo: idea → 3 enfoques → guía/guion listo para grabar.
+De idea a listo para grabar. (Repo técnico: creator-os)
 
 ## Setup local
 

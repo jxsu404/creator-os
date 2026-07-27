@@ -130,7 +130,7 @@ function LoginForm() {
       <div className="auth-screen">
         <div className="auth-atmosphere" aria-hidden />
         <main className="auth-panel">
-          <p className="auth-brand">Creator OS</p>
+          <p className="auth-brand">Ideazo</p>
           <h1 className="auth-headline">Falta configurar la cuenta</h1>
           <p className="auth-sub">
             Añade las variables de Supabase en el entorno y vuelve a cargar.
@@ -145,7 +145,7 @@ function LoginForm() {
       <div className="auth-screen">
         <div className="auth-atmosphere" aria-hidden />
         <main className="auth-panel auth-panel-center">
-          <p className="auth-brand">Creator OS</p>
+          <p className="auth-brand">Ideazo</p>
           <p className="auth-sub">Preparando tu sesión…</p>
         </main>
       </div>
@@ -159,7 +159,7 @@ function LoginForm() {
 
       <main className="auth-panel">
         <header className="auth-top">
-          <p className="auth-brand">Creator OS</p>
+          <p className="auth-brand">Ideazo</p>
           <p className="auth-kicker">Para creadores de TikTok, Reels y Shorts</p>
         </header>
 
@@ -312,7 +312,7 @@ export default function LoginPage() {
         <div className="auth-screen">
           <div className="auth-atmosphere" aria-hidden />
           <main className="auth-panel auth-panel-center">
-            <p className="auth-brand">Creator OS</p>
+            <p className="auth-brand">Ideazo</p>
             <p className="auth-sub">Cargando…</p>
           </main>
         </div>

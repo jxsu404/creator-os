@@ -1,9 +1,9 @@
-# Product System — Creator OS (v1)
+# Product System — Ideazo (v1)
 
-**Nombre provisional:** Creator OS  
-**Fecha:** 26 de julio de 2026  
-**Estado:** Sistema de producto (pre-código)  
-**Documentos hermanos:** `PRODUCT_VISION.md` · `BRAND_AND_ROADMAP.md` · `BRAND_VOICE.md`
+**Nombre de marca:** Ideazo  
+**Fecha:** 27 de julio de 2026  
+**Estado:** Sistema de producto  
+**Documentos hermanos:** `PRODUCT_VISION.md` · `BRAND_AND_ROADMAP.md` · `BRAND_VOICE.md` · `NAMING.md`
 
 Este documento concreta **cómo funciona el loop** en la práctica: estados, calidad de las 3 direcciones, estructura del borrador y escenarios reales.
 
@@ -134,7 +134,7 @@ Todo editable en el **guion unificado** del creador. La vista previa de la IA es
 
 ## 4. Home mínimo (continuidad, no dashboard)
 
-Al abrir Creator OS, el creador ve como máximo:
+Al abrir Ideazo, el creador ve como máximo:
 
 1. **Acción primaria:** Capturar idea  
 2. **Continuar:** ideas `En curso` (la más reciente primero)  
@@ -149,7 +149,7 @@ Sin frases motivacionales, sin rankings, sin stats.
 
 ### Escenario 0 — Primera entrada (contexto)
 
-**Quién:** Maya, nueva en Creator OS.  
+**Quién:** Maya, nueva en Ideazo.  
 **Flujo**
 1. Abre la app por primera vez.
 2. Ve una pantalla: *“¿De qué va tu contenido?”*
@@ -167,7 +167,7 @@ Sin frases motivacionales, sin rankings, sin stats.
 **Contexto:** Sale del gym. Se le ocurre: “la gente falla el press no por fuerza, sino por escápulas”.
 
 **Flujo**
-1. Abre Creator OS en el móvil.
+1. Abre Ideazo en el móvil.
 2. Toca Capturar → escribe 2 frases torpes (texto; más adelante sería voz).
 3. Guarda. Estado: **Capturada**.
 4. Sigue con su día. No “trabaja” la idea ahora.

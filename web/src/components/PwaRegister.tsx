@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-/** Registra el service worker para poder instalar Creator OS como PWA. */
+/** Registra el service worker para poder instalar Ideazo como PWA. */
 export function PwaRegister() {
   useEffect(() => {
     if (typeof window === "undefined") return;

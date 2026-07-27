@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Marca pública: **Ideazo** (repo técnico sigue `creator-os`)
+- Tagline de trabajo: *De idea a listo para grabar.*
+
 ## 0.1.1 — 2026-07-26
 
 - IA: OpenAI → **Gemini** (stack gratis / AI Studio)
@@ -9,9 +14,9 @@
 
 ## 0.1.0 — 2026-07-26
 
-Primera versión pública de Creator OS.
+Primera versión pública (entonces llamada Creator OS; marca actual: Ideazo).
 
 - Visión de producto, sistema, voz de marca, UX brief y roadmap
 - App web (`web/`): onboarding de nicho → captura → 3 enfoques → borrador → lista para grabar
 - Persistencia local (localStorage) + generación con API OpenAI-compatible
-- Nombre de proyecto provisional: Creator OS
+- Nombre de proyecto técnico: creator-os

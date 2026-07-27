@@ -15,13 +15,12 @@ const syne = Syne({
 });
 
 export const metadata: Metadata = {
-  title: "Creator OS",
-  description:
-    "Compañero creativo: de idea vaga a guía lista para grabar.",
-  applicationName: "Creator OS",
+  title: "Ideazo",
+  description: "De idea a listo para grabar.",
+  applicationName: "Ideazo",
   appleWebApp: {
     capable: true,
-    title: "Creator OS",
+    title: "Ideazo",
     statusBarStyle: "black-translucent",
   },
   formatDetection: {

@@ -1,15 +1,15 @@
-# Brand Voice — Creator OS
+# Brand Voice — Ideazo
 
-**Nombre provisional:** Creator OS  
-**Fecha:** 26 de julio de 2026  
-**Estado:** Tono de marca / copy del compañero (pre-código)  
-**Documentos hermanos:** `PRODUCT_VISION.md` · `PRODUCT_SYSTEM.md` · `BRAND_AND_ROADMAP.md`
+**Nombre de marca:** Ideazo  
+**Fecha:** 27 de julio de 2026  
+**Estado:** Tono de marca / copy del compañero  
+**Documentos hermanos:** `PRODUCT_VISION.md` · `PRODUCT_SYSTEM.md` · `BRAND_AND_ROADMAP.md` · `NAMING.md`
 
 ---
 
 ## 1. En una frase
 
-> Creator OS habla como un colaborador creativo claro y directo: propone opciones, quita peso y respeta tu criterio — nunca como un coach motivacional ni como un robot corporativo.
+> Ideazo habla como un colaborador creativo claro y directo: propone opciones, quita peso y respeta tu criterio — nunca como un coach motivacional ni como un robot corporativo.
 
 ---
 
@@ -50,7 +50,7 @@
 | Editar / personalizar | “Generar magia con IA” |
 | Compañero / asistente (con cuidado) | Coach, guru, sistema operativo (en UI) |
 
-> “Creator OS” puede ser el nombre del producto; en la UI preferimos lenguaje humano del loop, no “abrir el OS”.
+> “Ideazo” es la marca; en la UI preferimos lenguaje del loop (idea, enfoques, listo para grabar). El nombre aparece como wordmark, no como jerga.
 
 ---
 

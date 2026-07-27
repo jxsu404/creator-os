@@ -1,7 +1,8 @@
-# Tech — Creator OS (v1)
+# Tech — Ideazo (v1)
 
-**Fecha:** 26 de julio de 2026  
-**Nombre:** Creator OS (provisional)  
+**Fecha:** 27 de julio de 2026  
+**Nombre de marca:** Ideazo  
+**Repo técnico:** creator-os  
 **Versión:** **0.1.1**  
 **Fase:** App pública en Vercel (cuentas por usuario)
 

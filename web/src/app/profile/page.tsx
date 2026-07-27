@@ -259,7 +259,7 @@ function ProfileHub() {
             <span className="plan-badge">Plan gratuito</span>
           </div>
           <p className="muted plan-card-lead">
-            Capacidad de IA incluida en Creator OS. Cuando se agote, se
+            Capacidad de IA incluida en Ideazo. Cuando se agote, se
             recarga sola.
           </p>
 
@@ -284,7 +284,7 @@ function ProfileHub() {
           <p className="plan-meter-meta">{capacityLabel}</p>
 
           <div className="plan-pro-teaser">
-            <p className="plan-pro-title">Próximamente · Creator OS Pro</p>
+            <p className="plan-pro-title">Próximamente · Ideazo Pro</p>
             <p className="plan-pro-desc">
               Más potencia y más capacidad para crear sin frenar.
             </p>

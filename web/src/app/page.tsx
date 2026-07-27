@@ -181,7 +181,7 @@ function HomeHub() {
     ...recorded.map((idea) => ({
       key: idea.id,
       title: ideaTitle(idea, 80),
-      meta: "En Creator OS",
+      meta: "En Ideazo",
       href: ideaHref(idea),
     })),
   ].slice(0, 6);

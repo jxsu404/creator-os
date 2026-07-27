@@ -4,21 +4,19 @@
 ## Tipo
 - [ ] Feature
 - [ ] Fix
-- [ ] Docs / proceso / CI
+- [ ] Docs / agentes / CI
 - [ ] Marca / copy
 
 ## Checklist
 - [ ] **1 tarea** — este PR hace una sola cosa
-- [ ] Parte de `main` actualizado (no de otra feature branch vieja)
+- [ ] Parte de `main` actualizado
 - [ ] No toqué archivos fuera del alcance
 - [ ] Sin marcadores de conflicto (`<<<<<<<`)
-- [ ] No gasto API keys de más (preferir stock/cache si aplica)
+- [ ] No gasto API keys de más (preferir stock/cache; no `/api/generate-*` salvo necesidad)
 - [ ] Probé el flujo tocado (o expliqué por qué no)
 
 ## Verificación
-- [ ] `cd web && npm run lint`
-- [ ] `cd web && npm run typecheck`
-- [ ] `cd web && npm run test`
+- [ ] `cd web && npm run verify`
 - [ ] Preview Vercel OK (si aplica UI)
 
 ## Notas / riesgos

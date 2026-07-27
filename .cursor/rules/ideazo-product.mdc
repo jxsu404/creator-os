@@ -1,0 +1,13 @@
+---
+description: Ideazo product invariants — loop, scope, brand, no tomas
+alwaysApply: true
+---
+
+# Ideazo product
+
+- Public brand: **Ideazo**. Technical repo: `creator-os`.
+- Core loop: capture idea → 3 distinct enfoques → spoken guía → listo para grabar.
+- Guía = hook + guion + cierre only. **Do not generate or show tomas / camera plans / beats.** Keep `beats: []` for legacy localStorage only.
+- Spanish natural copy. Prefer: idea, enfoque/dirección, guía, listo para grabar.
+- v1 anti-scope: no dashboard, no chat-first UI, no calendar, no video editor, no analytics.
+- Do not invent features that dilute the wedge. Read `PRODUCT_SYSTEM.md` / `PRODUCT_VISION.md` before expanding scope.

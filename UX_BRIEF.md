@@ -178,7 +178,7 @@ Retomar: Home → Continuar (En curso) → Borrador → Listo.
 **Trabajo:** revisar + ajustes con IA.
 
 **Elementos**
-- Vista previa solo lectura (hook, guion, cierre, tomas sugeridas)
+- Vista previa solo lectura (hook, guion, cierre — sin tomas)
 - Panel **Ajustes con IA**
 - CTA: **Continuar** → pantalla de guion editable
 
@@ -242,7 +242,7 @@ El brief se cumple si:
 - [ ] Un usuario nuevo completa contexto en una pantalla y llega al Home
 - [ ] Puede capturar una idea en &lt; 3 taps desde Home
 - [ ] Ve 3 enfoques distintos y elige uno sin tutorial
-- [ ] Obtiene borrador en el formato que eligió y lo edita
+- [ ] Obtiene la guía (hook + guion + cierre) y la edita
 - [ ] Marca “Lista para grabar” y lo ve reflejado en Home
 - [ ] No encuentra dashboard motivacional, analytics ni chat como camino principal
 - [ ] “Mi contenido” permite cambiar el nicho

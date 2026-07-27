@@ -123,7 +123,7 @@ La inteligencia artificial debe sentirse como **compañero creativo que aprende 
 
 ### Entregable “listo para grabar”
 
-- Por idea: guion palabra por palabra **o** guía por beats **o** ambos
+- Por idea: **guía hablada** (hook + guion + cierre). Sin tomas / beats.
 
 ### Reformulación de “organizar”
 
@@ -144,7 +144,7 @@ La inteligencia artificial debe sentirse como **compañero creativo que aprende 
 Ver detalle completo en `PRODUCT_VISION.md`.
 
 **Loop esencial:**  
-Capturar idea → 3 direcciones → elegir/personalizar → borrador (guion/guía/ambos) → editar → marcar lista para grabar.
+Capturar idea → 3 direcciones → elegir/personalizar → guía (hook + guion + cierre) → editar → marcar lista para grabar.
 
 **Home mínimo:** continuidad creativa (capturar / retomar / listas para grabar) — **no** dashboard motivacional.
 

@@ -55,7 +55,7 @@ No hay proyectos, boards ni segundo cerebro. Solo ideas que avanzan (o no) hacia
 | Estado | Significa | El creador puede… |
 |---|---|---|
 | **Capturada** | Hay una chispa guardada; aún no se eligió dirección | Verla, editar el texto crudo, iniciar “3 direcciones” |
-| **En curso** | Ya hay dirección elegida y/o borrador en marcha | Seguir editando, regenerar borrador, cambiar formato (guion/guía/ambos) |
+| **En curso** | Ya hay dirección elegida y/o borrador en marcha | Seguir editando, regenerar borrador / ajustes con IA |
 | **Lista para grabar** | El creador declara: “ya puedo grabar con esto” | Abrir guion; marcar **Ya lo grabé** o **Descartar** |
 | **Grabada** | Ya se grabó; sale de “Listas para grabar” | Ver guion; volver a lista; archivar |
 | **Archivada** | No se hará (o ya no importa) | Restaurar a Capturada si vuelve el interés |
@@ -120,13 +120,13 @@ Esa frase condiciona el borrador. No abrimos un cuestionario.
 
 ## 3. Estructura del entregable “listo para grabar”
 
-Siempre una **guía para grabar** (sin elegir formato):
+Siempre una **guía para grabar** (sin elegir formato, **sin tomas**):
 
 1. **Hook** — primeros segundos
-2. **Guion** — palabra por palabra (+ cierre)
-3. **Tomas sugeridas** — plan de cámara (qué decir / qué mostrar), alineado al guion
+2. **Guion** — palabra por palabra
+3. **Cierre** — CTA verbal
 
-Todo editable en el **guion unificado** del creador. La vista previa de la IA es de solo lectura; los cambios estructurales van por **ajustes con IA**.
+Todo editable en el **guion unificado** del creador. La vista previa de la IA es de solo lectura; los cambios estructurales van por **ajustes con IA**. No generamos plan de cámara ni beats.
 
 “Listo para grabar” es una **declaración del creador**, no un sello de la IA.
 
@@ -190,9 +190,8 @@ Sin frases motivacionales, sin rankings, sin stats.
    - *Historia de cliente* — transformación en 1 detalle técnico (story)
    - *Reto 10 segundos* — prueba esto ahora en cámara (participativo)
 3. Elige *Error invisible*. Ajusta: “Más calle, menos técnico”.
-4. Elige formato: **Ambos**.
-5. Recibe hook + beats + guion. Edita 2 frases del hook para que suene a ella.
-6. Marca **Lista para grabar**.
+4. Recibe guía (hook + guion + cierre). Edita 2 frases del hook para que suene a ella.
+5. Marca **Lista para grabar**.
 
 **Éxito:** mañana graba sin pensar la estructura desde cero. Tiempo total de claridad: minutos, no una hora.
 

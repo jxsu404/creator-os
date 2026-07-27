@@ -9,6 +9,7 @@ import {
   isUsageLimitPayload,
   UpgradePrompt,
 } from "@/components/UpgradePrompt";
+import { applyGenerationBilling } from "@/lib/apply-generation-billing";
 import { trackFunnel } from "@/lib/metrics";
 import { profileContextFor } from "@/lib/profile-context";
 import { buildUnifiedScript } from "@/lib/script";
@@ -120,6 +121,7 @@ function DraftPreview() {
         }
         throw new Error(data.error || "Error");
       }
+      void applyGenerationBilling(data.billing);
       const draftPayload = data.draft;
       if (!draftPayload?.hook?.trim() || !draftPayload?.scriptBody?.trim()) {
         throw new Error("La guía llegó incompleta. Intenta de nuevo.");

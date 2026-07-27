@@ -5,8 +5,8 @@ import { normalizeTips } from "@/lib/tips-context";
 
 export async function POST(request: Request) {
   try {
-    const denied = await gateAiGeneration();
-    if (denied) return denied;
+    const gate = await gateAiGeneration();
+    if (gate.blocked) return gate.blocked;
 
     const body = await request.json();
     const { profileContext, recentContent } = body as {
@@ -62,7 +62,7 @@ ${recentContent?.trim() || "Ninguno aún — personaliza solo con el nicho."}`;
       );
     }
 
-    return NextResponse.json({ tips });
+    return NextResponse.json({ tips, billing: gate.billing });
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Error al generar consejos.";

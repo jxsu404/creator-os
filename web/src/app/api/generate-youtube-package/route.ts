@@ -5,8 +5,8 @@ import { normalizeYoutubePackages } from "@/lib/youtube-package";
 
 export async function POST(request: Request) {
   try {
-    const denied = await gateAiGeneration();
-    if (denied) return denied;
+    const gate = await gateAiGeneration();
+    if (gate.blocked) return gate.blocked;
 
     const body = await request.json();
     const {
@@ -106,6 +106,7 @@ ${(script || "").trim().slice(0, 6000)}`;
     const generatedAt = new Date().toISOString();
     return NextResponse.json({
       packages: packages.map((p) => ({ ...p, generatedAt })),
+      billing: gate.billing,
     });
   } catch (err) {
     const message =

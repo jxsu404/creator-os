@@ -5,6 +5,7 @@ import {
   isUsageLimitPayload,
   UpgradePrompt,
 } from "@/components/UpgradePrompt";
+import { applyGenerationBilling } from "@/lib/apply-generation-billing";
 import type { Idea, YoutubeUploadPackage } from "@/lib/types";
 
 type Props = {
@@ -69,6 +70,7 @@ export function YoutubePackagePanel({
         }
         throw new Error(data.error || "Error al generar");
       }
+      void applyGenerationBilling(data.billing);
       const list = Array.isArray(data.packages)
         ? (data.packages as YoutubeUploadPackage[])
         : [];

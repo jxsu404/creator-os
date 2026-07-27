@@ -8,6 +8,7 @@ import {
   isUsageLimitPayload,
   UpgradePrompt,
 } from "@/components/UpgradePrompt";
+import { applyGenerationBilling } from "@/lib/apply-generation-billing";
 import { createId } from "@/lib/id";
 import { ideaPreview } from "@/lib/idea-preview";
 import { trackFunnel } from "@/lib/metrics";
@@ -81,6 +82,7 @@ function DirectionsFlow() {
         }
         throw new Error(data.error || "Error");
       }
+      void applyGenerationBilling(data.billing);
       const directions: Direction[] = data.directions.map(
         (d: Omit<Direction, "id">) => ({
           ...d,
@@ -151,6 +153,7 @@ function DirectionsFlow() {
         }
         throw new Error(data.error || "Error");
       }
+      void applyGenerationBilling(data.billing);
       const draftPayload = data.draft;
       if (!draftPayload?.hook?.trim() || !draftPayload?.scriptBody?.trim()) {
         throw new Error("La guía llegó incompleta. Intenta de nuevo.");

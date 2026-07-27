@@ -9,6 +9,11 @@ import { RequireOnboarding } from "@/components/RequireOnboarding";
 import type { BillingSnapshot } from "@/lib/billing/plans";
 import { FREE_MONTHLY_GENERATIONS } from "@/lib/billing/plans";
 import { paypalDonateUrl, SUPPORT_PATH } from "@/lib/donations";
+import {
+  mergeUsageForDisplay,
+  syncLocalUsageFromServer,
+  USAGE_EVENT,
+} from "@/lib/local-usage";
 import { hasGamingNiche, withUser1Defaults } from "@/lib/profile-context";
 import { getProfile } from "@/lib/storage";
 import { isCloudSyncEnabled, onSynced } from "@/lib/sync";
@@ -124,25 +129,53 @@ function ProfileHub() {
         const res = await fetch("/api/billing/status", { cache: "no-store" });
         if (!res.ok) return;
         const data = await res.json();
-        if (!cancelled) {
-          setBilling(data.billing || null);
+        if (cancelled) return;
+        const server = (data.billing || null) as BillingSnapshot | null;
+        if (server && user?.id) {
+          syncLocalUsageFromServer(user.id, server.used, server.month);
         }
+        setBilling(mergeUsageForDisplay(user?.id, server));
       } catch {
-        /* ignore */
+        if (!cancelled && user?.id) {
+          setBilling(mergeUsageForDisplay(user.id, null));
+        }
       }
     }
 
     void loadAi();
     void loadBilling();
-    const poll = window.setInterval(() => {
-      void loadAi();
+
+    const onUsage = (ev: Event) => {
+      const detail = (ev as CustomEvent<BillingSnapshot | null>).detail;
+      if (detail) {
+        if (user?.id) {
+          syncLocalUsageFromServer(user.id, detail.used, detail.month);
+        }
+        setBilling(mergeUsageForDisplay(user?.id, detail));
+      } else {
+        void loadBilling();
+      }
+    };
+
+    const onFocus = () => {
       void loadBilling();
-    }, 15_000);
+      void loadAi();
+    };
+
+    window.addEventListener(USAGE_EVENT, onUsage);
+    window.addEventListener("focus", onFocus);
+    const poll = window.setInterval(() => {
+      void loadBilling();
+      void loadAi();
+    }, 5_000);
+
     return () => {
       cancelled = true;
       window.clearInterval(poll);
+      window.removeEventListener(USAGE_EVENT, onUsage);
+      window.removeEventListener("focus", onFocus);
     };
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     const hasCooldown =
@@ -168,6 +201,7 @@ function ProfileHub() {
     "Añade una descripción de tu canal.";
   const showGames = hasGamingNiche(profile);
   const gameLabel = shortGame(profile.gameBrief?.name);
+  const usage = mergeUsageForDisplay(user?.id, billing);
   const donateUrl = paypalDonateUrl();
 
   void tick;
@@ -192,21 +226,27 @@ function ProfileHub() {
     .filter((p) => !p.available && p.remainingMs > 0)
     .sort((a, b) => a.remainingMs - b.remainingMs)[0];
 
+  // Medidor del plan = % GASTADO del cupo mensual de ESTE usuario
   let capacityPercent = 0;
-  let capacityLabel = "Cargando estado…";
+  let capacityLabel = "Cargando tu cupo…";
   let capacityState: "loading" | "ready" | "recharge" | "offline" = "loading";
+  let providerNote: string | null = null;
 
-  if (billing) {
+  if (usage) {
     capacityPercent = clampPercent(
-      billing.limit > 0 ? (100 * billing.remaining) / billing.limit : 0
+      usage.limit > 0 ? (100 * usage.used) / usage.limit : 0
     );
-    capacityLabel = `${billing.used}/${billing.limit} generaciones este mes`;
+    capacityLabel = `${usage.used}/${usage.limit} generaciones usadas este mes`;
     capacityState =
-      billing.remaining <= 0
+      usage.remaining <= 0
         ? "offline"
-        : billing.remaining <= Math.ceil(billing.limit * 0.2)
+        : usage.remaining <= Math.ceil(usage.limit * 0.2)
           ? "recharge"
           : "ready";
+  } else if (user) {
+    capacityPercent = 0;
+    capacityLabel = "Cargando tu cupo…";
+    capacityState = "loading";
   } else if (!aiStatus) {
     capacityPercent = 0;
     capacityLabel = "Cargando estado…";
@@ -215,27 +255,16 @@ function ProfileHub() {
     capacityPercent = 0;
     capacityLabel = "IA no disponible en este entorno";
     capacityState = "offline";
-  } else if (anyAvailable) {
-    capacityPercent = 100;
-    capacityLabel = "Capacidad del plan disponible";
-    capacityState = "ready";
-  } else if (nextCooling) {
-    const windowMs = Math.max(
-      cooldownWindowMs.current,
-      nextCooling.remainingMs,
-      1
-    );
-    capacityPercent = clampPercent(
-      100 * (1 - nextCooling.remainingMs / windowMs)
-    );
-    capacityLabel = `Proveedor recargando · ${
-      nextCooling.remainingLabel || "…"
-    }`;
-    capacityState = "recharge";
   } else {
     capacityPercent = 0;
-    capacityLabel = "Capacidad agotada por ahora";
-    capacityState = "offline";
+    capacityLabel = `Plan Free · hasta ${FREE_MONTHLY_GENERATIONS}/mes al iniciar sesión`;
+    capacityState = "ready";
+  }
+
+  if (anyConfigured && !anyAvailable && nextCooling) {
+    providerNote = `Proveedor IA recargando · ${
+      nextCooling.remainingLabel || "…"
+    }`;
   }
 
   return (
@@ -317,6 +346,9 @@ function ProfileHub() {
             </span>
           </div>
           <p className="plan-meter-meta">{capacityLabel}</p>
+          {providerNote ? (
+            <p className="muted plan-meter-meta">{providerNote}</p>
+          ) : null}
 
           <div className="plan-pro-teaser">
             <p className="plan-pro-title">Apoya Ideazo</p>

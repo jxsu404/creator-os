@@ -7,6 +7,7 @@ import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/components/AuthProvider";
 import { LandingPage } from "@/components/LandingPage";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
+import { applyGenerationBilling } from "@/lib/apply-generation-billing";
 import { quoteForSession, tipsForSession, type HomeTip } from "@/lib/home-copy";
 import { ideaHref } from "@/lib/idea-href";
 import { backfillIdeaTitles, ideaTitle } from "@/lib/idea-title";
@@ -134,6 +135,7 @@ function HomeHub() {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Error");
+        void applyGenerationBilling(data.billing);
         const next = normalizeTips(data.tips);
         if (next.length < 3) throw new Error("tips incompletos");
         if (cancelled) return;

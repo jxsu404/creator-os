@@ -5,7 +5,7 @@ import type { Idea } from "@/lib/types";
 
 /**
  * Miniatura de idea:
- * 1) `thumbnailUrl` si el usuario generó/subió una propia (IA futura)
+ * 1) `thumbnailUrl` si el usuario generó/subió una propia (IA)
  * 2) imagen fija de la categoría
  */
 export function IdeaThumb({

@@ -13,6 +13,7 @@ type Props = {
   script: string;
   profileContext: string;
   onSave: (pkg: YoutubeUploadPackage) => void;
+  onThumbnail: (thumbnailUrl: string) => void;
 };
 
 async function copyText(text: string): Promise<boolean> {
@@ -29,10 +30,12 @@ export function YoutubePackagePanel({
   script,
   profileContext,
   onSave,
+  onThumbnail,
 }: Props) {
   const pkg = idea.youtubePackage;
   const [options, setOptions] = useState<YoutubeUploadPackage[] | null>(null);
   const [busy, setBusy] = useState(false);
+  const [thumbBusy, setThumbBusy] = useState(false);
   const [error, setError] = useState("");
   const [needsUpgrade, setNeedsUpgrade] = useState(false);
   const [copied, setCopied] = useState("");
@@ -112,6 +115,48 @@ export function YoutubePackagePanel({
     if (!ok) return;
     setCopied(key);
     window.setTimeout(() => setCopied(""), 1400);
+  }
+
+  async function generateThumbnail() {
+    if (!pkg?.thumbnailIdea.trim()) {
+      setError("Escribe una idea de miniatura primero.");
+      return;
+    }
+    setThumbBusy(true);
+    setError("");
+    setNeedsUpgrade(false);
+    try {
+      const res = await fetch("/api/generate-thumbnail", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          thumbnailIdea: pkg.thumbnailIdea,
+          title: pkg.title || idea.title,
+          ideaText: idea.rawText,
+          profileContext,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (res.status === 402 || isUsageLimitPayload(data)) {
+          setNeedsUpgrade(true);
+        }
+        throw new Error(data.error || "Error al generar la miniatura");
+      }
+      void applyGenerationBilling(data.billing);
+      const url =
+        typeof data.imageDataUrl === "string" ? data.imageDataUrl.trim() : "";
+      if (!url.startsWith("data:image/")) {
+        throw new Error("No llegó una imagen válida.");
+      }
+      onThumbnail(url);
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "No pude generar la miniatura."
+      );
+    } finally {
+      setThumbBusy(false);
+    }
   }
 
   const showingPicker = Boolean(options?.length);
@@ -282,16 +327,27 @@ export function YoutubePackagePanel({
             {copied === "thumb" ? "Copiado" : "Copiar idea"}
           </button>
 
+          {idea.thumbnailUrl ? (
+            <div className="yt-thumb-preview">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={idea.thumbnailUrl} alt="Miniatura generada" />
+            </div>
+          ) : null}
+
           <button
             type="button"
             className="btn-secondary btn-block"
-            disabled
-            title="Futuro: IA de imagen (Gemini / Grok Imagine)"
+            disabled={thumbBusy || !pkg.thumbnailIdea.trim()}
+            onClick={() => void generateThumbnail()}
           >
-            Generar miniatura
+            {thumbBusy
+              ? "Generando miniatura…"
+              : idea.thumbnailUrl
+                ? "Regenerar miniatura"
+                : "Generar miniatura"}
           </button>
-          <p className="idea-meta yt-package-future">
-            Pronto: con este botón la IA creará la imagen a partir de la idea.
+          <p className="idea-meta">
+            Usa 1 generación del cupo. La imagen queda en esta idea.
           </p>
 
           <button

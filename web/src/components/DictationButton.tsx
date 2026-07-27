@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePrefsOptional } from "@/components/PrefsProvider";
 import { useSpeechDictation } from "@/hooks/useSpeechDictation";
+import { speechLangFromLocale } from "@/lib/prefs";
 
 type Props = {
   /** Se llama con cada fragmento final reconocido. */
@@ -17,10 +19,17 @@ type Props = {
 export function DictationButton({
   onTranscript,
   disabled = false,
-  lang = "es-MX",
+  lang,
 }: Props) {
+  const prefs = usePrefsOptional();
+  const resolvedLang =
+    lang ??
+    (prefs ? speechLangFromLocale(prefs.prefs.locale) : "es-MX");
+  const startLabel = prefs?.t("dictation.start") ?? "Dictar con micrófono";
+  const stopLabel = prefs?.t("dictation.stop") ?? "Detener dictado";
+
   const { supported, listening, error, toggle, stop } = useSpeechDictation({
-    lang,
+    lang: resolvedLang,
     onFinal: onTranscript,
   });
 
@@ -37,8 +46,8 @@ export function DictationButton({
         className={`dictation-mic${listening ? " dictation-mic-active" : ""}`}
         disabled={disabled}
         aria-pressed={listening}
-        aria-label={listening ? "Detener dictado" : "Dictar con micrófono"}
-        title={listening ? "Detener" : "Dictar"}
+        aria-label={listening ? stopLabel : startLabel}
+        title={listening ? stopLabel : startLabel}
         onClick={toggle}
       >
         {listening ? <span className="dictation-dot" aria-hidden /> : <MicIcon />}

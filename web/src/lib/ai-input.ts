@@ -10,6 +10,7 @@ export const AI_INPUT_CAPS = {
   existingTitle: 200,
   directionField: 500,
   currentDraftJson: 6000,
+  thumbnailIdea: 200,
 } as const;
 
 export type InputFieldCheck = {

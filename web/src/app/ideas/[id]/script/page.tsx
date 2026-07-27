@@ -157,6 +157,17 @@ function ScriptEditor() {
     commit(next);
   }
 
+  function saveThumbnail(thumbnailUrl: string) {
+    const current = ideaRef.current ?? idea;
+    if (!current) return;
+    const next: Idea = {
+      ...current,
+      thumbnailUrl,
+      updatedAt: new Date().toISOString(),
+    };
+    commit(next);
+  }
+
   const creatorScript = idea.draft.creatorScript || buildUnifiedScript(idea.draft);
   const isReady = idea.status === "ready";
   const isRecorded = idea.status === "recorded";
@@ -170,6 +181,7 @@ function ScriptEditor() {
         script={creatorScript}
         profileContext={aiContext}
         onSave={saveYoutubePackage}
+        onThumbnail={saveThumbnail}
       />
     </details>
   );

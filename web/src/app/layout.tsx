@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope, Syne } from "next/font/google";
 import { AuthProvider } from "@/components/AuthProvider";
+import { PrefsProvider } from "@/components/PrefsProvider";
 import { PwaRegister } from "@/components/PwaRegister";
 import "./globals.css";
 
@@ -13,6 +14,27 @@ const syne = Syne({
   subsets: ["latin"],
   variable: "--font-display",
 });
+
+/** Evita flash de tema incorrecto antes de hidratar prefs. */
+const prefsBootScript = `
+(function(){
+  try {
+    var raw = localStorage.getItem("creatoros_prefs_v1");
+    var prefs = raw ? JSON.parse(raw) : {};
+    var theme = prefs.theme === "light" || prefs.theme === "dark" || prefs.theme === "system" ? prefs.theme : "system";
+    var locale = prefs.locale === "en" ? "en" : "es";
+    var reduce = prefs.reduceMotion === true;
+    var resolved = theme === "system"
+      ? (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark")
+      : theme;
+    var html = document.documentElement;
+    html.setAttribute("data-theme", resolved);
+    html.setAttribute("data-theme-pref", theme);
+    html.lang = locale;
+    html.setAttribute("data-reduce-motion", reduce ? "true" : "false");
+  } catch (e) {}
+})();
+`;
 
 export const metadata: Metadata = {
   title: "Ideazo",
@@ -38,7 +60,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0b1020",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4f6fb" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1020" },
+  ],
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -51,12 +76,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: prefsBootScript }} />
+      </head>
       <body className={`${manrope.variable} ${syne.variable} antialiased`}>
-        <AuthProvider>
-          {children}
-          <PwaRegister />
-        </AuthProvider>
+        <PrefsProvider>
+          <AuthProvider>
+            {children}
+            <PwaRegister />
+          </AuthProvider>
+        </PrefsProvider>
       </body>
     </html>
   );

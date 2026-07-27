@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BrandMark } from "@/components/BrandMark";
+import { usePrefsOptional } from "@/components/PrefsProvider";
+import { translate, type MessageKey } from "@/lib/i18n/t";
 
 function navActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -12,9 +14,11 @@ function navActive(pathname: string, href: string) {
 function PrimaryNav({
   pathname,
   variant,
+  t,
 }: {
   pathname: string;
   variant: "bottom" | "side";
+  t: (key: MessageKey) => string;
 }) {
   const createActive = navActive(pathname, "/capture");
   const isSide = variant === "side";
@@ -31,7 +35,7 @@ function PrimaryNav({
   return (
     <nav
       className={root}
-      aria-label="Principal"
+      aria-label={t("nav.home")}
       {...(isSide ? { "data-desktop-nav": true } : { "data-mobile-nav": true })}
     >
       {isSide ? (
@@ -45,12 +49,12 @@ function PrimaryNav({
           <Link
             href="/capture"
             className={`${create}${createActive ? ` ${createActiveClass}` : ""}`}
-            aria-label="Nueva idea para un video"
+            aria-label={t("loop.newIdea")}
           >
             <span className="side-nav-create-mark" aria-hidden>
               +
             </span>
-            <span>Nueva idea</span>
+            <span>{t("nav.capture")}</span>
           </Link>
 
           <Link
@@ -59,7 +63,7 @@ function PrimaryNav({
               navActive(pathname, "/") ? ` ${itemActive}` : ""
             }`}
           >
-            Inicio
+            {t("nav.home")}
           </Link>
 
           <Link
@@ -68,7 +72,7 @@ function PrimaryNav({
               navActive(pathname, "/profile") ? ` ${itemActive}` : ""
             }`}
           >
-            Perfil
+            {t("nav.profile")}
           </Link>
         </>
       ) : (
@@ -79,7 +83,7 @@ function PrimaryNav({
               navActive(pathname, "/") ? ` ${itemActive}` : ""
             }`}
           >
-            Inicio
+            {t("nav.home")}
           </Link>
 
           <Link
@@ -87,12 +91,12 @@ function PrimaryNav({
             className={`${create}${
               createActive ? ` ${createActiveClass}` : ""
             }`}
-            aria-label="Nueva idea para un video"
+            aria-label={t("loop.newIdea")}
           >
             <span className="bottom-nav-create-orb" aria-hidden>
               <span className="bottom-nav-create-plus">+</span>
             </span>
-            <span className="bottom-nav-create-label">Nueva</span>
+            <span className="bottom-nav-create-label">{t("nav.captureShort")}</span>
           </Link>
 
           <Link
@@ -101,7 +105,7 @@ function PrimaryNav({
               navActive(pathname, "/profile") ? ` ${itemActive}` : ""
             }`}
           >
-            Perfil
+            {t("nav.profile")}
           </Link>
         </>
       )}
@@ -138,6 +142,9 @@ export function AppShell({
   showNav?: boolean;
 }) {
   const pathname = usePathname();
+  const prefs = usePrefsOptional();
+  const t = (key: MessageKey) =>
+    prefs ? prefs.t(key) : translate("es", key);
   const showHeader = Boolean(title || backHref);
 
   return (
@@ -147,7 +154,9 @@ export function AppShell({
       <div className="app-atmosphere" aria-hidden />
       <div className="app-glow" aria-hidden />
 
-      {showNav ? <PrimaryNav pathname={pathname} variant="side" /> : null}
+      {showNav ? (
+        <PrimaryNav pathname={pathname} variant="side" t={t} />
+      ) : null}
 
       <div className="app-shell-body">
         {showHeader ? (
@@ -159,7 +168,7 @@ export function AppShell({
                   className="back-link"
                   aria-label={backAriaLabel(backHref, backLabel)}
                 >
-                  ← Volver
+                  ← {t("common.back")}
                 </Link>
               ) : (
                 <span className="app-header-brand">
@@ -175,7 +184,9 @@ export function AppShell({
         <main className="app-main">{children}</main>
       </div>
 
-      {showNav ? <PrimaryNav pathname={pathname} variant="bottom" /> : null}
+      {showNav ? (
+        <PrimaryNav pathname={pathname} variant="bottom" t={t} />
+      ) : null}
     </div>
   );
 }

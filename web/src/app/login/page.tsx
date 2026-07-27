@@ -19,6 +19,17 @@ function LoginForm() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    const fromQuery = params.get("error");
+    if (fromQuery) {
+      setError(
+        fromQuery === "config"
+          ? "Supabase no está configurado en este entorno."
+          : fromQuery
+      );
+    }
+  }, [params]);
+
+  useEffect(() => {
     if (!configured) {
       router.replace("/");
       return;

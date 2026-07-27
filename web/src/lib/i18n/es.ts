@@ -57,6 +57,13 @@ export const es = {
     motion: "Movimiento",
     motionDesc: "Menos animaciones en la interfaz",
     reduceMotion: "Reducir movimiento",
+    thumbnails: "Miniaturas",
+    thumbnailsDesc:
+      "Estilo base del prompt al generar miniaturas con IA. Vacío = estilo Ideazo por defecto.",
+    thumbnailsPlaceholder:
+      "Ej. Estilo gaming Roblox, contraste fuerte, 2–3 palabras grandes, sin watermarks…",
+    thumbnailsReset: "Usar estilo por defecto",
+    thumbnailsSaved: "Estilo guardado",
     versionsLink: "Historial de versiones",
     versionsLinkDesc: "Notas de cada release",
     versionFooter: "Ideazo v{version}",

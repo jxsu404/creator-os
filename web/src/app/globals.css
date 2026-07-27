@@ -3255,3 +3255,23 @@ html[data-theme="light"] .app-glow {
   aspect-ratio: 16 / 9;
   object-fit: cover;
 }
+
+.thumb-prompt-default {
+  margin-top: var(--space-2);
+}
+
+.thumb-prompt-default-pre {
+  margin: var(--space-1) 0 0;
+  padding: var(--space-2);
+  border-radius: var(--radius-input);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.yt-thumb-prompt-details {
+  margin: var(--space-2) 0;
+}

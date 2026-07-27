@@ -9,8 +9,6 @@ import { ideaHref } from "@/lib/idea-href";
 import { backfillIdeaTitles, ideaTitle } from "@/lib/idea-title";
 import {
   getIdeas,
-  hasContentOsImport,
-  importContentOsSeed,
 } from "@/lib/storage";
 import { onSynced } from "@/lib/sync";
 import type { Idea } from "@/lib/types";
@@ -46,9 +44,6 @@ function IdeasList() {
   }, []);
 
   useEffect(() => {
-    if (!hasContentOsImport()) {
-      importContentOsSeed();
-    }
     refresh();
     setHydrated(true);
     try {

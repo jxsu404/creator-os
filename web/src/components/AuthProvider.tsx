@@ -18,6 +18,7 @@ import {
   enableCloudSync,
   pullAndMerge,
 } from "@/lib/sync";
+import { clearLocalWorkspace } from "@/lib/storage";
 
 type AuthState = {
   configured: boolean;
@@ -140,6 +141,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = useCallback(async () => {
     const supabase = getSupabaseBrowser();
     disableCloudSync();
+    clearLocalWorkspace();
     if (supabase) await supabase.auth.signOut();
     setSession(null);
   }, []);

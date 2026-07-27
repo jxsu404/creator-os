@@ -42,7 +42,8 @@ function OnboardingForm() {
       niches,
       customDescription: custom.trim(),
       onboardedAt: existing?.onboardedAt || new Date().toISOString(),
-      useGameContext: existing?.useGameContext !== false,
+      workspaceMode: existing?.workspaceMode || "blank",
+      useGameContext: existing?.useGameContext === true,
       ...(existing
         ? {
             activeGameId: existing.activeGameId,

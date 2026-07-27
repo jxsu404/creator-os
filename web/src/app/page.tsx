@@ -11,8 +11,6 @@ import { backfillIdeaTitles, ideaTitle } from "@/lib/idea-title";
 import {
   getIdeas,
   getProfile,
-  hasContentOsImport,
-  importContentOsSeed,
   saveProfile,
   youtubeCacheFresh,
 } from "@/lib/storage";
@@ -98,9 +96,6 @@ function HomeHub() {
   }, []);
 
   useEffect(() => {
-    if (!hasContentOsImport()) {
-      importContentOsSeed();
-    }
     refreshLocal();
     setHydrated(true);
   }, [pathname, refreshLocal]);

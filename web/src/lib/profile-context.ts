@@ -1,4 +1,4 @@
-import type { CreatorProfile, GameBrief } from "./types";
+import type { BrandKitStored, CreatorProfile, GameBrief, RecordingStyle } from "./types";
 import { PROVEN_HOOKS } from "./content-os-seed";
 import {
   DEFAULT_BRAND,
@@ -6,6 +6,25 @@ import {
   DEFAULT_GAMES_LIBRARY,
   DEFAULT_RECORDING_STYLE,
 } from "./user1-defaults";
+
+export const BLANK_BRAND: BrandKitStored = {
+  creatorName: "",
+  community: "",
+  kick: "",
+  streamSchedule: "",
+  sponsor: "",
+  ctaSubscribe: "",
+  ctaDiscord: "",
+  ctaCrossPlatform: "",
+};
+
+export const BLANK_RECORDING_STYLE: RecordingStyle = {
+  howIRecord: "",
+  typicalShots: [],
+  voiceAndPacing: "",
+  avoid: [],
+  videoTypes: [],
+};
 
 function mergeBrief(base: GameBrief, over?: Partial<GameBrief>): GameBrief {
   return {
@@ -19,8 +38,67 @@ function mergeBrief(base: GameBrief, over?: Partial<GameBrief>): GameBrief {
   };
 }
 
-/** Rellena defaults User1 / Content OS sin pisar ediciones del creador. */
-export function withUser1Defaults(profile: CreatorProfile): CreatorProfile {
+function resolveWorkspaceMode(profile: CreatorProfile): "blank" | "content_os" {
+  if (profile.workspaceMode === "content_os" || profile.workspaceMode === "blank") {
+    return profile.workspaceMode;
+  }
+  // Legacy: perfiles que ya traían brand/juegos del fundador
+  const name = profile.brand?.creatorName?.trim().toLowerCase() || "";
+  const hasFounderBrand =
+    name.includes("josué") ||
+    name.includes("josue") ||
+    (profile.brand?.community || "").toLowerCase().includes("crimson");
+  const hasAfs = (profile.gamesLibrary || []).some(
+    (g) => g.id === "anime-fighting-simulator"
+  );
+  if (hasFounderBrand || hasAfs) return "content_os";
+  return "blank";
+}
+
+function normalizeBlank(profile: CreatorProfile): CreatorProfile {
+  const gamesLibrary = profile.gamesLibrary?.length
+    ? profile.gamesLibrary
+    : [];
+  const activeGameId =
+    profile.activeGameId ||
+    profile.gameBrief?.id ||
+    gamesLibrary[0]?.id ||
+    undefined;
+  const gameBrief =
+    profile.gameBrief ||
+    gamesLibrary.find((g) => g.id === activeGameId) ||
+    undefined;
+
+  return {
+    ...profile,
+    workspaceMode: "blank",
+    niches: profile.niches || [],
+    customDescription: (profile.customDescription || "").trim(),
+    useGameContext:
+      profile.useGameContext === true ||
+      Boolean(gameBrief) ||
+      gamesLibrary.length > 0,
+    activeGameId,
+    gamesLibrary,
+    gameBrief,
+    recordingStyle: {
+      ...BLANK_RECORDING_STYLE,
+      ...profile.recordingStyle,
+      typicalShots: profile.recordingStyle?.typicalShots || [],
+      avoid: profile.recordingStyle?.avoid || [],
+      videoTypes: profile.recordingStyle?.videoTypes || [],
+    },
+    brand: {
+      ...BLANK_BRAND,
+      ...profile.brand,
+    },
+    provenHooks: profile.provenHooks || [],
+    youtube: profile.youtube ?? null,
+    youtubeCache: profile.youtubeCache ?? null,
+  };
+}
+
+function normalizeContentOs(profile: CreatorProfile): CreatorProfile {
   const libraryMap = new Map<string, GameBrief>();
   for (const g of DEFAULT_GAMES_LIBRARY) libraryMap.set(g.id, g);
   for (const g of profile.gamesLibrary || []) {
@@ -42,6 +120,7 @@ export function withUser1Defaults(profile: CreatorProfile): CreatorProfile {
 
   return {
     ...profile,
+    workspaceMode: "content_os",
     useGameContext: profile.useGameContext !== false,
     activeGameId,
     gamesLibrary,
@@ -76,6 +155,23 @@ export function withUser1Defaults(profile: CreatorProfile): CreatorProfile {
   };
 }
 
+/**
+ * Normaliza perfil según workspace.
+ * blank = sin datos del fundador (testers / otras cuentas).
+ * content_os = dogfood Josué.
+ */
+export function normalizeProfile(profile: CreatorProfile): CreatorProfile {
+  const mode = resolveWorkspaceMode(profile);
+  return mode === "content_os"
+    ? normalizeContentOs(profile)
+    : normalizeBlank(profile);
+}
+
+/** @deprecated alias — usar normalizeProfile */
+export function withUser1Defaults(profile: CreatorProfile): CreatorProfile {
+  return normalizeProfile(profile);
+}
+
 export function profileContext(profile: CreatorProfile): string {
   return profileContextFor(profile);
 }
@@ -85,8 +181,8 @@ export function profileContextFor(
   profile: CreatorProfile,
   opts?: { gameId?: string; contentAngle?: string }
 ): string {
-  let p = withUser1Defaults(profile);
-  if (opts?.gameId && p.gamesLibrary) {
+  let p = normalizeProfile(profile);
+  if (opts?.gameId && p.gamesLibrary?.length) {
     const match = p.gamesLibrary.find((g) => g.id === opts.gameId);
     if (match) {
       p = {
@@ -102,15 +198,26 @@ export function profileContextFor(
   const parts: string[] = [];
 
   if (p.brand) {
-    parts.push("=== BRAND (Content OS) ===");
-    parts.push(`Creador: ${p.brand.creatorName}`);
-    parts.push(`Comunidad: ${p.brand.community}`);
-    parts.push(`Kick: ${p.brand.kick}`);
-    parts.push(`Lives: ${p.brand.streamSchedule}`);
-    if (p.brand.sponsor) parts.push(`Sponsor actual: ${p.brand.sponsor}`);
-    parts.push(`CTA suscripción: ${p.brand.ctaSubscribe}`);
-    parts.push(`CTA Discord: ${p.brand.ctaDiscord}`);
-    parts.push(`CTA cross: ${p.brand.ctaCrossPlatform}`);
+    const b = p.brand;
+    const hasBrand = Boolean(
+      b.creatorName.trim() ||
+        b.community.trim() ||
+        b.ctaSubscribe.trim() ||
+        b.ctaDiscord.trim()
+    );
+    if (hasBrand) {
+      parts.push("=== BRAND ===");
+      if (b.creatorName.trim()) parts.push(`Creador: ${b.creatorName}`);
+      if (b.community.trim()) parts.push(`Comunidad: ${b.community}`);
+      if (b.kick.trim()) parts.push(`Kick: ${b.kick}`);
+      if (b.streamSchedule.trim()) parts.push(`Lives: ${b.streamSchedule}`);
+      if (b.sponsor.trim()) parts.push(`Sponsor: ${b.sponsor}`);
+      if (b.ctaSubscribe.trim())
+        parts.push(`CTA suscripción: ${b.ctaSubscribe}`);
+      if (b.ctaDiscord.trim()) parts.push(`CTA Discord: ${b.ctaDiscord}`);
+      if (b.ctaCrossPlatform.trim())
+        parts.push(`CTA cross: ${b.ctaCrossPlatform}`);
+    }
   }
 
   if (niches) parts.push(`\nNichos: ${niches}`);
@@ -158,16 +265,26 @@ export function profileContextFor(
 
   if (p.useGameContext !== false && p.recordingStyle) {
     const r = p.recordingStyle;
-    parts.push("");
-    parts.push("=== CÓMO GRABA ESTE CREADOR ===");
-    parts.push(`Formato: ${r.howIRecord}`);
-    parts.push(`Tipos / ángulos: ${r.videoTypes.join(", ")}`);
-    parts.push(`Voz y ritmo: ${r.voiceAndPacing}`);
-    if (r.typicalShots.length) {
-      parts.push(`Tomas típicas:\n- ${r.typicalShots.join("\n- ")}`);
-    }
-    if (r.avoid.length) {
-      parts.push(`Evitar:\n- ${r.avoid.join("\n- ")}`);
+    const hasStyle = Boolean(
+      r.howIRecord.trim() ||
+        r.voiceAndPacing.trim() ||
+        r.typicalShots.length ||
+        r.avoid.length
+    );
+    if (hasStyle) {
+      parts.push("");
+      parts.push("=== CÓMO GRABA ESTE CREADOR ===");
+      if (r.howIRecord.trim()) parts.push(`Formato: ${r.howIRecord}`);
+      if (r.videoTypes.length)
+        parts.push(`Tipos / ángulos: ${r.videoTypes.join(", ")}`);
+      if (r.voiceAndPacing.trim())
+        parts.push(`Voz y ritmo: ${r.voiceAndPacing}`);
+      if (r.typicalShots.length) {
+        parts.push(`Tomas típicas:\n- ${r.typicalShots.join("\n- ")}`);
+      }
+      if (r.avoid.length) {
+        parts.push(`Evitar:\n- ${r.avoid.join("\n- ")}`);
+      }
     }
   }
 

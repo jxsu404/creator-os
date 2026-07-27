@@ -85,6 +85,11 @@ export interface CreatorProfile {
   niches: string[];
   customDescription: string;
   onboardedAt: string;
+  /**
+   * blank = canal propio (nuevos usuarios / testers).
+   * content_os = dogfood fundador (AFS / Crimson Core).
+   */
+  workspaceMode?: "blank" | "content_os";
   /** Si true, se inyecta ficha de juego + estilo de grabación en la IA */
   useGameContext?: boolean;
   /** Juego activo para prompts (id de SEED_GAMES / gameBrief) */

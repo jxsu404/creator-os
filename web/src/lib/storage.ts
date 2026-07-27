@@ -6,15 +6,35 @@ import {
   SEED_GAMES,
   buildSeedIdeas,
 } from "./content-os-seed";
-import { withUser1Defaults } from "./profile-context";
+import { normalizeProfile } from "./profile-context";
 import type { CreatorProfile, Idea } from "./types";
 import { DEFAULT_BRAND } from "./user1-defaults";
 
 const PROFILE_KEY = "creatoros_profile_v1";
 const IDEAS_KEY = "creatoros_ideas_v1";
+/** Quién “posee” el localStorage actual (Supabase user id). */
+export const LOCAL_OWNER_KEY = "creatoros_local_owner_v1";
 
 function canUseStorage(): boolean {
   return typeof window !== "undefined" && typeof localStorage !== "undefined";
+}
+
+export function getLocalOwnerId(): string | null {
+  if (!canUseStorage()) return null;
+  return localStorage.getItem(LOCAL_OWNER_KEY);
+}
+
+export function setLocalOwnerId(userId: string): void {
+  if (!canUseStorage()) return;
+  localStorage.setItem(LOCAL_OWNER_KEY, userId);
+}
+
+/** Borra perfil/ideas/import flag locales (cambio de cuenta). */
+export function clearLocalWorkspace(): void {
+  if (!canUseStorage()) return;
+  localStorage.removeItem(PROFILE_KEY);
+  localStorage.removeItem(IDEAS_KEY);
+  localStorage.removeItem(CONTENT_OS_IMPORT_KEY);
 }
 
 /** Avisa al módulo de sync sin import circular. */
@@ -42,7 +62,7 @@ export function getProfile(): CreatorProfile | null {
   const raw = localStorage.getItem(PROFILE_KEY);
   if (!raw) return null;
   try {
-    return withUser1Defaults(JSON.parse(raw) as CreatorProfile);
+    return normalizeProfile(JSON.parse(raw) as CreatorProfile);
   } catch {
     return null;
   }
@@ -52,7 +72,7 @@ export function saveProfile(profile: CreatorProfile): void {
   if (!canUseStorage()) return;
   localStorage.setItem(
     PROFILE_KEY,
-    JSON.stringify(withUser1Defaults(profile))
+    JSON.stringify(normalizeProfile(profile))
   );
   notifyCloudSync();
 }
@@ -150,7 +170,8 @@ export function importContentOsSeed(): {
 
   const profile = getProfile();
   const afs = SEED_GAMES.find((g) => g.id === "anime-fighting-simulator")!;
-  const nextProfile = withUser1Defaults({
+  const nextProfile = normalizeProfile({
+    workspaceMode: "content_os",
     niches: profile?.niches?.length
       ? profile.niches
       : ["Gaming", "Roblox", "Guías", "Showcases", "Opiniones"],

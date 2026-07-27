@@ -1,7 +1,13 @@
 import type { User } from "@supabase/supabase-js";
 import { getSupabaseBrowser, isSupabaseConfigured } from "@/lib/supabase/client";
-import { getIdeas, getProfile } from "@/lib/storage";
-import { withUser1Defaults } from "@/lib/profile-context";
+import {
+  clearLocalWorkspace,
+  getIdeas,
+  getLocalOwnerId,
+  getProfile,
+  setLocalOwnerId,
+} from "@/lib/storage";
+import { normalizeProfile } from "@/lib/profile-context";
 import type { CreatorProfile, Idea } from "@/lib/types";
 
 const PROFILE_STORAGE_KEY = "creatoros_profile_v1";
@@ -54,13 +60,13 @@ export function mergeProfiles(
   local: CreatorProfile | null,
   remote: CreatorProfile | null
 ): CreatorProfile | null {
-  if (!local) return remote ? withUser1Defaults(remote) : null;
-  if (!remote) return withUser1Defaults(local);
+  if (!local) return remote ? normalizeProfile(remote) : null;
+  if (!remote) return normalizeProfile(local);
   const localOn = ts(local.onboardedAt);
   const remoteOn = ts(remote.onboardedAt);
   const base = remoteOn >= localOn ? remote : local;
   const other = base === remote ? local : remote;
-  return withUser1Defaults({
+  return normalizeProfile({
     ...other,
     ...base,
     brand: { ...other.brand, ...base.brand } as CreatorProfile["brand"],
@@ -76,13 +82,33 @@ export function mergeProfiles(
     provenHooks: base.provenHooks?.length
       ? base.provenHooks
       : other.provenHooks,
+    workspaceMode: base.workspaceMode ?? other.workspaceMode,
   });
 }
 
+/**
+ * Activa sync para este usuario.
+ * localStorage es por cuenta: si cambia el userId, se limpia antes
+ * (así no se suben ideas/perfil de otra persona a Supabase).
+ */
 export async function enableCloudSync(user: User): Promise<void> {
+  const previousOwner = getLocalOwnerId();
+  const sameOwner = previousOwner === user.id;
+
+  if (!sameOwner) {
+    // Otro usuario, o primer login tras el flag de owner: no heredar local.
+    clearLocalWorkspace();
+  }
+
+  setLocalOwnerId(user.id);
   currentUserId = user.id;
   syncEnabled = true;
-  await pullAndMerge();
+
+  if (sameOwner) {
+    await pullAndMerge();
+  } else {
+    await pullRemoteOnly();
+  }
   await pushAll();
 }
 
@@ -106,32 +132,60 @@ export function scheduleCloudPush(): void {
   }, 600);
 }
 
-export async function pullAndMerge(): Promise<void> {
+async function fetchRemote(): Promise<{
+  remoteProfile: CreatorProfile | null;
+  remoteIdeas: Idea[];
+}> {
   const supabase = getSupabaseBrowser();
-  if (!supabase || !currentUserId || syncing) return;
+  if (!supabase || !currentUserId) {
+    return { remoteProfile: null, remoteIdeas: [] };
+  }
+
+  const [{ data: profileRow }, { data: ideaRows, error: ideasError }] =
+    await Promise.all([
+      supabase
+        .from("creator_profiles")
+        .select("profile, updated_at")
+        .eq("user_id", currentUserId)
+        .maybeSingle(),
+      supabase
+        .from("creator_ideas")
+        .select("id, idea, updated_at")
+        .eq("user_id", currentUserId),
+    ]);
+
+  if (ideasError) throw ideasError;
+
+  const remoteProfile = profileRow?.profile
+    ? (profileRow.profile as CreatorProfile)
+    : null;
+  const remoteIdeas = (ideaRows || [])
+    .map((row) => row.idea as Idea)
+    .filter(Boolean);
+
+  return { remoteProfile, remoteIdeas };
+}
+
+/** Tras cambio de cuenta: solo lo que hay en la nube de este user. */
+async function pullRemoteOnly(): Promise<void> {
+  if (!currentUserId || syncing) return;
   syncing = true;
   try {
-    const [{ data: profileRow }, { data: ideaRows, error: ideasError }] =
-      await Promise.all([
-        supabase
-          .from("creator_profiles")
-          .select("profile, updated_at")
-          .eq("user_id", currentUserId)
-          .maybeSingle(),
-        supabase
-          .from("creator_ideas")
-          .select("id, idea, updated_at")
-          .eq("user_id", currentUserId),
-      ]);
+    const { remoteProfile, remoteIdeas } = await fetchRemote();
+    if (remoteProfile) writeProfileLocal(remoteProfile);
+    else writeProfileLocal(null);
+    writeIdeasLocal(remoteIdeas);
+    emitSynced();
+  } finally {
+    syncing = false;
+  }
+}
 
-    if (ideasError) throw ideasError;
-
-    const remoteProfile = profileRow?.profile
-      ? (profileRow.profile as CreatorProfile)
-      : null;
-    const remoteIdeas = (ideaRows || [])
-      .map((row) => row.idea as Idea)
-      .filter(Boolean);
+export async function pullAndMerge(): Promise<void> {
+  if (!currentUserId || syncing) return;
+  syncing = true;
+  try {
+    const { remoteProfile, remoteIdeas } = await fetchRemote();
 
     const mergedProfile = mergeProfiles(getProfile(), remoteProfile);
     const mergedIdeas = mergeIdeas(getIdeas(), remoteIdeas);
@@ -178,11 +232,15 @@ export async function pushAll(): Promise<void> {
   }
 }
 
-function writeProfileLocal(profile: CreatorProfile): void {
+function writeProfileLocal(profile: CreatorProfile | null): void {
   if (typeof window === "undefined") return;
+  if (!profile) {
+    localStorage.removeItem(PROFILE_STORAGE_KEY);
+    return;
+  }
   localStorage.setItem(
     PROFILE_STORAGE_KEY,
-    JSON.stringify(withUser1Defaults(profile))
+    JSON.stringify(normalizeProfile(profile))
   );
 }
 

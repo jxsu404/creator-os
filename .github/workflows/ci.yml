@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   web:
-    name: Lint · Test · Typecheck
+    name: Verify
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -25,21 +25,15 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version-file: .nvmrc
           cache: npm
           cache-dependency-path: web/package-lock.json
 
       - name: Install
         run: npm ci
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Typecheck
-        run: npm run typecheck
-
-      - name: Test
-        run: npm run test
+      - name: Verify
+        run: npm run verify
 
       - name: No leftover conflict markers
         working-directory: .

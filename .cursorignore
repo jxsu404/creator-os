@@ -1,0 +1,10 @@
+# Keep agent context on product + app source
+web/node_modules/
+web/.next/
+web/out/
+web/coverage/
+**/*.tsbuildinfo
+**/package-lock.json
+.git/
+tmp/
+.vercel/

@@ -440,7 +440,7 @@ function HomeHub() {
         ) : null}
       </section>
 
-      <section className="section">
+      <section className="section home-tips">
         <h2 className="section-title">Consejos</h2>
         <div className="tips-list">
           {tips.map((tip) => (

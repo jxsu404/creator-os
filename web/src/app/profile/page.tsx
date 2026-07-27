@@ -6,14 +6,7 @@ import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/components/AuthProvider";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
-import type { BillingSnapshot } from "@/lib/billing/plans";
-import { FREE_MONTHLY_GENERATIONS } from "@/lib/billing/plans";
 import { paypalDonateUrl, SUPPORT_PATH } from "@/lib/donations";
-import {
-  mergeUsageForDisplay,
-  syncLocalUsageFromServer,
-  USAGE_EVENT,
-} from "@/lib/local-usage";
 import { hasGamingNiche, withUser1Defaults } from "@/lib/profile-context";
 import { getProfile } from "@/lib/storage";
 import { isCloudSyncEnabled, onSynced } from "@/lib/sync";
@@ -76,7 +69,6 @@ function ProfileHub() {
   const [syncing, setSyncing] = useState(false);
   const [installHint, setInstallHint] = useState(false);
   const [aiStatus, setAiStatus] = useState<AiStatusResponse | null>(null);
-  const [billing, setBilling] = useState<BillingSnapshot | null>(null);
   const [fetchedAt, setFetchedAt] = useState(0);
   const [tick, setTick] = useState(0);
   const cooldownWindowMs = useRef(0);
@@ -124,58 +116,23 @@ function ProfileHub() {
       }
     }
 
-    async function loadBilling() {
-      try {
-        const res = await fetch("/api/billing/status", { cache: "no-store" });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (cancelled) return;
-        const server = (data.billing || null) as BillingSnapshot | null;
-        if (server && user?.id) {
-          syncLocalUsageFromServer(user.id, server.used, server.month);
-        }
-        setBilling(mergeUsageForDisplay(user?.id, server));
-      } catch {
-        if (!cancelled && user?.id) {
-          setBilling(mergeUsageForDisplay(user.id, null));
-        }
-      }
-    }
-
     void loadAi();
-    void loadBilling();
-
-    const onUsage = (ev: Event) => {
-      const detail = (ev as CustomEvent<BillingSnapshot | null>).detail;
-      if (detail) {
-        if (user?.id) {
-          syncLocalUsageFromServer(user.id, detail.used, detail.month);
-        }
-        setBilling(mergeUsageForDisplay(user?.id, detail));
-      } else {
-        void loadBilling();
-      }
-    };
 
     const onFocus = () => {
-      void loadBilling();
       void loadAi();
     };
 
-    window.addEventListener(USAGE_EVENT, onUsage);
     window.addEventListener("focus", onFocus);
     const poll = window.setInterval(() => {
-      void loadBilling();
       void loadAi();
     }, 5_000);
 
     return () => {
       cancelled = true;
       window.clearInterval(poll);
-      window.removeEventListener(USAGE_EVENT, onUsage);
       window.removeEventListener("focus", onFocus);
     };
-  }, [user?.id]);
+  }, []);
 
   useEffect(() => {
     const hasCooldown =
@@ -201,7 +158,6 @@ function ProfileHub() {
     "Añade una descripción de tu canal.";
   const showGames = hasGamingNiche(profile);
   const gameLabel = shortGame(profile.gameBrief?.name);
-  const usage = mergeUsageForDisplay(user?.id, billing);
   const donateUrl = paypalDonateUrl();
 
   void tick;
@@ -226,45 +182,40 @@ function ProfileHub() {
     .filter((p) => !p.available && p.remainingMs > 0)
     .sort((a, b) => a.remainingMs - b.remainingMs)[0];
 
-  // Medidor del plan = % GASTADO del cupo mensual de ESTE usuario
+  // Medidor = % de uso de IA disponible (Gemini / Groq / xAI), no cupo mensual
   let capacityPercent = 0;
-  let capacityLabel = "Cargando tu cupo…";
+  let capacityLabel = "Cargando uso de IA…";
   let capacityState: "loading" | "ready" | "recharge" | "offline" = "loading";
-  let providerNote: string | null = null;
 
-  if (usage) {
-    capacityPercent = clampPercent(
-      usage.limit > 0 ? (100 * usage.used) / usage.limit : 0
-    );
-    capacityLabel = `${usage.used}/${usage.limit} generaciones usadas este mes`;
-    capacityState =
-      usage.remaining <= 0
-        ? "offline"
-        : usage.remaining <= Math.ceil(usage.limit * 0.2)
-          ? "recharge"
-          : "ready";
-  } else if (user) {
+  if (!aiStatus) {
     capacityPercent = 0;
-    capacityLabel = "Cargando tu cupo…";
-    capacityState = "loading";
-  } else if (!aiStatus) {
-    capacityPercent = 0;
-    capacityLabel = "Cargando estado…";
+    capacityLabel = "Cargando uso de IA…";
     capacityState = "loading";
   } else if (!anyConfigured) {
     capacityPercent = 0;
     capacityLabel = "IA no disponible en este entorno";
     capacityState = "offline";
-  } else {
-    capacityPercent = 0;
-    capacityLabel = `Plan Free · hasta ${FREE_MONTHLY_GENERATIONS}/mes al iniciar sesión`;
+  } else if (anyAvailable) {
+    capacityPercent = 100;
+    capacityLabel = "Te queda el 100% del uso de IA";
     capacityState = "ready";
-  }
-
-  if (anyConfigured && !anyAvailable && nextCooling) {
-    providerNote = `Proveedor IA recargando · ${
+  } else if (nextCooling) {
+    const windowMs = Math.max(
+      cooldownWindowMs.current,
+      nextCooling.remainingMs,
+      1
+    );
+    capacityPercent = clampPercent(
+      100 * (1 - nextCooling.remainingMs / windowMs)
+    );
+    capacityLabel = `Te queda el ${capacityPercent}% · recarga en ${
       nextCooling.remainingLabel || "…"
     }`;
+    capacityState = "recharge";
+  } else {
+    capacityPercent = 0;
+    capacityLabel = "Sin uso de IA por ahora";
+    capacityState = "offline";
   }
 
   return (
@@ -319,12 +270,11 @@ function ProfileHub() {
       <section className="section">
         <div className="plan-card">
           <div className="plan-card-head">
-            <h2 className="section-title plan-card-title">Tu cupo</h2>
-            <span className="plan-badge">Gratis</span>
+            <h2 className="section-title plan-card-title">Uso de IA</h2>
           </div>
           <p className="muted plan-card-lead">
-            {FREE_MONTHLY_GENERATIONS} generaciones IA al mes. Si Ideazo te
-            sirve, puedes apoyar el proyecto con una donación voluntaria.
+            Porcentaje de uso de inteligencia artificial que te queda
+            (Gemini, Groq, xAI).
           </p>
 
           <div className="plan-meter-row">
@@ -334,7 +284,7 @@ function ProfileHub() {
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={capacityPercent}
-              aria-label="Capacidad del plan"
+              aria-label="Uso de IA disponible"
             >
               <div
                 className="plan-meter-fill"
@@ -346,9 +296,6 @@ function ProfileHub() {
             </span>
           </div>
           <p className="plan-meter-meta">{capacityLabel}</p>
-          {providerNote ? (
-            <p className="muted plan-meter-meta">{providerNote}</p>
-          ) : null}
 
           <div className="plan-pro-teaser">
             <p className="plan-pro-title">Apoya Ideazo</p>

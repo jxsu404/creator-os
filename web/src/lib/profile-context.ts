@@ -157,8 +157,8 @@ function normalizeContentOs(profile: CreatorProfile): CreatorProfile {
 
 /**
  * Normaliza perfil según workspace.
- * blank = sin datos del fundador (testers / otras cuentas).
- * content_os = dogfood Josué.
+ * blank = sin datos del fundador (cuentas nuevas).
+ * content_os = biblioteca importada del fundador.
  */
 export function normalizeProfile(profile: CreatorProfile): CreatorProfile {
   const mode = resolveWorkspaceMode(profile);
@@ -167,7 +167,7 @@ export function normalizeProfile(profile: CreatorProfile): CreatorProfile {
     : normalizeBlank(profile);
 }
 
-/** @deprecated alias — usar normalizeProfile */
+/** Alias de normalizeProfile (compat). */
 export function withUser1Defaults(profile: CreatorProfile): CreatorProfile {
   return normalizeProfile(profile);
 }

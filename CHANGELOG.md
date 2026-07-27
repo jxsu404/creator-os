@@ -9,7 +9,7 @@
 
 ## 0.1.0 — 2026-07-26
 
-Primera versión para dogfooding (Usuario 1).
+Primera versión pública de Creator OS.
 
 - Visión de producto, sistema, voz de marca, UX brief y roadmap
 - App web (`web/`): onboarding de nicho → captura → 3 enfoques → borrador → lista para grabar

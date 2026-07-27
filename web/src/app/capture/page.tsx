@@ -47,24 +47,25 @@ function CaptureForm() {
         Anota la idea de tu próximo video. Luego eliges el enfoque y armamos la
         guía para grabar.
       </p>
-      <textarea
-        id="idea"
-        className="field field-lg"
-        rows={5}
-        placeholder="¿De qué va el video? Escribe o dicta la idea…"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => {
-          if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-            e.preventDefault();
-            save();
-          }
-        }}
-        autoFocus
-        aria-label="Idea del nuevo video"
-      />
-
-      <DictationButton onTranscript={onTranscript} disabled={saving} />
+      <div className="field-with-mic">
+        <textarea
+          id="idea"
+          className="field field-lg"
+          rows={5}
+          placeholder="¿De qué va el video?"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+              e.preventDefault();
+              save();
+            }
+          }}
+          autoFocus
+          aria-label="Idea del nuevo video"
+        />
+        <DictationButton onTranscript={onTranscript} disabled={saving} />
+      </div>
 
       <button
         type="button"

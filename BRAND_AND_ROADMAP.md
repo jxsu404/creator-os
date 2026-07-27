@@ -164,7 +164,7 @@ Ordenadas por cercanía conceptual al core. **No son compromiso de fechas** — 
 | **Empujones contextuales ligeros** | “Tienes 2 listas para grabar” / retomar X | Deslizar a motivación vacía o notificaciones molestas |
 | **Investigación ligera con fuentes visibles** | Muchas ideas requieren contexto/datos | Investigación mala = pérdida de confianza |
 | **UI más pulida / atmósfera de marca** | Confianza y deseo de volver | Ornamentación antes de que el loop enamore |
-| **Memoria de piezas anteriores** | El fundador ya usaba Notion+IA con videos viejos como contexto; hacerlo intuitivo (no Notion) | Complejidad; volver al “segundo cerebro” |
+| **Memoria de piezas anteriores** | El fundador ya usaba Notion+IA con videos viejos como contexto; hacerlo intuitivo (no Notion). **Preferida** si se busca un Ideazo más inteligente sin chat (§6.1) | Complejidad; volver al “segundo cerebro” |
 | **YouTube largo (mismo dolor de guion)** | Usuario 1 a veces publica largo; el loop idea→guion aplica | Diluir el flujo optimizado a short-form |
 | **Ayuda a miniaturas** | Ya usan ChatGPT para thumbs; encaje natural post-guion | Scope creep visual; otro producto |
 
@@ -172,7 +172,7 @@ Ordenadas por cercanía conceptual al core. **No son compromiso de fechas** — 
 
 | Feature | Por qué importa | Riesgo |
 |---|---|---|
-| **Chat / asistente en tiempo real** | Compañero conversacional para refinar | Volver a “ChatGPT con login” |
+| **Chat / asistente en tiempo real** | Compañero conversacional para refinar | Volver a “ChatGPT con login”. **No implementar ahora** — ver §6.1 |
 | **Agente async de investigación** (“mientras estás en el gym”) | Magia: dictas → vuelves con 3 enfoques listos | Expectativas altas; resultados mediocres; coste/complejidad |
 | **Memoria profunda de estilo y hits** | Aprende qué funcionó para *este* creador | Privacidad; sobreajuste; promesas de IA infladas |
 | **Frases / capa motivacional** | Apoyo emocional a la constancia | Teatro; diferenciación débil; acordado como **no-core** |
@@ -183,10 +183,10 @@ Ordenadas por cercanía conceptual al core. **No son compromiso de fechas** — 
 
 | Feature | Por qué importa | Riesgo |
 |---|---|---|
-| **Conexión YouTube / TikTok / Instagram** | Cerrar el ciclo en la plataforma real | Guerra de integraciones; dependencias de APIs |
-| **Estadísticas y feedback en “tiempo real”** | Aprender qué funciona; tips accionables | Competir con analytics nativos; vanity metrics |
+| **Conexión YouTube / TikTok / Instagram** | Cerrar el ciclo en la plataforma real | Guerra de integraciones; dependencias de APIs. OAuth Analytics = lejano; paquetes de subida (título/desc/tags) y cache público ligero ya existen en app |
+| **Estadísticas y feedback en “tiempo real”** | Aprender qué funciona; tips accionables | Competir con analytics nativos; vanity metrics. **No prometer como gancho de pago** — ver §6.1 |
 | **Capa multi-red (“todas tus redes”)** | Un solo lugar de verdad para el creador | Scope explosivo; producto tibio en todo |
-| **Tips de crecimiento personalizados** | Empoderar con criterio, no con tips genéricos | Ruido; pérdida de foco creativo |
+| **Tips de crecimiento personalizados** | Empoderar con criterio, no con tips genéricos. **Parcial en v1:** consejos de oficio en Home (nicho + videos recientes) | Ruido; perder el foco creativo si se vuelve feed de stats |
 | **Calendario / programación de publicación** | Del “listo para grabar” al “publicado” | Territory de Buffer/Later; diluye el wedge |
 | **Automatizaciones con n8n** (publicar, avisar, sync) | Encaja muy bien cuando el loop creativo ya enamora; conecta Ideazo con redes y tools | No meterlo en v0.1; el creador no debe “aprender n8n” |
 | **Colaboración / equipos / agencias** | Escalar el uso | Pierde intimidad del “compañero personal” |
@@ -200,6 +200,43 @@ Ordenadas por cercanía conceptual al core. **No son compromiso de fechas** — 
 - Taxonomías pesadas, segundo cerebro, kanban complejo
 - Chat como pantalla principal del producto
 - Motivación como corazón del home
+- **Chat asistente + YouTube Analytics como gancho de pago inmediato** (evaluación 2026-07-27 — §6.1)
+
+---
+
+## 6.1 Decisión: chat asistente Pro (ideas + YouTube) — 2026-07-27
+
+**Veredicto:** viable como visión / diferenciador a medio-largo plazo. **No** como siguiente feature hoy. No abrir ticket de implementación.
+
+**Contexto de producto (post–oleada 2026-07-27):** monetización actual = cupo free + donación voluntaria PayPal (la donación **no** desbloquea un plan Pro todavía). Ya existen consejos ligeros en Home y paquetes de subida YouTube/TikTok (3 opciones). Eso **no** cambia el veredicto: chat conversacional y Analytics OAuth siguen fuera.
+
+La propuesta mezclaba tres capas bajo un solo nombre. Se congelan así:
+
+| Capa | Prioridad | Acción |
+|---|---|---|
+| **Memoria ligera de ideas/piezas** + consejos *dentro* del loop (enfoques, ajustes de guía) | Cercana (candidato próximo) | Preferir esto si se busca Ideazo más “inteligente” sin chat. Consejos de Home ya cubren una franja fina; memoria en el loop es el salto útil |
+| **Asistente conversacional acotado** (sobre una idea/guía; no chat-first) | Visión media | Conservar en backlog; reabrir solo con criterios abajo |
+| **Rendimiento vía YouTube Analytics (OAuth)** + tips de stats | Visión lejana | No prometido. Paquetes de subida + cache público ligero pueden seguir; Analytics OAuth no |
+
+**Por qué no ahora**
+
+- No acorta idea → listo para grabar; abre un segundo camino (conversación libre).
+- Hoy el valor se defiende con el loop + cupo; chat como gancho diluye el posicionamiento (“no somos ChatGPT con login”) y no encaja con donaciones voluntarias sin Pro de pago.
+- YouTube Analytics es proyecto de OAuth, cuotas, compliance y soporte — no un PR. Los paquetes de subida ya resuelven el “listo para publicar metadatos” sin OAuth.
+
+**Si se busca Ideazo más inteligente (sin chat)**
+
+Priorizar **memoria ligera**: ideas grabadas / enfoques elegidos / hooks que funcionaron alimentan las 3 direcciones y la guía. Captura ~80% del valor “que sepa de tus ideas” sin UI conversacional.
+
+**Criterios para reabrir chat** (todos deben cumplirse)
+
+1. Loop idea → lista para grabar estable y usado (dogfood / early users).
+2. Conversión o apoyo (donación / futuro Pro) viene por utilidad del loop y cupo, no por “falta de chat”.
+3. Diseño: asistente anclado a idea/guía — **nunca** home chat-first.
+4. YouTube Analytics es fase 2 del asistente, no requisito del MVP del chat.
+5. Cupo de tokens / `gateAiGeneration` definido para el canal chat (no infinito).
+
+Si falla alguno → se queda en visión, no en roadmap de ejecución.
 
 ---
 
@@ -208,15 +245,18 @@ Ordenadas por cercanía conceptual al core. **No son compromiso de fechas** — 
 ```text
 HOY (v1)
   Idea → 3 direcciones → guía/guion → listo para grabar
+  (+ consejos ligeros Home · paquetes YT/TikTok · cupo free + donación PayPal)
 
 PRÓXIMO
   Voz · estilo · memoria ligera · investigación acotada
+  (memoria ligera > chat si se busca más inteligencia)
 
 DESPUÉS
-  Asistente conversacional · agente async · motivación ligera · n8n (orquestación)
+  Asistente conversacional acotado · agente async · motivación ligera · n8n (orquestación)
+  (solo si criterios §6.1)
 
 VISIÓN
-  Publicar · multi-red · stats · aprendizaje · automatizaciones (n8n detrás)
+  Publicar · multi-red · stats / YouTube Analytics · aprendizaje · automatizaciones (n8n detrás)
 ```
 
 ---
@@ -229,6 +269,7 @@ VISIÓN
 4. **Perseguir el editor de video** — frontera consciente: claridad para grabar, no fabricar el video.
 5. **Diseñar para dos usuarios a la vez** (activo + principiante) — diluye el wedge.
 6. **Prometer el agente async antes de clavar el loop** — demo wow, producto flojo.
+7. **Vender chat + Analytics como gancho de pago antes de clavar el loop** — commodity + guerra de integraciones; ver §6.1.
 
 ---
 
@@ -272,7 +313,7 @@ VISIÓN
 11. **Tech / build** del loop v1 — **en marcha** (`web/`, ver `TECH.md`)
 12. Fase B de uso real → checklist go/no-go → entonces naming público + visibilidad
 
-**Posibilidades futuras (no descartadas):** memoria de piezas, YouTube largo, miniaturas, voz, agente async, analytics — ver sección 6.
+**Posibilidades futuras (no descartadas):** memoria de piezas (prioridad sobre chat), YouTube largo, miniaturas, voz, agente async acotado, analytics — ver sección 6 y decisión §6.1.
 
 ---
 

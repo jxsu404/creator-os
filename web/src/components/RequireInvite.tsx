@@ -14,6 +14,8 @@ export function RequireInvite({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [allowed, setAllowed] = useState(!configured);
+  const [checkError, setCheckError] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     if (!configured || loading) return;
@@ -23,9 +25,13 @@ export function RequireInvite({ children }: { children: React.ReactNode }) {
     }
 
     let cancelled = false;
+    setCheckError(false);
     void (async () => {
       try {
         const res = await fetch("/api/invite", { cache: "no-store" });
+        if (!res.ok) {
+          throw new Error(`invite check ${res.status}`);
+        }
         const data = (await res.json()) as {
           inviteOnly?: boolean;
           granted?: boolean;
@@ -40,21 +46,40 @@ export function RequireInvite({ children }: { children: React.ReactNode }) {
         }
         setAllowed(true);
       } catch {
-        if (!cancelled) setAllowed(true);
+        if (!cancelled) {
+          setCheckError(true);
+          setAllowed(false);
+        }
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [configured, loading, user, router, pathname]);
+  }, [configured, loading, user, router, pathname, retryKey]);
 
   if (!configured) return <>{children}</>;
   if (loading || !user) return <>{children}</>;
   if (!allowed) {
     return (
       <AppShell showNav={false}>
-        <p className="muted">Comprobando invitación…</p>
+        {checkError ? (
+          <div className="stack gap-sm">
+            <p className="muted">
+              No pude comprobar tu invitación. Revisa la conexión e intenta de
+              nuevo.
+            </p>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setRetryKey((k) => k + 1)}
+            >
+              Reintentar
+            </button>
+          </div>
+        ) : (
+          <p className="muted">Comprobando invitación…</p>
+        )}
       </AppShell>
     );
   }

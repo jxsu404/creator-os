@@ -29,6 +29,7 @@ import {
   type IdeaStatusGroup,
 } from "@/lib/idea-labels";
 import { profileContextFor, withUser1Defaults } from "@/lib/profile-context";
+import { AI_INPUT_CAPS, clampAiText } from "@/lib/ai-input";
 import {
   buildTipsContext,
   isHomeTipsCacheFresh,
@@ -129,7 +130,9 @@ function HomeHub() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            profileContext: p ? profileContextFor(p) : "",
+            profileContext: p
+              ? clampAiText(profileContextFor(p), AI_INPUT_CAPS.profileContext)
+              : "",
             recentContent: ctx.recentContent,
           }),
         });

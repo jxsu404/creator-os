@@ -44,15 +44,15 @@ export async function POST(request: Request) {
 
     const currentDraftJson = currentDraft ? JSON.stringify(currentDraft) : null;
     const tooLong = rejectIfAnyTooLong([
-      { value: ideaText, max: AI_INPUT_CAPS.ideaText, label: "la idea" },
-      { value: profileContext, max: AI_INPUT_CAPS.profileContext, label: "el contexto del perfil" },
-      { value: adjustment, max: AI_INPUT_CAPS.adjustment, label: "los ajustes" },
-      { value: currentDraftJson, max: AI_INPUT_CAPS.currentDraftJson, label: "el borrador actual" },
-      { value: direction.name, max: AI_INPUT_CAPS.directionField, label: "el nombre del enfoque" },
-      { value: direction.promise, max: AI_INPUT_CAPS.directionField, label: "la promesa del enfoque" },
-      { value: direction.angle, max: AI_INPUT_CAPS.directionField, label: "el ángulo del enfoque" },
-      { value: direction.hook, max: AI_INPUT_CAPS.directionField, label: "el hook del enfoque" },
-      { value: direction.why, max: AI_INPUT_CAPS.directionField, label: "el porqué del enfoque" },
+      { value: ideaText, max: AI_INPUT_CAPS.ideaText, label: "La idea" },
+      { value: profileContext, max: AI_INPUT_CAPS.profileContext, label: "El contexto del perfil" },
+      { value: adjustment, max: AI_INPUT_CAPS.adjustment, label: "Los ajustes" },
+      { value: currentDraftJson, max: AI_INPUT_CAPS.currentDraftJson, label: "El borrador actual" },
+      { value: direction.name, max: AI_INPUT_CAPS.directionField, label: "El nombre del enfoque" },
+      { value: direction.promise, max: AI_INPUT_CAPS.directionField, label: "La promesa del enfoque" },
+      { value: direction.angle, max: AI_INPUT_CAPS.directionField, label: "El ángulo del enfoque" },
+      { value: direction.hook, max: AI_INPUT_CAPS.directionField, label: "El hook del enfoque" },
+      { value: direction.why, max: AI_INPUT_CAPS.directionField, label: "El porqué del enfoque" },
     ]);
     if (tooLong) return tooLong;
 

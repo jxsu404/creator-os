@@ -37,22 +37,22 @@ export async function POST(request: Request) {
       {
         value: idea,
         max: AI_INPUT_CAPS.thumbnailIdea,
-        label: "la idea de miniatura",
+        label: "La idea de miniatura",
       },
       {
         value: title,
         max: AI_INPUT_CAPS.existingTitle,
-        label: "el título",
+        label: "El título",
       },
       {
         value: ideaText,
         max: AI_INPUT_CAPS.ideaText,
-        label: "la idea",
+        label: "La idea",
       },
       {
         value: profileContext,
         max: AI_INPUT_CAPS.profileContext,
-        label: "el contexto del perfil",
+        label: "El contexto del perfil",
       },
     ]);
     if (tooLong) return tooLong;

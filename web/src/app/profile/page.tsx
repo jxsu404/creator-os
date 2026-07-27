@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/components/AuthProvider";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
-import { withUser1Defaults } from "@/lib/profile-context";
+import { hasGamingNiche, withUser1Defaults } from "@/lib/profile-context";
 import { getProfile } from "@/lib/storage";
 import { isCloudSyncEnabled, onSynced } from "@/lib/sync";
 import type { CreatorProfile } from "@/lib/types";
@@ -145,6 +145,7 @@ function ProfileHub() {
   const bio =
     profile.customDescription.trim() ||
     "Añade una descripción de tu canal.";
+  const showGames = hasGamingNiche(profile);
   const gameLabel = shortGame(profile.gameBrief?.name);
 
   // Countdown local entre polls del servidor
@@ -219,15 +220,17 @@ function ProfileHub() {
       </section>
 
       <nav className="settings-list" aria-label="Apartados">
-        <Link href="/profile/juegos" className="settings-row">
-          <div>
-            <p className="settings-title">Juegos</p>
-            <p className="settings-desc">Activo: {gameLabel}</p>
-          </div>
-          <span className="chevron" aria-hidden>
-            →
-          </span>
-        </Link>
+        {showGames ? (
+          <Link href="/profile/juegos" className="settings-row">
+            <div>
+              <p className="settings-title">Juegos</p>
+              <p className="settings-desc">Activo: {gameLabel}</p>
+            </div>
+            <span className="chevron" aria-hidden>
+              →
+            </span>
+          </Link>
+        ) : null}
         <Link href="/profile/personalizacion" className="settings-row">
           <div>
             <p className="settings-title">Personalización</p>

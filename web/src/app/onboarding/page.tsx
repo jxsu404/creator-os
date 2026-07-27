@@ -39,12 +39,13 @@ function OnboardingForm() {
       return;
     }
     const existing = getProfile();
+    const gaming = niches.some((n) => n.trim().toLowerCase() === "gaming");
     saveProfile({
       niches,
       customDescription: custom.trim(),
       onboardedAt: existing?.onboardedAt || new Date().toISOString(),
       workspaceMode: existing?.workspaceMode || "blank",
-      useGameContext: existing?.useGameContext === true,
+      useGameContext: gaming ? existing?.useGameContext !== false : false,
       ...(existing
         ? {
             activeGameId: existing.activeGameId,

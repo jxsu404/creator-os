@@ -38,7 +38,11 @@ function mergeBrief(base: GameBrief, over?: Partial<GameBrief>): GameBrief {
   };
 }
 
-function resolveWorkspaceMode(profile: CreatorProfile): "blank" | "content_os" {
+/**
+ * blank = canal propio (nuevos usuarios).
+ * content_os = perfil con biblioteca importada del fundador.
+ */
+export function resolveWorkspaceMode(profile: CreatorProfile): "blank" | "content_os" {
   if (profile.workspaceMode === "content_os" || profile.workspaceMode === "blank") {
     return profile.workspaceMode;
   }
@@ -53,6 +57,13 @@ function resolveWorkspaceMode(profile: CreatorProfile): "blank" | "content_os" {
   );
   if (hasFounderBrand || hasAfs) return "content_os";
   return "blank";
+}
+
+/** True si el creador eligió el chip Gaming (onboarding / nichos). */
+export function hasGamingNiche(profile: Pick<CreatorProfile, "niches">): boolean {
+  return (profile.niches || []).some(
+    (n) => n.trim().toLowerCase() === "gaming"
+  );
 }
 
 function normalizeBlank(profile: CreatorProfile): CreatorProfile {
@@ -75,9 +86,10 @@ function normalizeBlank(profile: CreatorProfile): CreatorProfile {
     niches: profile.niches || [],
     customDescription: (profile.customDescription || "").trim(),
     useGameContext:
-      profile.useGameContext === true ||
-      Boolean(gameBrief) ||
-      gamesLibrary.length > 0,
+      hasGamingNiche(profile) &&
+      (profile.useGameContext === true ||
+        Boolean(gameBrief) ||
+        gamesLibrary.length > 0),
     activeGameId,
     gamesLibrary,
     gameBrief,
@@ -118,10 +130,17 @@ function normalizeContentOs(profile: CreatorProfile): CreatorProfile {
     profile.gameBrief?.id === activeGameId ? profile.gameBrief : fromLibrary
   );
 
+  const niches =
+    (profile.niches?.length ?? 0) > 0
+      ? profile.niches
+      : ["Gaming", "Roblox", "Guías", "Showcases", "Opiniones"];
+
   return {
     ...profile,
     workspaceMode: "content_os",
-    useGameContext: profile.useGameContext !== false,
+    niches,
+    useGameContext:
+      hasGamingNiche({ niches }) && profile.useGameContext !== false,
     activeGameId,
     gamesLibrary,
     gameBrief,
@@ -145,10 +164,6 @@ function normalizeContentOs(profile: CreatorProfile): CreatorProfile {
     provenHooks: profile.provenHooks?.length
       ? profile.provenHooks
       : PROVEN_HOOKS,
-    niches:
-      (profile.niches?.length ?? 0) > 0
-        ? profile.niches
-        : ["Gaming", "Roblox", "Guías", "Showcases", "Opiniones"],
     customDescription:
       (profile.customDescription ?? "").trim() ||
       "Roblox en español — Anime Fighting Simulator (primario), Shindo Life, Blox Lock upcoming. Comunidad Crimson Core. YouTube + Shorts + TikTok + Kick.",
@@ -226,7 +241,7 @@ export function profileContextFor(
     parts.push(`Ángulo preferido de esta idea: ${opts.contentAngle}`);
   }
 
-  if (p.useGameContext !== false && p.gameBrief) {
+  if (hasGamingNiche(p) && p.useGameContext !== false && p.gameBrief) {
     const g = p.gameBrief;
     parts.push("");
     parts.push("=== CONTEXTO DEL JUEGO ACTIVO ===");

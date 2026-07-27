@@ -2,10 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Creator OS",
-    short_name: "Creator OS",
-    description:
-      "Compañero creativo: de idea vaga a guía lista para grabar.",
+    name: "Ideazo",
+    short_name: "Ideazo",
+    description: "De idea a listo para grabar.",
     start_url: "/",
     display: "standalone",
     background_color: "#F8FAFC",

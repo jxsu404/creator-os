@@ -1,9 +1,9 @@
-# UX Brief — Creator OS (v1)
+# UX Brief — Ideazo (v1)
 
-**Nombre provisional:** Creator OS  
-**Fecha:** 26 de julio de 2026  
-**Estado:** Brief de experiencia (pre-código, sin stack técnico)  
-**Documentos hermanos:** `PRODUCT_VISION.md` · `PRODUCT_SYSTEM.md` · `BRAND_VOICE.md` · `BRAND_AND_ROADMAP.md`
+**Nombre de marca:** Ideazo  
+**Fecha:** 27 de julio de 2026  
+**Estado:** Brief de experiencia  
+**Documentos hermanos:** `PRODUCT_VISION.md` · `PRODUCT_SYSTEM.md` · `BRAND_VOICE.md` · `BRAND_AND_ROADMAP.md` · `NAMING.md`
 
 ---
 

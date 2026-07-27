@@ -1,4 +1,4 @@
-# Validación del loop — Creator OS (pre-build)
+# Validación del loop — Ideazo (pre-build)
 
 **Fecha:** 26 de julio de 2026  
 **Objetivo:** Comprobar con creadores reales si el wedge enamora **antes** de escribir código.  

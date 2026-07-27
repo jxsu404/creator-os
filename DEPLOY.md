@@ -1,4 +1,4 @@
-# Deploy — Creator OS en Vercel (con cuenta)
+# Deploy — Ideazo en Vercel (con cuenta)
 
 **Recomendación:** Vercel (hobby) + Next.js en `web/` + **Supabase Auth** (login obligatorio).
 

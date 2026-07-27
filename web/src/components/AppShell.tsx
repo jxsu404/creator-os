@@ -36,7 +36,7 @@ export function AppShell({
             </Link>
           ) : (
             <Link href="/" className="brand-mark">
-              Creator OS
+              Ideazo
             </Link>
           )}
           {title ? <h1 className="screen-title">{title}</h1> : <span />}

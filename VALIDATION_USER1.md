@@ -36,7 +36,7 @@ Reglas:
 1. **Todas** las ideas de contenido short-form del periodo se capturan aquí (no en Notes), salvo emergencia.
 2. Al menos **N piezas** intentan el loop completo hasta “lista para grabar”  
    *(propuesta: mínimo 8 ideas capturadas, 5 con enfoques, 3 grabadas a partir del borrador)*.
-3. ChatGPT suelto solo si Creator OS no puede; anotar por qué.
+3. ChatGPT suelto solo si Ideazo no puede; anotar por qué.
 4. No añadir features nuevas a mitad del test salvo bugs que bloqueen el loop.
 
 ### Fase C — Decisión go / no-go

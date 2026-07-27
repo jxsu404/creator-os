@@ -1,18 +1,20 @@
-# Creator OS — Resumen ejecutivo de marca, visión ampliada y roadmap
+# Ideazo — Resumen ejecutivo de marca, visión ampliada y roadmap
 
-**Nombre provisional:** Creator OS  
-**Tagline de trabajo (visión de producto):**  
+**Nombre de marca:** Ideazo  
+**Repo / nombre técnico:** creator-os (histórico: Creator OS)  
+**Tagline de trabajo:** *De idea a listo para grabar.*  
+**Claim largo:**  
 *Un compañero creativo que te lleva de una idea vaga a una guía lista para grabar — con 3 direcciones para elegir, sin sustituir tu criterio.*
 
-**Fecha:** 26 de julio de 2026  
-**Estado:** Documento de marca + visión completa + backlog futuro (pre-código)  
-**Documentos hermanos:** `PRODUCT_VISION.md` · `PRODUCT_SYSTEM.md` · `BRAND_VOICE.md` · `UX_BRIEF.md`
+**Fecha:** 27 de julio de 2026  
+**Estado:** Documento de marca + visión completa + backlog futuro  
+**Documentos hermanos:** `PRODUCT_VISION.md` · `PRODUCT_SYSTEM.md` · `BRAND_VOICE.md` · `UX_BRIEF.md` · `NAMING.md`
 
 ---
 
 ## 1. Resumen ejecutivo
 
-**Creator OS** aspira a ser el compañero creativo del ciclo de vida del contenido para redes — desde el nacimiento de una idea hasta el aprendizaje de resultados — sin ser otra app de productividad, un gestor de tareas ni un reemplazo de Notion.
+**Ideazo** aspira a ser el compañero creativo del ciclo de vida del contenido para redes — desde el nacimiento de una idea hasta el aprendizaje de resultados — sin ser otra app de productividad, un gestor de tareas ni un reemplazo de Notion.
 
 El mercado está lleno de herramientas que ayudan a *organizar* o *generar texto*. Casi nadie resuelve con profundidad el tramo donde más se rompe la constancia: **convertir una idea vaga en una pieza clara y grabable**, quitando el trabajo pesado (investigar, estructurar, escribir, proponer el hook) y dejando el criterio creativo en manos del creador.
 
@@ -25,14 +27,14 @@ Si ese loop enamora, expandimos hacia captura por voz, motivación ligera, publi
 
 ---
 
-## 2. Marca (provisional)
+## 2. Marca
 
 ### Nombre
 
-**Creator OS** — nombre provisional.  
-Implica un “sistema operativo” para el trabajo del creador: no una utilidad aislada, sino la capa que acompaña el oficio creativo.
+**Ideazo** — marca pública decidida (27 jul 2026).  
+Familia: acción del wedge (idea) con vibe de compañero. El tagline completa la promesa hasta grabar.
 
-> Riesgo a vigilar: “OS” puede sonar técnico o hinchado. Mientras el producto se sienta simple y humano, el nombre puede sostenerse. Si en la práctica se percibe como software empresarial, reconsiderar.
+> Riesgo a vigilar: que se lea solo como “bloc de ideas”. UI y claim deben empujar idea → 3 direcciones → listo para grabar.
 
 ### Personalidad de marca (cómo debe sentirse)
 
@@ -186,7 +188,7 @@ Ordenadas por cercanía conceptual al core. **No son compromiso de fechas** — 
 | **Capa multi-red (“todas tus redes”)** | Un solo lugar de verdad para el creador | Scope explosivo; producto tibio en todo |
 | **Tips de crecimiento personalizados** | Empoderar con criterio, no con tips genéricos | Ruido; pérdida de foco creativo |
 | **Calendario / programación de publicación** | Del “listo para grabar” al “publicado” | Territory de Buffer/Later; diluye el wedge |
-| **Automatizaciones con n8n** (publicar, avisar, sync) | Encaja muy bien cuando el loop creativo ya enamora; conecta Creator OS con redes y tools | No meterlo en v0.1; el creador no debe “aprender n8n” |
+| **Automatizaciones con n8n** (publicar, avisar, sync) | Encaja muy bien cuando el loop creativo ya enamora; conecta Ideazo con redes y tools | No meterlo en v0.1; el creador no debe “aprender n8n” |
 | **Colaboración / equipos / agencias** | Escalar el uso | Pierde intimidad del “compañero personal” |
 | **YouTube largo u otros formatos** | Expandir mercado; ya previsto como posibilidad (Usuario 1) | Rompe el flujo optimizado para short-form si se prioriza demasiado pronto |
 | **Ayuda a miniaturas / creatividades** | Posibilidad post-guion (Usuario 1 hoy usa ChatGPT para thumbs) | Guerra de diseño gráfico; fuera del companion de guion |
@@ -240,7 +242,7 @@ VISIÓN
 | `UX_BRIEF.md` | Pantallas mínimas y flujo de UI (sin stack) |
 | `VALIDATION.md` | Guion para creadores externos (post–Usuario 1) |
 | `VALIDATION_USER1.md` | Dogfooding del fundador: protocolo + checklist |
-| `NAMING.md` | Decisión de nombre (Creator OS provisional = B) |
+| `NAMING.md` | Marca pública: Ideazo (repo técnico: creator-os) |
 | `BRAND_AND_ROADMAP.md` (este) | Marca, visión completa, features futuras, memoria estratégica |
 
 **Regla:** si una idea nueva no mejora idea → listo para grabar, no entra a v1. Puede vivir aquí, en el backlog de visión.
@@ -274,4 +276,4 @@ VISIÓN
 
 ---
 
-*Nombre “Creator OS” y este backlog son provisionales. Congelar renombres o priorizaciones solo con decisión explícita.*
+*Marca pública: Ideazo. Repo técnico: creator-os. Congelar priorizaciones de backlog solo con decisión explícita.*

@@ -1,9 +1,9 @@
-# Product Vision — Creator OS
+# Product Vision — Ideazo
 
-**Nombre provisional:** Creator OS  
-**Fecha:** 26 de julio de 2026  
-**Estado:** Visión de producto (pre-código)  
-**Documentos hermanos:** `BRAND_AND_ROADMAP.md` · `PRODUCT_SYSTEM.md` · `BRAND_VOICE.md` · `UX_BRIEF.md`
+**Nombre de marca:** Ideazo  
+**Fecha:** 27 de julio de 2026  
+**Estado:** Visión de producto  
+**Documentos hermanos:** `BRAND_AND_ROADMAP.md` · `PRODUCT_SYSTEM.md` · `BRAND_VOICE.md` · `UX_BRIEF.md` · `NAMING.md`
 
 ---
 
@@ -204,7 +204,7 @@ El creador revisa la vista previa y puede pedir ajustes a la IA o editar a mano.
 
 **Para** creadores de short-form que ya intentan publicar con regularidad,  
 **que** se ahogan pasando de ideas vagas a videos grabables,  
-**Creator OS** es el compañero creativo  
+**Ideazo** es el compañero creativo  
 **que** convierte una idea en una guía lista para grabar mediante 3 direcciones y un borrador personalizable,  
 **a diferencia de** chats genéricos, calendarios y apps de productividad  
 **que** no resuelven la fricción creativa real del tramo idea → ejecución.

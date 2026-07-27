@@ -25,6 +25,9 @@ export function AppShell({
 
   return (
     <div className={`app-shell${showNav ? " app-shell-nav" : ""}`}>
+      <div className="app-atmosphere" aria-hidden />
+      <div className="app-glow" aria-hidden />
+
       <header className="app-header">
         <div className="app-header-row">
           {backHref ? (
@@ -40,7 +43,9 @@ export function AppShell({
           <span className="header-spacer" aria-hidden />
         </div>
       </header>
+
       <main className="app-main">{children}</main>
+
       {showNav ? (
         <nav className="bottom-nav" aria-label="Principal">
           <Link

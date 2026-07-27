@@ -1,15 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Manrope, Syne } from "next/font/google";
 import { AuthProvider } from "@/components/AuthProvider";
 import { PwaRegister } from "@/components/PwaRegister";
 import "./globals.css";
 
-const inter = Inter({
+const manrope = Manrope({
   subsets: ["latin"],
   variable: "--font-sans",
 });
 
-const spaceGrotesk = Space_Grotesk({
+const syne = Syne({
   subsets: ["latin"],
   variable: "--font-display",
 });
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     title: "Creator OS",
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
   },
   formatDetection: {
     telephone: false,
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#6C3EF4",
+  themeColor: "#0b1020",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -53,7 +53,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={`${inter.variable} ${spaceGrotesk.variable} antialiased`}>
+      <body className={`${manrope.variable} ${syne.variable} antialiased`}>
         <AuthProvider>
           {children}
           <PwaRegister />

@@ -1764,6 +1764,21 @@ a.pub-row:hover {
   margin: 0;
 }
 
+.yt-package-options {
+  margin-top: var(--space-3);
+}
+
+.yt-option-title {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.yt-option-desc {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
 /* ============================================================
    AUTH SCREEN — login / sign-in (full composition)
    ============================================================ */

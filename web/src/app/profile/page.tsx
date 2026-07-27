@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/components/AuthProvider";
@@ -26,7 +26,9 @@ type AiStatusResponse = {
   providers: AiProviderStatus[];
   anyAvailable: boolean;
   nextReady: {
+    id?: string;
     label: string;
+    remainingMs?: number;
     remainingLabel: string | null;
   } | null;
 };
@@ -54,17 +56,9 @@ function formatMs(ms: number): string {
   return `${s}s`;
 }
 
-function reasonLabel(reason: string | null): string {
-  switch (reason) {
-    case "daily_quota":
-      return "Cuota diaria";
-    case "rate_limit":
-      return "Rate limit";
-    case "invalid_key":
-      return "Key inválida";
-    default:
-      return "En pausa";
-  }
+function clampPercent(n: number): number {
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(100, Math.round(n)));
 }
 
 function ProfileHub() {
@@ -76,6 +70,7 @@ function ProfileHub() {
   const [aiStatus, setAiStatus] = useState<AiStatusResponse | null>(null);
   const [fetchedAt, setFetchedAt] = useState(0);
   const [tick, setTick] = useState(0);
+  const cooldownWindowMs = useRef(0);
 
   useEffect(() => {
     function load() {
@@ -102,6 +97,15 @@ function ProfileHub() {
         if (!res.ok) return;
         const data = (await res.json()) as AiStatusResponse;
         if (!cancelled) {
+          const nextMs = data.nextReady?.remainingMs ?? 0;
+          if (!data.anyAvailable && nextMs > 0) {
+            cooldownWindowMs.current = Math.max(
+              cooldownWindowMs.current,
+              nextMs
+            );
+          } else if (data.anyAvailable) {
+            cooldownWindowMs.current = 0;
+          }
           setAiStatus(data);
           setFetchedAt(Date.now());
           setTick(0);
@@ -120,9 +124,10 @@ function ProfileHub() {
   }, []);
 
   useEffect(() => {
-    const hasCooldown = aiStatus?.providers.some(
-      (p) => p.configured && !p.available && p.remainingMs > 0
-    );
+    const hasCooldown =
+      Boolean(aiStatus) &&
+      !aiStatus!.anyAvailable &&
+      (aiStatus!.nextReady?.remainingMs ?? 0) > 0;
     if (!hasCooldown) return;
     const id = window.setInterval(() => setTick((n) => n + 1), 1000);
     return () => window.clearInterval(id);
@@ -157,6 +162,48 @@ function ProfileHub() {
     }
     return p;
   });
+
+  const configuredProviders = providers.filter((p) => p.configured);
+  const anyConfigured = configuredProviders.length > 0;
+  const anyAvailable = configuredProviders.some((p) => p.available);
+  const nextCooling = configuredProviders
+    .filter((p) => !p.available && p.remainingMs > 0)
+    .sort((a, b) => a.remainingMs - b.remainingMs)[0];
+
+  let capacityPercent = 0;
+  let capacityLabel = "Cargando estado…";
+  let capacityState: "loading" | "ready" | "recharge" | "offline" = "loading";
+
+  if (!aiStatus) {
+    capacityPercent = 0;
+    capacityLabel = "Cargando estado…";
+    capacityState = "loading";
+  } else if (!anyConfigured) {
+    capacityPercent = 0;
+    capacityLabel = "IA no disponible en este entorno";
+    capacityState = "offline";
+  } else if (anyAvailable) {
+    capacityPercent = 100;
+    capacityLabel = "Capacidad del plan disponible";
+    capacityState = "ready";
+  } else if (nextCooling) {
+    const windowMs = Math.max(
+      cooldownWindowMs.current,
+      nextCooling.remainingMs,
+      1
+    );
+    capacityPercent = clampPercent(
+      100 * (1 - nextCooling.remainingMs / windowMs)
+    );
+    capacityLabel = `Recargando · vuelve en ${
+      nextCooling.remainingLabel || "…"
+    }`;
+    capacityState = "recharge";
+  } else {
+    capacityPercent = 0;
+    capacityLabel = "Capacidad agotada por ahora";
+    capacityState = "offline";
+  }
 
   return (
     <AppShell title="Perfil">
@@ -206,52 +253,38 @@ function ProfileHub() {
       </nav>
 
       <section className="section">
-        <h2 className="section-title">Cuota IA (gratis)</h2>
-        <p className="muted">
-          Si un proveedor se agota, Creator OS salta al siguiente. Aquí ves
-          cuánto falta para que vuelva.
-        </p>
-        {providers.length === 0 ? (
-          <p className="muted">Cargando estado…</p>
-        ) : (
-          <div className="stack">
-            {providers.map((p) => (
-              <div
-                key={p.id}
-                className="settings-row"
-                style={{ cursor: "default" }}
-              >
-                <div>
-                  <p className="settings-title">{p.label}</p>
-                  <p className="settings-desc">
-                    {!p.configured
-                      ? "No configurado en .env.local"
-                      : p.available
-                        ? "Disponible"
-                        : `${reasonLabel(p.reason)} · vuelve en ${
-                            p.remainingLabel || "…"
-                          }`}
-                  </p>
-                </div>
-                <span
-                  className={`ai-status-pill${
-                    !p.configured
-                      ? " ai-status-off"
-                      : p.available
-                        ? " ai-status-ok"
-                        : " ai-status-wait"
-                  }`}
-                >
-                  {!p.configured
-                    ? "—"
-                    : p.available
-                      ? "OK"
-                      : p.remainingLabel || "…"}
-                </span>
-              </div>
-            ))}
+        <div className="plan-card">
+          <div className="plan-card-head">
+            <h2 className="section-title plan-card-title">Tu plan</h2>
+            <span className="plan-badge">Plan gratuito</span>
           </div>
-        )}
+          <p className="muted plan-card-lead">
+            Capacidad de IA incluida en Creator OS. Cuando se agote, se
+            recarga sola.
+          </p>
+
+          <div
+            className={`plan-meter plan-meter-${capacityState}`}
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={capacityPercent}
+            aria-label="Capacidad del plan gratuito"
+          >
+            <div
+              className="plan-meter-fill"
+              style={{ width: `${capacityPercent}%` }}
+            />
+          </div>
+          <p className="plan-meter-meta">{capacityLabel}</p>
+
+          <div className="plan-pro-teaser">
+            <p className="plan-pro-title">Próximamente · Creator OS Pro</p>
+            <p className="plan-pro-desc">
+              Mejores modelos y más capacidad para generar sin parar.
+            </p>
+          </div>
+        </div>
       </section>
 
       <section className="section">

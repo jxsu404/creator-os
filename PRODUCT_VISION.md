@@ -186,7 +186,7 @@ El creador revisa la vista previa y puede pedir ajustes a la IA o editar a mano.
 - Agente investigador async profundo (“mientras estás en el gym”)
 - Feed de tips genéricos de crecimiento
 
-*(Estas piezas viven en visión futura — ver `BRAND_AND_ROADMAP.md`.)*
+*(Estas piezas viven en visión futura — ver `BRAND_AND_ROADMAP.md`. Chat asistente Pro + YouTube Analytics: evaluado 2026-07-27; **no** entra a ejecución ahora — decisión §6.1.)*
 
 ---
 

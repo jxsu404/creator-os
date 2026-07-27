@@ -10,6 +10,7 @@ import {
 import { RequireOnboarding } from "@/components/RequireOnboarding";
 import { createId } from "@/lib/id";
 import { ensureIdeaTitle } from "@/lib/idea-title";
+import { trackFunnel } from "@/lib/metrics";
 import { upsertIdea } from "@/lib/storage";
 import type { Idea } from "@/lib/types";
 
@@ -37,6 +38,7 @@ function CaptureForm() {
       updatedAt: now,
     };
     upsertIdea(idea);
+    trackFunnel("idea_captured");
     void ensureIdeaTitle(idea);
     router.push(`/ideas/${idea.id}`);
   }

@@ -9,6 +9,7 @@ import {
   isUsageLimitPayload,
   UpgradePrompt,
 } from "@/components/UpgradePrompt";
+import { trackFunnel } from "@/lib/metrics";
 import { profileContextFor } from "@/lib/profile-context";
 import { buildUnifiedScript } from "@/lib/script";
 import { getIdea, getProfile, upsertIdea } from "@/lib/storage";
@@ -116,11 +117,7 @@ function DraftPreview() {
       if (!res.ok) {
         if (res.status === 402 || isUsageLimitPayload(data)) {
           setNeedsUpgrade(true);
-          void fetch("/api/metrics/event", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ event: "hit_limit" }),
-          });
+          trackFunnel("hit_limit");
         }
         throw new Error(data.error || "Error");
       }

@@ -6,6 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { RequireAuth } from "@/components/RequireAuth";
 import { RequireInvite } from "@/components/RequireInvite";
 import { NICHE_CHIPS } from "@/lib/types";
+import { trackFunnel } from "@/lib/metrics";
 import { getProfile, saveProfile } from "@/lib/storage";
 
 function OnboardingForm() {
@@ -60,11 +61,7 @@ function OnboardingForm() {
           }
         : {}),
     });
-    void fetch("/api/metrics/event", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event: "onboarding_complete" }),
-    });
+    void trackFunnel("onboarding_complete");
     router.push("/");
   }
 

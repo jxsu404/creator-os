@@ -10,6 +10,7 @@ import {
 } from "@/components/UpgradePrompt";
 import { createId } from "@/lib/id";
 import { ideaPreview } from "@/lib/idea-preview";
+import { trackFunnel } from "@/lib/metrics";
 import { profileContextFor } from "@/lib/profile-context";
 import { buildUnifiedScript } from "@/lib/script";
 import { getIdea, getProfile, upsertIdea } from "@/lib/storage";
@@ -76,11 +77,7 @@ function DirectionsFlow() {
       if (!res.ok) {
         if (res.status === 402 || isUsageLimitPayload(data)) {
           setNeedsUpgrade(true);
-          void fetch("/api/metrics/event", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ event: "hit_limit" }),
-          });
+          trackFunnel("hit_limit");
         }
         throw new Error(data.error || "Error");
       }
@@ -90,6 +87,7 @@ function DirectionsFlow() {
           id: createId("dir"),
         })
       );
+      trackFunnel("directions_generated");
       const latest = getIdea(current.id) ?? current;
       const next: Idea = {
         ...latest,
@@ -149,11 +147,7 @@ function DirectionsFlow() {
       if (!res.ok) {
         if (res.status === 402 || isUsageLimitPayload(data)) {
           setNeedsUpgrade(true);
-          void fetch("/api/metrics/event", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ event: "hit_limit" }),
-          });
+          trackFunnel("hit_limit");
         }
         throw new Error(data.error || "Error");
       }
@@ -166,6 +160,7 @@ function DirectionsFlow() {
       ) {
         throw new Error("La guía llegó incompleta. Intenta de nuevo.");
       }
+      trackFunnel("draft_ready");
       const now = new Date().toISOString();
       const latest = getIdea(idea.id) ?? idea;
       const draft = {

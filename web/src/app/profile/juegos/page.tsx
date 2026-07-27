@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
 import { SEED_GAMES } from "@/lib/content-os-seed";
-import { withUser1Defaults } from "@/lib/profile-context";
+import { hasGamingNiche, withUser1Defaults } from "@/lib/profile-context";
 import type { GameBrief } from "@/lib/types";
 import { getProfile, saveProfile } from "@/lib/storage";
 
@@ -15,6 +15,7 @@ function shortGameLabel(name: string) {
 
 function GamesSettings() {
   const router = useRouter();
+  const [allowed, setAllowed] = useState<boolean | null>(null);
   const [activeGameId, setActiveGameId] = useState("anime-fighting-simulator");
   const [game, setGame] = useState<GameBrief | null>(null);
   const [library, setLibrary] = useState<GameBrief[]>([]);
@@ -22,12 +23,33 @@ function GamesSettings() {
 
   useEffect(() => {
     const profile = getProfile();
-    if (!profile) return;
+    if (!profile) {
+      setAllowed(false);
+      router.replace("/profile");
+      return;
+    }
     const p = withUser1Defaults(profile);
-    setActiveGameId(p.activeGameId || "anime-fighting-simulator");
-    setLibrary(p.gamesLibrary || SEED_GAMES.map((g) => g.brief));
-    setGame(p.gameBrief!);
-  }, []);
+    if (!hasGamingNiche(p)) {
+      setAllowed(false);
+      router.replace("/profile");
+      return;
+    }
+    setAllowed(true);
+    setActiveGameId(p.activeGameId || p.gamesLibrary?.[0]?.id || "");
+    const lib =
+      p.gamesLibrary?.length
+        ? p.gamesLibrary
+        : p.workspaceMode === "content_os"
+          ? SEED_GAMES.map((g) => g.brief)
+          : [];
+    setLibrary(lib);
+    setGame(
+      p.gameBrief ||
+        lib.find((g) => g.id === p.activeGameId) ||
+        lib[0] ||
+        null
+    );
+  }, [router]);
 
   function selectGame(id: string) {
     if (!game) return;
@@ -43,6 +65,10 @@ function GamesSettings() {
     const existing = getProfile();
     if (!existing) return;
     const base = withUser1Defaults(existing);
+    if (!hasGamingNiche(base)) {
+      router.replace("/profile");
+      return;
+    }
     const nextLib = library.map((g) => (g.id === game.id ? { ...game } : g));
     if (!nextLib.some((g) => g.id === game.id)) nextLib.push(game);
 
@@ -66,10 +92,29 @@ function GamesSettings() {
     }, 500);
   }
 
-  if (!game) {
+  if (allowed === null) {
     return (
       <AppShell title="Juegos" backHref="/profile">
         <p className="muted">Cargando…</p>
+      </AppShell>
+    );
+  }
+
+  if (!allowed) {
+    return (
+      <AppShell title="Juegos" backHref="/profile">
+        <p className="muted">Redirigiendo…</p>
+      </AppShell>
+    );
+  }
+
+  if (!game) {
+    return (
+      <AppShell title="Juegos" backHref="/profile">
+        <p className="muted">
+          Aún no hay juegos en tu biblioteca. Cuando agregues uno, la IA
+          podrá usarlo en tus guías.
+        </p>
       </AppShell>
     );
   }

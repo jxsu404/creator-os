@@ -1,7 +1,19 @@
 import { describe, expect, it } from "vitest";
+import { hasGamingNiche } from "./profile-context";
 import { sanitizeNext } from "./safe-next";
 import { mergeIdeas, mergeProfiles } from "./sync";
 import type { CreatorProfile, Idea } from "./types";
+
+describe("hasGamingNiche", () => {
+  it("unlocks only when Gaming chip is present", () => {
+    expect(hasGamingNiche({ niches: ["Gaming"] })).toBe(true);
+    expect(hasGamingNiche({ niches: ["Roblox", "Gaming"] })).toBe(true);
+    expect(hasGamingNiche({ niches: ["gaming"] })).toBe(true);
+    expect(hasGamingNiche({ niches: ["Roblox", "Guías"] })).toBe(false);
+    expect(hasGamingNiche({ niches: ["Fitness"] })).toBe(false);
+    expect(hasGamingNiche({ niches: [] })).toBe(false);
+  });
+});
 
 describe("sanitizeNext", () => {
   it("allows app-relative paths", () => {

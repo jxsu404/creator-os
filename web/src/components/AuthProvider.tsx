@@ -19,6 +19,7 @@ import {
   pullAndMerge,
 } from "@/lib/sync";
 import { clearLocalWorkspace } from "@/lib/storage";
+import { sanitizeNext } from "@/lib/safe-next";
 
 type AuthState = {
   configured: boolean;
@@ -63,6 +64,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSyncReady(false);
         try {
           await enableCloudSync(next.user);
+        } catch (err) {
+          console.error("[auth] sync boot failed", err);
         } finally {
           if (!cancelled) {
             setSyncReady(true);
@@ -108,10 +111,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const supabase = getSupabaseBrowser();
     if (!supabase) throw new Error("Supabase no configurado");
     const origin = window.location.origin;
-    const next =
+    const next = sanitizeNext(
       typeof window !== "undefined"
-        ? new URLSearchParams(window.location.search).get("next") || "/"
-        : "/";
+        ? new URLSearchParams(window.location.search).get("next")
+        : "/"
+    );
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -125,10 +129,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const supabase = getSupabaseBrowser();
     if (!supabase) throw new Error("Supabase no configurado");
     const origin = window.location.origin;
-    const next =
+    const next = sanitizeNext(
       typeof window !== "undefined"
-        ? new URLSearchParams(window.location.search).get("next") || "/"
-        : "/";
+        ? new URLSearchParams(window.location.search).get("next")
+        : "/"
+    );
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: {

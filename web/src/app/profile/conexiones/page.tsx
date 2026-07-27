@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
 import { withUser1Defaults } from "@/lib/profile-context";
@@ -13,6 +13,7 @@ function ConnectionsSettings() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
+  const connectReqId = useRef(0);
 
   useEffect(() => {
     const p = getProfile();
@@ -28,6 +29,7 @@ function ConnectionsSettings() {
   }, []);
 
   async function connectYoutube() {
+    const reqId = ++connectReqId.current;
     setLoading(true);
     setError("");
     setOk("");
@@ -39,6 +41,7 @@ function ConnectionsSettings() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error");
+      if (reqId !== connectReqId.current) return;
       const existing = getProfile();
       if (!existing) throw new Error("Perfil no encontrado.");
       const next = withUser1Defaults({
@@ -61,13 +64,16 @@ function ConnectionsSettings() {
       setProfile(next);
       setOk(`Conectado: ${data.channel.title}`);
     } catch (e) {
+      if (reqId !== connectReqId.current) return;
       setError(e instanceof Error ? e.message : "No pude conectar.");
     } finally {
-      setLoading(false);
+      if (reqId === connectReqId.current) setLoading(false);
     }
   }
 
   function disconnectYoutube() {
+    connectReqId.current += 1;
+    setLoading(false);
     const existing = getProfile();
     if (!existing) return;
     const next = withUser1Defaults({
@@ -119,6 +125,7 @@ function ConnectionsSettings() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="@tucanal o youtube.com/@…"
+          disabled={loading}
         />
 
         {error ? <p className="error">{error}</p> : null}
@@ -138,6 +145,7 @@ function ConnectionsSettings() {
             type="button"
             className="text-link"
             onClick={disconnectYoutube}
+            disabled={loading}
           >
             Desconectar
           </button>

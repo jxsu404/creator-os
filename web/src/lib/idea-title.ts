@@ -12,6 +12,10 @@ const inFlight = new Map<string, Promise<string | null>>();
 /** Evita reintentos en bucle desde backfill tras un fallo */
 const attempted = new Set<string>();
 
+function flightKey(ideaId: string, rawText: string): string {
+  return `${ideaId}::${rawText.trim()}`;
+}
+
 /**
  * Genera y persiste el título con IA si la idea aún no tiene.
  * Deduplica peticiones concurrentes y no toca updatedAt (no reordena listas).
@@ -24,13 +28,14 @@ export function ensureIdeaTitle(
   if (existing && !opts?.force) return Promise.resolve(existing);
   if (!idea.rawText.trim()) return Promise.resolve(null);
 
-  const pending = inFlight.get(idea.id);
+  const key = flightKey(idea.id, idea.rawText);
+  const pending = inFlight.get(key);
   if (pending) return pending;
 
   const request = requestTitle(idea, Boolean(opts?.force)).finally(() => {
-    inFlight.delete(idea.id);
+    inFlight.delete(key);
   });
-  inFlight.set(idea.id, request);
+  inFlight.set(key, request);
   return request;
 }
 
@@ -38,6 +43,7 @@ async function requestTitle(
   idea: Idea,
   force: boolean
 ): Promise<string | null> {
+  const requestText = idea.rawText.trim();
   attempted.add(idea.id);
   try {
     const res = await fetch("/api/generate-title", {
@@ -50,12 +56,13 @@ async function requestTitle(
     const title = data.title?.trim();
     if (!title) return null;
 
-    // Merge atómico: relee el registro actual para no pisar ediciones concurrentes
+    // Merge atómico: descarta si el texto cambió (respuesta stale)
     const next = patchIdea(idea.id, (current) => {
+      if (current.rawText.trim() !== requestText) return {};
       if (!force && current.title?.trim()) return {};
       return { title };
     });
-    return next?.title?.trim() || title;
+    return next?.title?.trim() || null;
   } catch {
     return null;
   }
@@ -77,7 +84,7 @@ export function backfillIdeaTitles(
         !i.title?.trim() &&
         i.rawText.trim() &&
         !attempted.has(i.id) &&
-        !inFlight.has(i.id)
+        !inFlight.has(flightKey(i.id, i.rawText))
     )
     .slice(0, limit)
     .forEach((idea) => {

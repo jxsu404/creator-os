@@ -4,9 +4,13 @@ import {
   fetchYoutubeVideoDetails,
   resolveYoutubeChannel,
 } from "@/lib/youtube";
+import { unauthorizedApiResponse } from "@/lib/supabase/require-api-user";
 
 export async function POST(request: Request) {
   try {
+    const denied = await unauthorizedApiResponse();
+    if (denied) return denied;
+
     const body = await request.json();
     const channelInput =
       typeof body.channelInput === "string" ? body.channelInput : "";

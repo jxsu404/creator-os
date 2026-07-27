@@ -73,7 +73,13 @@ function HomeHub() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Error YouTube");
         const latest = getProfile() || p;
-        if (!latest.youtube?.channelId) return;
+        if (
+          !latest.youtube?.channelId ||
+          latest.youtube.channelId !== p.youtube!.channelId ||
+          latest.youtube.uploadsPlaylistId !== p.youtube!.uploadsPlaylistId
+        ) {
+          return;
+        }
         const next = withUser1Defaults({
           ...latest,
           youtubeCache: {

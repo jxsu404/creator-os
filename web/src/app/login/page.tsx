@@ -3,6 +3,7 @@
 import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
+import { sanitizeNext } from "@/lib/safe-next";
 import { getSupabaseBrowser, isSupabaseConfigured } from "@/lib/supabase/client";
 
 function GoogleGlyph() {
@@ -37,7 +38,7 @@ function GoogleGlyph() {
 function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const next = params.get("next") || "/";
+  const next = sanitizeNext(params.get("next"));
   const { configured, user, loading, signInWithGoogle, signInWithEmail } =
     useAuth();
   const [email, setEmail] = useState("");

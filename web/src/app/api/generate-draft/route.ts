@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { generateJson, parseJsonLoose } from "@/lib/ai";
+import { unauthorizedApiResponse } from "@/lib/supabase/require-api-user";
 
 export async function POST(request: Request) {
   try {
+    const denied = await unauthorizedApiResponse();
+    if (denied) return denied;
+
     const body = await request.json();
     const {
       ideaText,
@@ -97,7 +101,16 @@ ${adjustment!.trim()}`
       typeof parsed.scriptBody === "string" ? parsed.scriptBody.trim() : "";
     const closing =
       typeof parsed.closing === "string" ? parsed.closing.trim() : "";
-    const beats = Array.isArray(parsed.beats) ? parsed.beats : [];
+    const beats = (Array.isArray(parsed.beats) ? parsed.beats : [])
+      .map((b) => ({
+        say: String(b?.say || "").trim(),
+        show: String(b?.show || "").trim(),
+        notes:
+          typeof b?.notes === "string" && b.notes.trim()
+            ? b.notes.trim()
+            : undefined,
+      }))
+      .filter((b) => b.say && b.show);
 
     if (!hook || !scriptBody || beats.length === 0) {
       return NextResponse.json(

@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { generateJson, parseJsonLoose } from "@/lib/ai";
+import { unauthorizedApiResponse } from "@/lib/supabase/require-api-user";
 
 export async function POST(request: Request) {
   try {
+    const denied = await unauthorizedApiResponse();
+    if (denied) return denied;
+
     const body = await request.json();
     const {
       ideaText,

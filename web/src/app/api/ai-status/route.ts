@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { getAiProvidersStatus } from "@/lib/ai";
 import { formatRemaining } from "@/lib/ai-cooldowns";
+import { unauthorizedApiResponse } from "@/lib/supabase/require-api-user";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const denied = await unauthorizedApiResponse();
+  if (denied) return denied;
+
   const providers = getAiProvidersStatus().map((p) => ({
     ...p,
     remainingLabel:

@@ -70,9 +70,13 @@ export function getProfile(): CreatorProfile | null {
 
 export function saveProfile(profile: CreatorProfile): void {
   if (!canUseStorage()) return;
+  const stamped: CreatorProfile = {
+    ...profile,
+    updatedAt: new Date().toISOString(),
+  };
   localStorage.setItem(
     PROFILE_KEY,
-    JSON.stringify(normalizeProfile(profile))
+    JSON.stringify(normalizeProfile(stamped))
   );
   notifyCloudSync();
 }

@@ -85,6 +85,8 @@ export interface CreatorProfile {
   niches: string[];
   customDescription: string;
   onboardedAt: string;
+  /** Última edición local/cloud del perfil (last-write-wins en sync). */
+  updatedAt?: string;
   /**
    * blank = canal propio (nuevos usuarios / testers).
    * content_os = dogfood fundador (AFS / Crimson Core).

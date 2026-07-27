@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
-import { withUser1Defaults } from "@/lib/profile-context";
+import { BLANK_BRAND, withUser1Defaults } from "@/lib/profile-context";
 import { getProfile, saveProfile } from "@/lib/storage";
 import { DEFAULT_BRAND } from "@/lib/user1-defaults";
 
@@ -26,13 +26,15 @@ function EditProfile() {
     const existing = getProfile();
     if (!existing) return;
     const base = withUser1Defaults(existing);
+    const brandDefaults =
+      base.workspaceMode === "content_os" ? DEFAULT_BRAND : BLANK_BRAND;
     saveProfile({
       ...base,
       customDescription: bio.trim(),
       brand: {
-        ...DEFAULT_BRAND,
+        ...brandDefaults,
         ...base.brand,
-        creatorName: name.trim() || DEFAULT_BRAND.creatorName,
+        creatorName: name.trim(),
       },
     });
     setSaved(true);

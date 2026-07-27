@@ -4,17 +4,15 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
-import { IdeaThumb } from "@/components/IdeaThumb";
-import { IdeaLabels } from "@/components/IdeaLabels";
+import { IdeaRow } from "@/components/IdeaRow";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
-import { ideaHref } from "@/lib/idea-href";
 import {
   groupIdeasByStatus,
   STATUS_GROUP_LABEL,
   STATUS_GROUP_TONE,
   type IdeaStatusGroup,
 } from "@/lib/idea-labels";
-import { backfillIdeaTitles, ideaTitle } from "@/lib/idea-title";
+import { backfillIdeaTitles } from "@/lib/idea-title";
 import { getIdeas, getProfile } from "@/lib/storage";
 import { onSynced } from "@/lib/sync";
 import type { Idea } from "@/lib/types";
@@ -23,21 +21,6 @@ const READY_BANNER_KEY = "creatoros_ready_banner";
 const RECORDED_BANNER_KEY = "creatoros_recorded_banner";
 
 const SECTION_ORDER: IdeaStatusGroup[] = ["pending", "ready", "recorded"];
-
-function IdeaRow({ idea, niches }: { idea: Idea; niches: string[] }) {
-  return (
-    <Link href={ideaHref(idea)} className="idea-row idea-row-media">
-      <IdeaThumb idea={idea} niches={niches} />
-      <div className="idea-row-body">
-        <p className="idea-text">{ideaTitle(idea)}</p>
-        <IdeaLabels idea={idea} niches={niches} />
-      </div>
-      <span className="chevron" aria-hidden>
-        →
-      </span>
-    </Link>
-  );
-}
 
 function IdeasList() {
   const pathname = usePathname();
@@ -117,7 +100,11 @@ function IdeasList() {
         Nueva idea
       </Link>
 
-      {banner ? <p className="banner-success">{banner}</p> : null}
+      {banner ? (
+        <p className="banner-success" role="status" aria-live="polite">
+          {banner}
+        </p>
+      ) : null}
 
       {total === 0 ? (
         <p className="empty-state">Captura una idea para empezar.</p>

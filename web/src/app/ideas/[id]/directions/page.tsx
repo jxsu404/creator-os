@@ -26,13 +26,33 @@ function ideaAiContext(idea: Idea) {
   });
 }
 
+async function safeJson(res: Response): Promise<unknown> {
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error("No pude conectar. Intenta de nuevo.");
+  }
+}
+
+function apiError(data: unknown): string {
+  if (data && typeof data === "object" && "error" in data) {
+    return String((data as { error?: unknown }).error) || "Error";
+  }
+  return "Error";
+}
+
 function DirectionsFlow() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
   const [idea, setIdea] = useState<Idea | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [directionsError, setDirectionsError] = useState("");
+  const [draftError, setDraftError] = useState("");
+  const [failedDirection, setFailedDirection] = useState<Direction | null>(
+    null
+  );
   const [needsUpgrade, setNeedsUpgrade] = useState(false);
   const [creatingId, setCreatingId] = useState<string | null>(null);
   const generatingRef = useRef(false);
@@ -63,7 +83,9 @@ function DirectionsFlow() {
 
     generatingRef.current = true;
     setLoading(true);
-    setError("");
+    setDirectionsError("");
+    setDraftError("");
+    setFailedDirection(null);
     setNeedsUpgrade(false);
     try {
       const res = await fetch("/api/generate-directions", {
@@ -74,21 +96,31 @@ function DirectionsFlow() {
           profileContext: ideaAiContext(current),
         }),
       });
-      const data = await res.json();
+      const data = await safeJson(res);
       if (!res.ok) {
         if (res.status === 402 || isUsageLimitPayload(data)) {
           setNeedsUpgrade(true);
           trackFunnel("hit_limit");
         }
-        throw new Error(data.error || "Error");
+        throw new Error(apiError(data));
       }
-      void applyGenerationBilling(data.billing);
-      const directions: Direction[] = data.directions.map(
-        (d: Omit<Direction, "id">) => ({
-          ...d,
-          id: createId("dir"),
-        })
+      void applyGenerationBilling(
+        data && typeof data === "object" && "billing" in data
+          ? (data as { billing: Parameters<typeof applyGenerationBilling>[0] })
+              .billing
+          : undefined
       );
+      const rawDirs =
+        data &&
+        typeof data === "object" &&
+        "directions" in data &&
+        Array.isArray((data as { directions: unknown }).directions)
+          ? (data as { directions: Array<Omit<Direction, "id">> }).directions
+          : [];
+      const directions: Direction[] = rawDirs.map((d) => ({
+        ...d,
+        id: createId("dir"),
+      }));
       trackFunnel("directions_generated");
       const latest = getIdea(current.id) ?? current;
       const next: Idea = {
@@ -109,7 +141,7 @@ function DirectionsFlow() {
       if (aliveRef.current) setIdea(next);
     } catch (e) {
       if (aliveRef.current) {
-        setError(
+        setDirectionsError(
           e instanceof Error
             ? e.message
             : "No pude armar buenos enfoques. Intenta de nuevo."
@@ -133,7 +165,9 @@ function DirectionsFlow() {
   async function selectDirection(selected: Direction) {
     if (!idea || creatingId) return;
     setCreatingId(selected.id);
-    setError("");
+    setDraftError("");
+    setDirectionsError("");
+    setFailedDirection(null);
     setNeedsUpgrade(false);
     try {
       const res = await fetch("/api/generate-draft", {
@@ -145,16 +179,33 @@ function DirectionsFlow() {
           direction: selected,
         }),
       });
-      const data = await res.json();
+      const data = await safeJson(res);
       if (!res.ok) {
         if (res.status === 402 || isUsageLimitPayload(data)) {
           setNeedsUpgrade(true);
           trackFunnel("hit_limit");
         }
-        throw new Error(data.error || "Error");
+        throw new Error(apiError(data));
       }
-      void applyGenerationBilling(data.billing);
-      const draftPayload = data.draft;
+      void applyGenerationBilling(
+        data && typeof data === "object" && "billing" in data
+          ? (data as { billing: Parameters<typeof applyGenerationBilling>[0] })
+              .billing
+          : undefined
+      );
+      const draftPayload =
+        data && typeof data === "object" && "draft" in data
+          ? (
+              data as {
+                draft?: {
+                  hook?: string;
+                  scriptBody?: string;
+                  closing?: string;
+                  estimatedSeconds?: number;
+                };
+              }
+            ).draft
+          : undefined;
       if (!draftPayload?.hook?.trim() || !draftPayload?.scriptBody?.trim()) {
         throw new Error("La guía llegó incompleta. Intenta de nuevo.");
       }
@@ -184,11 +235,12 @@ function DirectionsFlow() {
       router.push(`/ideas/${idea.id}/draft`);
     } catch (e) {
       if (aliveRef.current) {
-        setError(
+        setDraftError(
           e instanceof Error
             ? e.message
             : "No pude crear la guía. Intenta de nuevo."
         );
+        setFailedDirection(selected);
         setCreatingId(null);
       }
     }
@@ -202,21 +254,32 @@ function DirectionsFlow() {
     );
   }
 
+  const isCreating = Boolean(creatingId);
+  const cardsBusy = loading || isCreating;
+
   return (
     <AppShell title="Enfoques" backHref={`/ideas/${id}`}>
       <p className="idea-snippet">{ideaPreview(idea.rawText, 120)}</p>
 
       {loading ? (
-        <p className="muted">Armando enfoques…</p>
+        <p className="muted" aria-live="polite" aria-busy="true">
+          Armando enfoques…
+        </p>
       ) : null}
 
-      {creatingId ? <p className="muted">Creando guía…</p> : null}
+      {isCreating ? (
+        <p className="muted" aria-live="polite" aria-busy="true">
+          Creando guía…
+        </p>
+      ) : null}
 
-      {needsUpgrade ? <UpgradePrompt message={error} /> : null}
+      {needsUpgrade ? (
+        <UpgradePrompt message={directionsError || draftError} />
+      ) : null}
 
-      {error && !needsUpgrade ? (
-        <div className="error-box">
-          <p className="error">{error}</p>
+      {directionsError && !needsUpgrade ? (
+        <div className="error-box" role="alert">
+          <p className="error">{directionsError}</p>
           <button
             type="button"
             className="btn-secondary btn-block"
@@ -227,7 +290,26 @@ function DirectionsFlow() {
         </div>
       ) : null}
 
-      <div className="stack">
+      {draftError && !needsUpgrade ? (
+        <div className="error-box" role="alert">
+          <p className="error">{draftError}</p>
+          {failedDirection ? (
+            <button
+              type="button"
+              className="btn-secondary btn-block"
+              onClick={() => selectDirection(failedDirection)}
+            >
+              Reintentar
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
+      <div
+        className="stack"
+        aria-busy={cardsBusy}
+        aria-disabled={cardsBusy}
+      >
         {idea.directions?.map((dir) => (
           <article key={dir.id} className="direction-card">
             <h2 className="direction-name">{dir.name}</h2>
@@ -236,7 +318,7 @@ function DirectionsFlow() {
             <button
               type="button"
               className="btn-primary btn-block"
-              disabled={loading || Boolean(creatingId)}
+              disabled={cardsBusy}
               onClick={() => selectDirection(dir)}
             >
               {creatingId === dir.id ? "Creando…" : "Elegir"}
@@ -245,7 +327,7 @@ function DirectionsFlow() {
         ))}
       </div>
 
-      {!loading && !creatingId && idea.directions?.length ? (
+      {!loading && !isCreating && idea.directions?.length ? (
         <button
           type="button"
           className="text-link"

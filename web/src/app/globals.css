@@ -3022,12 +3022,6 @@ a.pub-row:hover {
   font-weight: 700;
 }
 
-.install-hint {
-  margin-top: 1rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--border);
-}
-
 @keyframes lp-float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }

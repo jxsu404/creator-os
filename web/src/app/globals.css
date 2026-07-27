@@ -1182,56 +1182,82 @@ a.pub-row:hover {
 }
 
 /* ============================================================
-   DICTADO (micr?fono)
+   DICTADO (micrófono dentro del campo)
    ============================================================ */
 
-.dictation-bar {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+.field-with-mic {
+  position: relative;
+  width: 100%;
 }
 
-.dictation-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+.field-with-mic .field {
+  padding-right: 2.85rem;
+  padding-bottom: 2.65rem;
 }
 
-.dictation-btn-label {
+.dictation-mic {
+  position: absolute;
+  right: 0.55rem;
+  bottom: 0.55rem;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  line-height: 0;
+  width: 2.15rem;
+  height: 2.15rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: color var(--transition), background var(--transition),
+    transform var(--transition);
 }
 
-.dictation-btn-active {
-  border-color: var(--danger);
+.dictation-mic:hover:not(:disabled) {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dictation-mic:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--primary-soft);
+  color: var(--text);
+}
+
+.dictation-mic:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.dictation-mic-active {
   color: var(--danger-strong);
   background: var(--danger-soft);
 }
 
-.dictation-btn-active:hover:not(:disabled) {
+.dictation-mic-active:hover:not(:disabled) {
+  color: var(--danger-strong);
   background: var(--danger-soft);
-  border-color: var(--danger);
 }
 
 .dictation-dot {
-  width: 10px;
-  height: 10px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: var(--danger);
   animation: dictation-pulse 1.2s var(--ease) infinite;
 }
 
+.dictation-error {
+  margin: 0.35rem 0 0;
+  font-size: 0.84rem;
+}
+
 .dictation-hint {
   font-size: 0.84rem;
   text-align: center;
-}
-
-.dictation-unsupported {
-  text-align: center;
-  margin: 0;
 }
 
 .auth-divider {

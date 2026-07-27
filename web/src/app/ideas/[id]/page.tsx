@@ -245,18 +245,19 @@ function IdeaDetail() {
   return (
     <AppShell title="Idea" backHref="/ideas">
       {idea.title ? <h2 className="idea-heading">{idea.title}</h2> : null}
-      <textarea
-        id="raw"
-        className="field"
-        rows={4}
-        value={idea.rawText}
-        onChange={(e) => saveText(e.target.value)}
-        aria-label="Idea"
-      />
-
-      {idea.status !== "archived" ? (
-        <DictationButton onTranscript={onTranscript} />
-      ) : null}
+      <div className="field-with-mic">
+        <textarea
+          id="raw"
+          className="field"
+          rows={4}
+          value={idea.rawText}
+          onChange={(e) => saveText(e.target.value)}
+          aria-label="Idea"
+        />
+        {idea.status !== "archived" ? (
+          <DictationButton onTranscript={onTranscript} />
+        ) : null}
+      </div>
 
       {primary}
 

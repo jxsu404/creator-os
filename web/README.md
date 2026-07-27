@@ -20,6 +20,5 @@ npm run dev
 | `/invite` | Soft launch |
 | `/waitlist` | Lista de espera |
 | `/terms` `/privacy` | Legal |
-| `/profile/validacion` | Gate Usuario 1 |
 
 Ver raíz del repo: `LAUNCH.md`, `DEPLOY.md`, `GO_TO_MARKET.md`.

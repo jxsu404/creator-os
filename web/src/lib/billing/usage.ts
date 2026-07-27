@@ -38,43 +38,62 @@ export async function getBillingSnapshot(
   userId: string
 ): Promise<BillingSnapshot> {
   const month = currentUsageMonth();
-
-  const [{ data: sub }, { data: usage }] = await Promise.all([
-    supabase
-      .from("billing_subscriptions")
-      .select("plan, status, stripe_customer_id, current_period_end")
-      .eq("user_id", userId)
-      .maybeSingle(),
-    supabase
-      .from("usage_monthly")
-      .select("generations_count")
-      .eq("user_id", userId)
-      .eq("month", month)
-      .maybeSingle(),
-  ]);
-
-  const row = sub as SubRow | null;
-  const plan = asPlan(row?.plan);
-  const status = row?.status || "active";
-  const effectivePlan: PlanId =
-    plan === "pro" && (status === "active" || status === "trialing")
-      ? "pro"
-      : "free";
-  const used = Number(
-    (usage as { generations_count?: number } | null)?.generations_count || 0
-  );
-  const limit = monthlyLimitFor(effectivePlan);
-
-  return {
-    plan: effectivePlan,
-    status,
-    used,
-    limit,
-    remaining: Math.max(0, limit - used),
+  const emptyFree = (): BillingSnapshot => ({
+    plan: "free",
+    status: "active",
+    used: 0,
+    limit: monthlyLimitFor("free"),
+    remaining: monthlyLimitFor("free"),
     month,
-    stripeCustomerId: row?.stripe_customer_id ?? null,
-    currentPeriodEnd: row?.current_period_end ?? null,
-  };
+    stripeCustomerId: null,
+    currentPeriodEnd: null,
+  });
+
+  try {
+    const [{ data: sub, error: subErr }, { data: usage, error: usageErr }] =
+      await Promise.all([
+        supabase
+          .from("billing_subscriptions")
+          .select("plan, status, stripe_customer_id, current_period_end")
+          .eq("user_id", userId)
+          .maybeSingle(),
+        supabase
+          .from("usage_monthly")
+          .select("generations_count")
+          .eq("user_id", userId)
+          .eq("month", month)
+          .maybeSingle(),
+      ]);
+
+    if (subErr) console.warn("[billing] subscriptions read", subErr.message);
+    if (usageErr) console.warn("[billing] usage read", usageErr.message);
+
+    const row = sub as SubRow | null;
+    const plan = asPlan(row?.plan);
+    const status = row?.status || "active";
+    const effectivePlan: PlanId =
+      plan === "pro" && (status === "active" || status === "trialing")
+        ? "pro"
+        : "free";
+    const used = Number(
+      (usage as { generations_count?: number } | null)?.generations_count || 0
+    );
+    const limit = monthlyLimitFor(effectivePlan);
+
+    return {
+      plan: effectivePlan,
+      status,
+      used,
+      limit,
+      remaining: Math.max(0, limit - used),
+      month,
+      stripeCustomerId: row?.stripe_customer_id ?? null,
+      currentPeriodEnd: row?.current_period_end ?? null,
+    };
+  } catch (err) {
+    console.warn("[billing] snapshot failed; defaulting to free", err);
+    return emptyFree();
+  }
 }
 
 /**

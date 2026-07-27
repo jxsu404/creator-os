@@ -53,6 +53,8 @@ Authorized redirect URI de Supabase:
    Eventos: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
 5. Copia signing secret → `STRIPE_WEBHOOK_SECRET`
 6. Secret key → `STRIPE_SECRET_KEY`
+7. En Vercel: sin `STRIPE_*` el Free sigue funcionando; Pro muestra aviso hasta configurar Stripe + `SUPABASE_SERVICE_ROLE_KEY`.
+8. Si ya corriste un schema viejo: vuelve a Run la sección billing de `schema.sql` (quita policies de write del cliente en `billing_subscriptions`).
 
 ## 4. Proyecto en Vercel
 

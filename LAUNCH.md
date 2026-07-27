@@ -10,7 +10,7 @@ Este doc es la checklist operativa de go/no-go. El detalle de dogfooding vive en
 
 ## Fase 0 — Gate Usuario 1
 
-Rellenar en la app: **Perfil → Validación**, o aquí:
+Rellenar aquí (la UI in-app de Validación está diferida):
 
 | Criterio | Sí / No |
 |---|---|

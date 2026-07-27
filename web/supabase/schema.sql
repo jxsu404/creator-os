@@ -67,18 +67,10 @@ create policy "billing_subscriptions_own_select"
   for select
   using ((select auth.uid()) = user_id);
 
+-- Escrituras solo via service role (Checkout / webhooks). El cliente no puede
+-- auto-asignarse plan "pro".
 drop policy if exists "billing_subscriptions_own_write" on public.billing_subscriptions;
-create policy "billing_subscriptions_own_write"
-  on public.billing_subscriptions
-  for insert
-  with check ((select auth.uid()) = user_id);
-
 drop policy if exists "billing_subscriptions_own_update" on public.billing_subscriptions;
-create policy "billing_subscriptions_own_update"
-  on public.billing_subscriptions
-  for update
-  using ((select auth.uid()) = user_id)
-  with check ((select auth.uid()) = user_id);
 
 drop policy if exists "usage_monthly_own_select" on public.usage_monthly;
 create policy "usage_monthly_own_select"

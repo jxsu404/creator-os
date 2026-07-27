@@ -4,7 +4,7 @@
 **Actualizado:** 27 de julio de 2026 (lanzamiento Ideazo)  
 **Estrategia:** Dogfooding primero. Visibilidad y venta **solo después** de que el fundador (creador de contenido) lo use de verdad y lo encuentre útil.
 
-**Herramienta in-app:** Perfil → **Validación Usuario 1** (`/profile/validacion`)  
+**Herramienta in-app:** diferida por ahora (ya no está en Perfil).  
 **Checklist operativa:** [`LAUNCH.md`](LAUNCH.md)  
 **Documento hermano:** `VALIDATION.md` — entrevistas externas.
 

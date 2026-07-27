@@ -4,6 +4,8 @@
 
 - CI en GitHub Actions (`lint` / `typecheck` / `test` + scan de conflict markers)
 - Template de PR + reglas de agentes en `AGENTS.md`
+- Plan Free endurecido (snapshot seguro + RLS billing); Validación Usuario 1 fuera de Perfil (diferida)
+- Checkout Pro exige `SUPABASE_SERVICE_ROLE_KEY` (el cliente ya no puede auto-asignarse Pro)
 
 ## 1.6.0 — 2026-07-27
 

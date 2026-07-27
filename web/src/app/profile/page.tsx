@@ -67,7 +67,6 @@ function ProfileHub() {
   const { configured, user, signOut, refreshSync } = useAuth();
   const [profile, setProfile] = useState<CreatorProfile | null>(null);
   const [syncing, setSyncing] = useState(false);
-  const [installHint, setInstallHint] = useState(false);
   const [aiStatus, setAiStatus] = useState<AiStatusResponse | null>(null);
   const [fetchedAt, setFetchedAt] = useState(0);
   const [tick, setTick] = useState(0);
@@ -81,13 +80,6 @@ function ProfileHub() {
     load();
     return onSynced(load);
   }, []);
-
-  useEffect(() => {
-    const standalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
-    setInstallHint(!standalone && configured);
-  }, [configured]);
 
   useEffect(() => {
     let cancelled = false;
@@ -377,19 +369,6 @@ function ProfileHub() {
               Cerrar sesión
             </button>
           </>
-        ) : null}
-
-        {installHint ? (
-          <div className="install-hint">
-            <p className="settings-title">Instalar como app (PWA)</p>
-            <p className="muted dictation-hint">
-              <strong>Android / Chrome:</strong> menú → Instalar app o Añadir a
-              pantalla de inicio.
-              <br />
-              <strong>iPhone Safari:</strong> Compartir → Añadir a pantalla de
-              inicio.
-            </p>
-          </div>
         ) : null}
       </section>
     </AppShell>

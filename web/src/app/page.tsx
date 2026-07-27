@@ -72,7 +72,7 @@ function HomeHub() {
   const archiveIdea = useCallback(
     (idea: Idea) => {
       const ok = window.confirm(
-        "¿Archivar esta idea? Dejará de verse en el Home."
+        "¿Archivar esta idea? Dejará de verse en Inicio e Ideas."
       );
       if (!ok) return;
       patchIdea(idea.id, {
@@ -310,9 +310,9 @@ function HomeHub() {
             </Link>
           </div>
           <p className="muted">
-            Aún no hay ideas. Toca el{" "}
+            Aún no hay ideas. Toca{" "}
             <Link href="/capture" className="inline-link">
-              + del centro
+              Nueva idea
             </Link>{" "}
             para crear tu primer video.
           </p>
@@ -366,9 +366,11 @@ function HomeHub() {
               type="button"
               className="section-link"
               disabled={ytLoading}
+              aria-busy={ytLoading}
+              aria-label={ytLoading ? "Actualizando videos" : "Actualizar videos"}
               onClick={() => void syncYoutube(true)}
             >
-              {ytLoading ? "…" : "Actualizar"}
+              {ytLoading ? "Actualizando…" : "Actualizar"}
             </button>
           ) : (
             <Link href="/profile/conexiones" className="section-link">
@@ -377,7 +379,11 @@ function HomeHub() {
           )}
         </div>
 
-        {ytError ? <p className="error">{ytError}</p> : null}
+        {ytError ? (
+          <p className="error" role="alert">
+            {ytError}
+          </p>
+        ) : null}
 
         {!ytConnected && published.length === 0 ? (
           <p className="muted">
@@ -448,9 +454,11 @@ function HomeHub() {
 }
 
 export default function HomePage() {
-  const { configured, loading, user } = useAuth();
+  const { configured, user } = useAuth();
 
-  if (configured && !loading && !user) {
+  // Anónimos (y primer paint mientras resuelve sesión sin user): nunca
+  // "Cargando cuenta…" dentro del shell de la app.
+  if (configured && !user) {
     return <LandingPage />;
   }
 

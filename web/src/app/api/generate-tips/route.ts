@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 import { generateJson, parseJsonLoose } from "@/lib/ai";
+import {
+  AI_INPUT_CAPS,
+  aiRouteError,
+  rejectIfAnyTooLong,
+} from "@/lib/ai-input";
 import { gateAiGeneration } from "@/lib/billing/gate";
 import { normalizeTips } from "@/lib/tips-context";
 
@@ -13,6 +18,12 @@ export async function POST(request: Request) {
       profileContext?: string;
       recentContent?: string;
     };
+
+    const tooLong = rejectIfAnyTooLong([
+      { value: profileContext, max: AI_INPUT_CAPS.profileContext, label: "el contexto del perfil" },
+      { value: recentContent, max: AI_INPUT_CAPS.recentContent, label: "el contenido reciente" },
+    ]);
+    if (tooLong) return tooLong;
 
     const prompt = `Eres un compañero creativo para creadores de TikTok/Reels/Shorts (Ideazo).
 Generas exactamente 3 consejos de OFICIO CREATIVO, accionables y DISTINTOS, personalizados al nicho y al contenido reciente del creador.
@@ -64,8 +75,6 @@ ${recentContent?.trim() || "Ninguno aún — personaliza solo con el nicho."}`;
 
     return NextResponse.json({ tips, billing: gate.billing });
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Error al generar consejos.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return aiRouteError("generate-tips", err, "No pudimos generar los consejos. Intenta de nuevo en un momento.");
   }
 }

@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 import { generateJson, parseJsonLoose } from "@/lib/ai";
+import {
+  AI_INPUT_CAPS,
+  aiRouteError,
+  rejectIfAnyTooLong,
+} from "@/lib/ai-input";
 import { gateAiGeneration } from "@/lib/billing/gate";
 import { normalizeYoutubePackages } from "@/lib/youtube-package";
 
@@ -34,6 +39,18 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    const tooLong = rejectIfAnyTooLong([
+      { value: ideaText, max: AI_INPUT_CAPS.ideaText, label: "la idea" },
+      { value: profileContext, max: AI_INPUT_CAPS.profileContext, label: "el contexto del perfil" },
+      { value: script, max: AI_INPUT_CAPS.script, label: "el guion" },
+      { value: existingTitle, max: AI_INPUT_CAPS.existingTitle, label: "el título existente" },
+      { value: direction?.name, max: AI_INPUT_CAPS.directionField, label: "el nombre del enfoque" },
+      { value: direction?.promise, max: AI_INPUT_CAPS.directionField, label: "la promesa del enfoque" },
+      { value: direction?.angle, max: AI_INPUT_CAPS.directionField, label: "el ángulo del enfoque" },
+      { value: direction?.hook, max: AI_INPUT_CAPS.directionField, label: "el hook del enfoque" },
+    ]);
+    if (tooLong) return tooLong;
 
     const prompt = `Eres un editor de YouTube / TikTok / Shorts para un creador (gaming / Roblox / short + long).
 Generas exactamente 3 OPCIONES DISTINTAS de paquete de subida (título, descripción, etiquetas, idea de miniatura).
@@ -90,7 +107,7 @@ ${
 }
 
 Guion / guía de grabación:
-${(script || "").trim().slice(0, 6000)}`;
+${(script || "").trim()}`;
 
     const raw = await generateJson(prompt);
     const parsed = parseJsonLoose<{ packages?: unknown }>(raw);
@@ -109,8 +126,6 @@ ${(script || "").trim().slice(0, 6000)}`;
       billing: gate.billing,
     });
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Error al generar paquete YouTube.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return aiRouteError("generate-youtube-package", err, "No pudimos generar el paquete de YouTube. Intenta de nuevo en un momento.");
   }
 }

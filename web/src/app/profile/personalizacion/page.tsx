@@ -44,7 +44,7 @@ function PersonalizationSettings() {
 
   return (
     <AppShell title="Personalización" backHref="/profile">
-      <p className="muted">Así suenan tus guías y tomas.</p>
+      <p className="muted">Así suenan tus guías.</p>
 
       <label className="field-label" htmlFor="how">
         Cómo grabo

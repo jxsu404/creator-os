@@ -257,7 +257,7 @@ export const SHORT_VOICE_RULES = [
   "Idioma creativo: español. Estructura interna puede pensarse en inglés, salida siempre ES.",
   "Habla a jugadores nuevos y medios; los veteranos aún reciben matiz.",
   "Números concretos > “está roto” vago — pero verifica in-game; si no está en contexto, [CONFIRMAR].",
-  "Guion corto = líneas habladas + tomas [VISUAL]. Sin intros largas.",
+  "Guion corto = líneas habladas. Sin intros largas.",
   "Cuando encaje: invita a suscribirse y a Crimson Core (Discord).",
   "Ángulos útiles: guía, update, ranking, errores, tutorial, collab, evento, opinión, promo, códigos.",
   "Videos cortos ≤45–60s. No uses densidad de video largo (1200+ palabras) aquí.",

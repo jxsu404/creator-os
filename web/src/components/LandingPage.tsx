@@ -28,7 +28,7 @@ function ProductStage() {
               </div>
               <div className="lp-flow-step lp-flow-step-3">
                 <span className="lp-flow-label">Lista</span>
-                <p className="lp-flow-text">Hook + guion + tomas</p>
+                <p className="lp-flow-text">Hook + guion</p>
                 <span className="lp-flow-ready">Lista para grabar</span>
               </div>
             </div>
@@ -106,7 +106,7 @@ export function LandingPage() {
             <div>
               <h3 className="lp-step-title">Graba con guía</h3>
               <p className="lp-step-body">
-                Hook, guion y tomas. Editas hasta que sea tuyo.
+                Hook y guion. Editas hasta que sea tuyo.
               </p>
             </div>
           </li>

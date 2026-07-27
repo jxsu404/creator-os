@@ -15,13 +15,17 @@ import { buildUnifiedScript } from "@/lib/script";
 import { getIdea, getProfile, upsertIdea } from "@/lib/storage";
 import type { Idea, YoutubeUploadPackage } from "@/lib/types";
 
+const ARCHIVE_CONFIRM =
+  "¿Archivar esta idea? Dejará de verse en Inicio e Ideas.";
+
 function ScriptEditor() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
   const [idea, setIdea] = useState<Idea | null>(null);
-  const [wantsEdits, setWantsEdits] = useState<boolean | null>(null);
+  const [editing, setEditing] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
+  const [statusNote, setStatusNote] = useState("");
   const saveTimer = useRef<number | null>(null);
   const savedLabelTimer = useRef<number | null>(null);
   const ideaRef = useRef<Idea | null>(null);
@@ -47,10 +51,8 @@ function ScriptEditor() {
       ideaRef.current = found;
       setIdea(found);
     }
-    // Si ya está lista / grabada, no preguntamos de nuevo al abrir
-    if (found.status === "ready" || found.status === "recorded") {
-      setWantsEdits(false);
-    }
+    // Lista / grabada: lectura con acciones. Resto: guion visible de entrada.
+    setEditing(false);
   }, [id, router]);
 
   useEffect(() => {
@@ -70,7 +72,7 @@ function ScriptEditor() {
 
   if (!idea?.draft) {
     return (
-      <AppShell backHref={`/ideas/${id}/draft`}>
+      <AppShell backHref={`/ideas/${id}/draft`} backLabel="Volver a la guía">
         <p className="muted">Cargando…</p>
       </AppShell>
     );
@@ -123,6 +125,8 @@ function ScriptEditor() {
     if (!current?.draft) return;
     setSaveState("saving");
     const now = new Date().toISOString();
+    const demoted =
+      current.status === "ready" || current.status === "recorded";
     const next: Idea = {
       ...current,
       draft: {
@@ -132,11 +136,11 @@ function ScriptEditor() {
         updatedAt: now,
       },
       updatedAt: now,
-      status:
-        current.status === "ready" || current.status === "recorded"
-          ? "in_progress"
-          : current.status,
+      status: demoted ? "in_progress" : current.status,
     };
+    if (demoted) {
+      setStatusNote("Volvió a borrador — marca Listo para grabar cuando termines.");
+    }
     ideaRef.current = next;
     setIdea(next);
     if (saveTimer.current) window.clearTimeout(saveTimer.current);
@@ -168,16 +172,22 @@ function ScriptEditor() {
     : "";
 
   const youtubePanel = (
-    <YoutubePackagePanel
-      idea={idea}
-      script={creatorScript}
-      profileContext={aiContext}
-      onSave={saveYoutubePackage}
-    />
+    <details className="yt-pack-details">
+      <summary className="text-link">Paquete para YouTube (opcional)</summary>
+      <YoutubePackagePanel
+        idea={idea}
+        script={creatorScript}
+        profileContext={aiContext}
+        onSave={saveYoutubePackage}
+      />
+    </details>
   );
 
+  const backHref = isReady || isRecorded ? "/ideas" : `/ideas/${id}/draft`;
+  const backLabel = isReady || isRecorded ? "Volver a Ideas" : "Volver a la guía";
+
   return (
-    <AppShell title="Guion" backHref={isReady || isRecorded ? "/ideas" : `/ideas/${id}/draft`}>
+    <AppShell title="Guion" backHref={backHref} backLabel={backLabel}>
       <div className="draft-meta">
         <span className="save-indicator" aria-live="polite">
           {saveState === "saving"
@@ -188,14 +198,23 @@ function ScriptEditor() {
         </span>
       </div>
 
-      {isReady && wantsEdits !== true ? (
+      {statusNote ? (
+        <p className="muted" role="status">
+          {statusNote}
+        </p>
+      ) : null}
+
+      {isReady && !editing ? (
         <>
           <textarea
             id="creator-script-ready"
             className="field field-lg"
             rows={12}
             value={creatorScript}
-            onChange={(e) => scheduleCreatorScript(e.target.value)}
+            onChange={(e) => {
+              setEditing(true);
+              scheduleCreatorScript(e.target.value);
+            }}
             aria-label="Guion"
           />
           {youtubePanel}
@@ -212,9 +231,9 @@ function ScriptEditor() {
             <button
               type="button"
               className="text-link"
-              onClick={() => setWantsEdits(true)}
+              onClick={() => setEditing(true)}
             >
-              Editar
+              Editar guion
             </button>
             <Link href={`/ideas/${id}/draft`} className="text-link">
               Ajustes IA
@@ -224,15 +243,15 @@ function ScriptEditor() {
               className="btn-danger"
               onClick={() =>
                 setStatus("archived", {
-                  confirm: "¿Descartar esta idea?",
+                  confirm: ARCHIVE_CONFIRM,
                 })
               }
             >
-              Descartar
+              Archivar
             </button>
           </div>
         </>
-      ) : isRecorded ? (
+      ) : isRecorded && !editing ? (
         <>
           <pre className="preview-plain">{creatorScript}</pre>
           {youtubePanel}
@@ -251,31 +270,13 @@ function ScriptEditor() {
             >
               Volver a lista
             </button>
-          </div>
-        </>
-      ) : wantsEdits === null ? (
-        <>
-          {youtubePanel}
-          <div className="sticky-actions" style={{ position: "static", background: "transparent", padding: 0 }}>
             <button
               type="button"
-              className="btn-primary btn-block"
-              onClick={() => setWantsEdits(true)}
+              className="text-link"
+              onClick={() => setEditing(true)}
             >
               Editar guion
             </button>
-            <button
-              type="button"
-              className="btn-secondary btn-block"
-              onClick={() =>
-                setStatus("ready", { bannerKey: "creatoros_ready_banner" })
-              }
-            >
-              Listo para grabar
-            </button>
-            <Link href={`/ideas/${id}/draft`} className="text-link">
-              Vista previa
-            </Link>
           </div>
         </>
       ) : (
@@ -286,7 +287,7 @@ function ScriptEditor() {
             rows={14}
             value={creatorScript}
             onChange={(e) => scheduleCreatorScript(e.target.value)}
-            autoFocus
+            autoFocus={editing}
             aria-label="Guion"
           />
           {youtubePanel}
@@ -300,12 +301,28 @@ function ScriptEditor() {
             >
               Listo para grabar
             </button>
+            <Link href={`/ideas/${id}/draft`} className="text-link">
+              Ajustes IA
+            </Link>
+            {(isReady || isRecorded) && editing ? (
+              <button
+                type="button"
+                className="text-link"
+                onClick={() => setEditing(false)}
+              >
+                Listo
+              </button>
+            ) : null}
             <button
               type="button"
-              className="text-link"
-              onClick={() => setWantsEdits(null)}
+              className="btn-danger"
+              onClick={() =>
+                setStatus("archived", {
+                  confirm: ARCHIVE_CONFIRM,
+                })
+              }
             >
-              Volver
+              Archivar
             </button>
           </div>
         </>

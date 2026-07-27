@@ -81,15 +81,31 @@ function PrimaryNav({
   );
 }
 
+function backAriaLabel(backHref: string, backLabel?: string) {
+  if (backLabel?.trim()) return backLabel.trim();
+  if (backHref === "/") return "Volver a Inicio";
+  if (backHref === "/ideas") return "Volver a Ideas";
+  if (backHref === "/capture") return "Volver a Nueva idea";
+  if (backHref === "/profile") return "Volver a Perfil";
+  if (backHref.endsWith("/draft")) return "Volver a la guía";
+  if (backHref.endsWith("/directions")) return "Volver a enfoques";
+  if (backHref.endsWith("/script")) return "Volver al guion";
+  if (/^\/ideas\/[^/]+$/.test(backHref)) return "Volver a la idea";
+  return "Volver";
+}
+
 export function AppShell({
   children,
   title,
   backHref,
+  backLabel,
   showNav = true,
 }: {
   children: React.ReactNode;
   title?: string;
   backHref?: string;
+  /** Nombre accesible del control Volver (destino). */
+  backLabel?: string;
   /** Ocultar en onboarding u pantallas especiales */
   showNav?: boolean;
 }) {
@@ -108,7 +124,11 @@ export function AppShell({
         <header className="app-header">
           <div className="app-header-row">
             {backHref ? (
-              <Link href={backHref} className="back-link">
+              <Link
+                href={backHref}
+                className="back-link"
+                aria-label={backAriaLabel(backHref, backLabel)}
+              >
                 ← Volver
               </Link>
             ) : (

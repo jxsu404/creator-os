@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { sanitizeNext } from "@/lib/safe-next";
 import { createSupabaseServer } from "@/lib/supabase/server";
 
 /**
@@ -10,8 +11,7 @@ export async function GET(request: Request) {
   const code = searchParams.get("code");
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type");
-  const nextRaw = searchParams.get("next") || "/";
-  const next = nextRaw.startsWith("/") ? nextRaw : "/";
+  const next = sanitizeNext(searchParams.get("next"));
 
   const supabase = await createSupabaseServer();
   if (!supabase) {

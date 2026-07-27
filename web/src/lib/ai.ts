@@ -30,11 +30,29 @@ export async function generateJson(prompt: string): Promise<string> {
   }
 
   const ready = all.filter((p) => !isInCooldown(p.id));
-  const queue = ready.length > 0 ? ready : all; // si todos en cooldown, intenta igual
+  if (ready.length === 0) {
+    const soonest = all
+      .map((p) => getCooldown(p.id))
+      .filter(Boolean)
+      .sort(
+        (a, b) =>
+          new Date(a!.until).getTime() - new Date(b!.until).getTime()
+      )[0];
+    const waitMs = soonest
+      ? Math.max(0, new Date(soonest.until).getTime() - Date.now())
+      : 60_000;
+    const waitLabel =
+      waitMs > 60_000
+        ? `${Math.ceil(waitMs / 60_000)} min`
+        : `${Math.max(1, Math.ceil(waitMs / 1000))}s`;
+    throw new Error(
+      `Capacidad del plan recargando. Prueba de nuevo en ~${waitLabel} (Perfil → Tu plan).`
+    );
+  }
 
   const failures: string[] = [];
 
-  for (const provider of queue) {
+  for (const provider of ready) {
     try {
       const text = await provider.run(prompt);
       if (!text?.trim()) throw new Error("Respuesta vacía");

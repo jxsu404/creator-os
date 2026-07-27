@@ -85,6 +85,8 @@ export interface CreatorProfile {
   niches: string[];
   customDescription: string;
   onboardedAt: string;
+  /** Última edición local/cloud del perfil (last-write-wins en sync). */
+  updatedAt?: string;
   /**
    * blank = canal propio (nuevos usuarios).
    * content_os = perfil con biblioteca importada del fundador.

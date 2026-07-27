@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { generateJson, parseJsonLoose } from "@/lib/ai";
+import { unauthorizedApiResponse } from "@/lib/supabase/require-api-user";
 
 export async function POST(request: Request) {
   try {
+    const denied = await unauthorizedApiResponse();
+    if (denied) return denied;
+
     const body = await request.json();
     const { ideaText, profileContext } = body as {
       ideaText?: string;
@@ -49,7 +53,19 @@ ${ideaText.trim()}`;
       }>;
     }>(raw);
 
-    if (!parsed.directions || parsed.directions.length < 3) {
+    const directions = (parsed.directions || [])
+      .map((d) => ({
+        name: String(d?.name || "").trim(),
+        promise: String(d?.promise || "").trim(),
+        angle: String(d?.angle || "").trim(),
+        hook: String(d?.hook || "").trim(),
+        why: String(d?.why || "").trim(),
+      }))
+      .filter(
+        (d) => d.name && d.promise && d.angle && d.hook && d.why
+      );
+
+    if (directions.length < 3) {
       return NextResponse.json(
         { error: "No pude armar buenos enfoques. Intenta de nuevo." },
         { status: 502 }
@@ -57,7 +73,7 @@ ${ideaText.trim()}`;
     }
 
     return NextResponse.json({
-      directions: parsed.directions.slice(0, 3),
+      directions: directions.slice(0, 3),
     });
   } catch (err) {
     const message =

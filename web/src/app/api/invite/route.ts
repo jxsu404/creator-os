@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
+import { inviteOnlyEnabled, userHasInviteAccess } from "@/lib/invite-access";
 import { getApiAuth } from "@/lib/supabase/admin";
-
-function inviteOnlyEnabled() {
-  return process.env.INVITE_ONLY === "true" || process.env.INVITE_ONLY === "1";
-}
 
 export async function GET() {
   const auth = await getApiAuth();
@@ -23,16 +20,12 @@ export async function GET() {
     });
   }
 
-  const { data } = await auth.supabase
-    .from("user_access")
-    .select("user_id")
-    .eq("user_id", auth.user.id)
-    .maybeSingle();
+  const granted = await userHasInviteAccess(auth.supabase, auth.user.id);
 
   return NextResponse.json({
     inviteOnly: true,
     authenticated: true,
-    granted: Boolean(data),
+    granted,
   });
 }
 

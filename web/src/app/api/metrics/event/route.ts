@@ -10,6 +10,7 @@ const ALLOWED = new Set([
   "marked_ready",
   "hit_limit",
   "upgrade_click",
+  "donate_click",
   "checkout_started",
   "checkout_success",
 ]);

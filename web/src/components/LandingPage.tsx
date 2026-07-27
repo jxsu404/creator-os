@@ -84,7 +84,7 @@ export function LandingPage() {
         <p className="lp-nav-brand">Ideazo</p>
         <div className="lp-nav-actions">
           <Link href="/pricing" className="lp-nav-link">
-            Precios
+            Apoyar
           </Link>
           <Link href="/login" className="lp-nav-link">
             Entrar
@@ -104,7 +104,7 @@ export function LandingPage() {
               Empezar gratis
             </Link>
             <a href="#precios" className="lp-btn-ghost">
-              Ver planes
+              Cómo apoyar
             </a>
           </div>
         </div>
@@ -148,14 +148,14 @@ export function LandingPage() {
       </section>
 
       <section id="precios" className="lp-section">
-        <h2 className="lp-section-title">Free y Pro</h2>
+        <h2 className="lp-section-title">Gratis, con apoyo opcional</h2>
         <p className="lp-section-sub">
-          Prueba el loop de verdad. Pasa a Pro cuando se te acaben las
-          generaciones.
+          Usa el loop completo. Si te gusta, puedes donar para financiar el
+          proyecto — sin suscripción por ahora.
         </p>
         <div className="lp-pricing">
           <div className="lp-price-card">
-            <p className="lp-price-name">Free</p>
+            <p className="lp-price-name">Gratis</p>
             <p className="lp-price-amount">
               $0<span>/mes</span>
             </p>
@@ -169,22 +169,19 @@ export function LandingPage() {
             </Link>
           </div>
           <div className="lp-price-card lp-price-card-pro">
-            <p className="lp-price-name">Pro</p>
-            <p className="lp-price-amount">
-              $14<span>/mes</span>
-            </p>
+            <p className="lp-price-name">Donación</p>
+            <p className="lp-price-amount">PayPal</p>
             <ul className="lp-price-list">
-              <li>500 generaciones / mes</li>
-              <li>Prioridad cuando hay carga</li>
-              <li>Mismo loop, sin freno</li>
+              <li>Voluntaria, el monto que quieras</li>
+              <li>Ayuda a pagar IA y hosting</li>
+              <li>Producto primero; Pro después</li>
             </ul>
             <Link href="/pricing" className="lp-btn-primary lp-price-cta">
-              Ver Pro
+              Apoyar Ideazo
             </Link>
           </div>
         </div>
         <p className="lp-price-note">
-          También $119/año.{" "}
           <Link href="/waitlist">Lista de espera</Link> si el soft launch está
           cerrado.
         </p>

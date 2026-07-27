@@ -15,7 +15,7 @@ export class UsageLimitError extends Error {
     super(
       snapshot.plan === "pro"
         ? "Llegaste al límite suave de Ideazo Pro este mes. Escríbenos si necesitas más."
-        : "Agotaste las generaciones free de este mes. Pasa a Ideazo Pro para seguir."
+        : "Agotaste las generaciones free de este mes. Si Ideazo te sirve, puedes apoyar el proyecto con una donación."
     );
     this.name = "UsageLimitError";
     this.snapshot = snapshot;

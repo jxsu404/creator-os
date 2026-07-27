@@ -8,6 +8,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
 import type { BillingSnapshot } from "@/lib/billing/plans";
 import { FREE_MONTHLY_GENERATIONS } from "@/lib/billing/plans";
+import { paypalDonateUrl, SUPPORT_PATH } from "@/lib/donations";
 import { hasGamingNiche, withUser1Defaults } from "@/lib/profile-context";
 import { getProfile } from "@/lib/storage";
 import { isCloudSyncEnabled, onSynced } from "@/lib/sync";
@@ -71,8 +72,6 @@ function ProfileHub() {
   const [installHint, setInstallHint] = useState(false);
   const [aiStatus, setAiStatus] = useState<AiStatusResponse | null>(null);
   const [billing, setBilling] = useState<BillingSnapshot | null>(null);
-  const [stripeReady, setStripeReady] = useState(false);
-  const [portalBusy, setPortalBusy] = useState(false);
   const [fetchedAt, setFetchedAt] = useState(0);
   const [tick, setTick] = useState(0);
   const cooldownWindowMs = useRef(0);
@@ -126,7 +125,6 @@ function ProfileHub() {
         if (!res.ok) return;
         const data = await res.json();
         if (!cancelled) {
-          setStripeReady(Boolean(data.stripeReady));
           setBilling(data.billing || null);
         }
       } catch {
@@ -170,7 +168,7 @@ function ProfileHub() {
     "Añade una descripción de tu canal.";
   const showGames = hasGamingNiche(profile);
   const gameLabel = shortGame(profile.gameBrief?.name);
-  const isPro = billing?.plan === "pro";
+  const donateUrl = paypalDonateUrl();
 
   void tick;
   const elapsed = fetchedAt ? Date.now() - fetchedAt : 0;
@@ -240,18 +238,6 @@ function ProfileHub() {
     capacityState = "offline";
   }
 
-  async function openPortal() {
-    setPortalBusy(true);
-    try {
-      const res = await fetch("/api/billing/portal", { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error");
-      if (data.url) window.location.href = data.url;
-    } catch {
-      setPortalBusy(false);
-    }
-  }
-
   return (
     <AppShell title="Perfil">
       <section className="profile-hero">
@@ -304,15 +290,12 @@ function ProfileHub() {
       <section className="section">
         <div className="plan-card">
           <div className="plan-card-head">
-            <h2 className="section-title plan-card-title">Tu plan</h2>
-            <span className="plan-badge">
-              {isPro ? "Ideazo Pro" : "Plan gratuito"}
-            </span>
+            <h2 className="section-title plan-card-title">Tu cupo</h2>
+            <span className="plan-badge">Gratis</span>
           </div>
           <p className="muted plan-card-lead">
-            {isPro
-              ? "Capacidad Pro activa. Gestiona tu suscripción cuando quieras."
-              : `${FREE_MONTHLY_GENERATIONS} generaciones IA al mes en Free. Pasa a Pro cuando te quedes corto.`}
+            {FREE_MONTHLY_GENERATIONS} generaciones IA al mes. Si Ideazo te
+            sirve, puedes apoyar el proyecto con una donación voluntaria.
           </p>
 
           <div className="plan-meter-row">
@@ -335,33 +318,36 @@ function ProfileHub() {
           </div>
           <p className="plan-meter-meta">{capacityLabel}</p>
 
-          {isPro ? (
-            <button
-              type="button"
-              className="btn-secondary btn-block"
-              disabled={portalBusy || !stripeReady}
-              onClick={() => void openPortal()}
-            >
-              {portalBusy ? "Abriendo…" : "Gestionar suscripción"}
-            </button>
-          ) : (
-            <div className="plan-pro-teaser">
-              <p className="plan-pro-title">Ideazo Pro</p>
-              <p className="plan-pro-desc">
-                500 generaciones/mes · $14/mes o $119/año.
-              </p>
-              {stripeReady ? (
-                <Link href="/pricing" className="btn-primary btn-block">
-                  Mejorar a Pro
-                </Link>
-              ) : (
-                <p className="muted plan-meter-meta">
-                  El upgrade a Pro se activa cuando Stripe esté configurado en
-                  el entorno. Mientras tanto usas Free con el cupo mensual.
-                </p>
-              )}
-            </div>
-          )}
+          <div className="plan-pro-teaser">
+            <p className="plan-pro-title">Apoya Ideazo</p>
+            <p className="plan-pro-desc">
+              Donación por PayPal · sin suscripción por ahora.
+            </p>
+            {donateUrl ? (
+              <a
+                href={donateUrl}
+                className="btn-primary btn-block"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => {
+                  void fetch("/api/metrics/event", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      event: "donate_click",
+                      meta: { source: "profile" },
+                    }),
+                  });
+                }}
+              >
+                Donar con PayPal
+              </a>
+            ) : (
+              <Link href={SUPPORT_PATH} className="btn-primary btn-block">
+                Cómo apoyar
+              </Link>
+            )}
+          </div>
         </div>
       </section>
 

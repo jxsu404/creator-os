@@ -9,7 +9,7 @@ export default function PricingPage() {
       fallback={
         <div className="lp">
           <p className="muted" style={{ padding: 24 }}>
-            Cargando precios…
+            Cargando…
           </p>
         </div>
       }

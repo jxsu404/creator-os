@@ -2,6 +2,7 @@
 
 import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { BrandMark } from "@/components/BrandMark";
 import { useAuth } from "@/components/AuthProvider";
 import { sanitizeNext } from "@/lib/safe-next";
 import { getSupabaseBrowser, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -130,7 +131,7 @@ function LoginForm() {
       <div className="auth-screen">
         <div className="auth-atmosphere" aria-hidden />
         <main className="auth-panel">
-          <p className="auth-brand">Ideazo</p>
+          <BrandMark linked={false} size="lg" />
           <h1 className="auth-headline">Falta configurar la cuenta</h1>
           <p className="auth-sub">
             Añade las variables de Supabase en el entorno y vuelve a cargar.
@@ -145,7 +146,7 @@ function LoginForm() {
       <div className="auth-screen">
         <div className="auth-atmosphere" aria-hidden />
         <main className="auth-panel auth-panel-center">
-          <p className="auth-brand">Ideazo</p>
+          <BrandMark linked={false} size="lg" />
           <p className="auth-sub">Preparando tu sesión…</p>
         </main>
       </div>
@@ -159,8 +160,8 @@ function LoginForm() {
 
       <main className="auth-panel">
         <header className="auth-top">
-          <p className="auth-brand">Ideazo</p>
-          <p className="auth-kicker">Para creadores de TikTok, Reels y Shorts</p>
+          <BrandMark linked={false} size="lg" />
+          <p className="auth-kicker">De idea a listo para grabar</p>
         </header>
 
         <div className="auth-copy">
@@ -312,7 +313,7 @@ export default function LoginPage() {
         <div className="auth-screen">
           <div className="auth-atmosphere" aria-hidden />
           <main className="auth-panel auth-panel-center">
-            <p className="auth-brand">Ideazo</p>
+            <BrandMark linked={false} size="lg" />
             <p className="auth-sub">Cargando…</p>
           </main>
         </div>

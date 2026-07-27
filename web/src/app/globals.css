@@ -325,6 +325,29 @@ button:disabled {
    TIPOGRAF?A
    ============================================================ */
 
+.brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;
+}
+
+.brand-lockup-lg {
+  gap: 0.65rem;
+}
+
+.brand-mark-icon {
+  flex-shrink: 0;
+  border-radius: 0.4rem;
+  display: block;
+}
+
+.brand-lockup-lg .brand-mark-icon {
+  border-radius: 0.55rem;
+}
+
 .brand-mark,
 .screen-title,
 .hero-title,
@@ -343,6 +366,14 @@ button:disabled {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+.brand-lockup-lg .brand-mark {
+  font-size: clamp(1.85rem, 6vw, 2.35rem);
+  line-height: 1.05;
+  background: linear-gradient(120deg, #fff 10%, #c4b5fd 55%, #93c5fd 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
 .screen-title {

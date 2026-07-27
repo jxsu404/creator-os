@@ -58,15 +58,35 @@ Detalle histórico de tablas: ver commits anteriores de este archivo si hace fal
 - [x] Decisión de marca en este doc
 - [x] Superficies UI / metadata: login, shell, layout, manifest, perfil, home
 - [x] Docs de marca (`BRAND_*`)
+- [x] Wordmark / favicon con “Ideazo” (mark “I” + texto)
 - [ ] Dominio + handle redes
-- [ ] Wordmark / favicon con “Ideazo”
 - [ ] Repo rename (opcional, no urgente)
 
 **Regla de copy:** en UI el sujeto sigue siendo la idea y el creador; el nombre Ideazo es marca, no jerga (“abrir Ideazo” ok; no “sistema operativo”).
 
 ---
 
-## 5. Pregunta de validación (entrevistas)
+## 5. Guía del fundador (primer proyecto) — orden simple
+
+No tienes que hacer todo hoy. Este es el camino:
+
+| Paso | Qué es | Quién lo hace | Estado |
+|---|---|---|---|
+| 1 | Nombre de marca | Tú (hecho) | **Ideazo** ✓ |
+| 2 | App usable + cuentas | Código / Vercel / Supabase | Ya en marcha ✓ |
+| 3 | Ícono + wordmark | Código (este PR) | En curso |
+| 4 | **Usar la app** 7–14 días (Usuario 1) | Tú | Siguiente prioridad de producto |
+| 5 | Dominio (ej. `ideazo.co`) | Tú compras (~$10–15/año) + lo conectamos a Vercel | Cuando quieras verse “de verdad” |
+| 6 | Instagram / TikTok `@ideazo` | Tú reservas el handle | Cuando empieces a hablar del producto |
+| 7 | Mostrárselo a 2–3 creadores | Tú | Después de que a ti te sirva |
+
+**Dominio — nota rápida:** `ideazo.app` parece ocupado. Candidatos a chequear al comprar: `ideazo.co`, `getideazo.com`, `ideazo.io`. Compra en Porkbun o Namecheap; después lo apuntamos a Vercel (te guío).
+
+**Regla de oro:** primero que **tú** grabes más fácil con Ideazo. Marca y dominio son importantes, pero el loop idea→grabar es lo que valida el proyecto.
+
+---
+
+## 6. Pregunta de validación (entrevistas)
 
 > Sin pensarlo mucho: “Ideazo” — ¿qué te suena? ¿App para grabar o solo para anotar ideas?
 

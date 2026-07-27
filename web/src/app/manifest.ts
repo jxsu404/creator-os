@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "De idea a listo para grabar.",
     start_url: "/",
     display: "standalone",
-    background_color: "#F8FAFC",
-    theme_color: "#6C3EF4",
+    background_color: "#0b1020",
+    theme_color: "#0b1020",
     orientation: "portrait-primary",
     lang: "es",
     icons: [

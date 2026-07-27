@@ -4,6 +4,7 @@
 
 - Marca pública: **Ideazo** (repo técnico sigue `creator-os`)
 - Tagline de trabajo: *De idea a listo para grabar.*
+- Ícono / favicon Ideazo + wordmark en login y header
 
 ## 0.1.1 — 2026-07-26
 

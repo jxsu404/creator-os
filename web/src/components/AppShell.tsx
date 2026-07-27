@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { BrandMark } from "@/components/BrandMark";
 
 function navActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -35,9 +36,7 @@ export function AppShell({
               ← Volver
             </Link>
           ) : (
-            <Link href="/" className="brand-mark">
-              Ideazo
-            </Link>
+            <BrandMark />
           )}
           {title ? <h1 className="screen-title">{title}</h1> : <span />}
           <span className="header-spacer" aria-hidden />

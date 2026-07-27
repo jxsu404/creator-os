@@ -150,11 +150,14 @@ export interface Idea {
   /** Título corto generado con IA a partir de rawText (para listas) */
   title?: string;
   /**
-   * Concepto visual de posible miniatura (1 línea).
-   * Se usa para pintar un preview tipo YouTube en Home / Ideas.
+   * Categoría visual de la idea (chip de nicho).
+   * Define la miniatura predeterminada; `thumbnailUrl` la reemplaza si existe.
    */
-  thumbnailIdea?: string;
-  /** URL de miniatura real (YouTube o IA de imagen futura). */
+  category?: string;
+  /**
+   * Miniatura propia (p. ej. generada con IA a petición del usuario).
+   * Si está, tiene prioridad sobre la imagen de categoría.
+   */
   thumbnailUrl?: string;
   status: IdeaStatus;
   createdAt: string;

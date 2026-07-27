@@ -14,38 +14,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Falta la idea." }, { status: 400 });
     }
 
-    const prompt = `Eres un compañero creativo para creadores de TikTok/Reels/Shorts/YouTube.
-A partir de una idea de video escrita de forma rápida y desordenada, generas:
-1) Un título corto para identificarla en una lista.
-2) Una posible miniatura: concepto visual concreto (como si fuera el thumbnail del video).
-
-Reglas del título:
+    const prompt = `Eres un compañero creativo para creadores de TikTok/Reels/Shorts.
+A partir de una idea de video escrita de forma rápida y desordenada, eliges UN título corto y claro para identificarla en una lista.
+Reglas:
 - Máximo 7 palabras.
 - Español neutro.
 - Capta la esencia de la idea, no un título clickbait para el video final.
 - Sin comillas, sin emojis, sin punto final, sin hashtags.
-
-Reglas de thumbnailIdea:
-- UNA sola línea, máx ~120 caracteres.
-- Describe la miniatura: sujeto + texto en pantalla + emoción/ángulo.
-- Debe verse como una miniatura de YouTube/Shorts posible, no un mood abstracto.
-- Sin emojis.
-
 Responde SOLO JSON válido con esta forma:
-{ "title": "...", "thumbnailIdea": "..." }
+{ "title": "..." }
 
 Idea:
 ${ideaText.trim()}`;
 
     const raw = await generateJson(prompt);
-    const parsed = parseJsonLoose<{ title?: string; thumbnailIdea?: string }>(
-      raw
-    );
+    const parsed = parseJsonLoose<{ title?: string }>(raw);
     const title = parsed.title?.trim().replace(/^["'«]|["'»]$/g, "").trim();
-    let thumbnailIdea =
-      typeof parsed.thumbnailIdea === "string"
-        ? parsed.thumbnailIdea.trim().replace(/\s+/g, " ")
-        : "";
 
     if (!title) {
       return NextResponse.json(
@@ -54,14 +38,7 @@ ${ideaText.trim()}`;
       );
     }
 
-    if (thumbnailIdea.length > 160) {
-      thumbnailIdea = thumbnailIdea.slice(0, 160).trim();
-    }
-
-    return NextResponse.json({
-      title,
-      thumbnailIdea: thumbnailIdea || undefined,
-    });
+    return NextResponse.json({ title });
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Error al generar el título.";

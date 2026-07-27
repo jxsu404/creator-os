@@ -8,7 +8,7 @@ import { IdeaThumb } from "@/components/IdeaThumb";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
 import { ideaHref } from "@/lib/idea-href";
 import { backfillIdeaTitles, ideaTitle } from "@/lib/idea-title";
-import { getIdeas } from "@/lib/storage";
+import { getIdeas, getProfile } from "@/lib/storage";
 import { onSynced } from "@/lib/sync";
 import type { Idea } from "@/lib/types";
 import { STATUS_LABEL } from "@/lib/types";
@@ -16,10 +16,10 @@ import { STATUS_LABEL } from "@/lib/types";
 const READY_BANNER_KEY = "creatoros_ready_banner";
 const RECORDED_BANNER_KEY = "creatoros_recorded_banner";
 
-function IdeaRow({ idea }: { idea: Idea }) {
+function IdeaRow({ idea, niches }: { idea: Idea; niches: string[] }) {
   return (
     <Link href={ideaHref(idea)} className="idea-row idea-row-media">
-      <IdeaThumb idea={idea} />
+      <IdeaThumb idea={idea} niches={niches} />
       <div className="idea-row-body">
         <p className="idea-text">{ideaTitle(idea)}</p>
         <span className="idea-meta">{STATUS_LABEL[idea.status]}</span>
@@ -34,6 +34,7 @@ function IdeaRow({ idea }: { idea: Idea }) {
 function IdeasList() {
   const pathname = usePathname();
   const [ideas, setIdeas] = useState<Idea[]>([]);
+  const [niches, setNiches] = useState<string[]>([]);
   const [banner, setBanner] = useState("");
   const [showDone, setShowDone] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -41,6 +42,7 @@ function IdeasList() {
 
   const refresh = useCallback(() => {
     setIdeas(getIdeas().filter((i) => i.status !== "archived"));
+    setNiches(getProfile()?.niches || []);
   }, []);
 
   useEffect(() => {
@@ -117,7 +119,7 @@ function IdeasList() {
             <section className="section">
               <div className="stack">
                 {active.map((idea) => (
-                  <IdeaRow key={idea.id} idea={idea} />
+                  <IdeaRow key={idea.id} idea={idea} niches={niches} />
                 ))}
               </div>
             </section>
@@ -136,7 +138,7 @@ function IdeasList() {
           {showDone ? (
             <div className="stack stack-quiet">
               {recorded.map((idea) => (
-                <IdeaRow key={idea.id} idea={idea} />
+                <IdeaRow key={idea.id} idea={idea} niches={niches} />
               ))}
             </div>
           ) : null}

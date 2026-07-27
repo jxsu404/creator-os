@@ -219,7 +219,7 @@ function HomeHub() {
                 href={ideaHref(idea)}
                 className="idea-row idea-row-media"
               >
-                <IdeaThumb idea={idea} />
+                <IdeaThumb idea={idea} niches={profile?.niches || []} />
                 <div className="idea-row-body">
                   <p className="idea-text">{ideaTitle(idea)}</p>
                   <span className="idea-meta">

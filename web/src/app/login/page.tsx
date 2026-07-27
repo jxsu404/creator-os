@@ -104,9 +104,10 @@ function LoginForm() {
     <div className="app-shell">
       <main className="app-main onboarding">
         <p className="brand-mark">Creator OS</p>
-        <h1 className="hero-title">Tu cuenta</h1>
+        <h1 className="hero-title">Entra a tu cuenta</h1>
         <p className="muted">
-          Entra para sincronizar ideas entre el celular y la computadora.
+          Necesitas cuenta para usar Creator OS. Así sincronizas ideas entre
+          celular y PC.
         </p>
 
         <button
@@ -117,9 +118,12 @@ function LoginForm() {
         >
           Continuar con Google
         </button>
+        <p className="hint">
+          Recomendado. Más estable que el código por email.
+        </p>
 
         <div className="auth-divider" aria-hidden>
-          <span>o</span>
+          <span>o email</span>
         </div>
 
         <form className="auth-form" onSubmit={otpSent ? onVerifyOtp : onSendEmail}>
@@ -186,7 +190,13 @@ function LoginForm() {
         </form>
 
         {message ? <p className="success">{message}</p> : null}
-        {error ? <p className="error">{error}</p> : null}
+        {error ? (
+          <p className="error">
+            {/rate|limit|too many|429/i.test(error)
+              ? "Demasiados intentos por email. Espera unos minutos o usa Continuar con Google."
+              : error}
+          </p>
+        ) : null}
       </main>
     </div>
   );

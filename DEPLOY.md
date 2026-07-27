@@ -1,78 +1,96 @@
-# Deploy — Creator OS en Vercel
+# Deploy — Creator OS en Vercel (con cuenta)
 
-**Recomendación:** Vercel (gratis hobby) + Next.js en `web/`. Encaja con el stack y da HTTPS + dominio `*.vercel.app`.
+**Recomendación:** Vercel (hobby) + Next.js en `web/` + **Supabase Auth** (login obligatorio).
 
-## Qué consigue cualquiera al entrar
+## Cómo funciona al entrar
 
-- Puede usar la app en el navegador (móvil o PC).
-- Sus ideas/perfil viven en **su** navegador (`localStorage`), salvo que más adelante actives Supabase (cuenta + sync).
-- La IA corre en el servidor con **tus** API keys (configuradas en Vercel). Todos los usuarios comparten esa cuota — vigila límites del free tier de Gemini/Groq.
+1. El usuario abre tu URL → si no hay sesión, va a **`/login`**.
+2. Entra con **Google** (recomendado) o email + código.
+3. Sus ideas/perfil se sincronizan en Supabase (celular ↔ PC).
+4. La IA usa tus API keys en Vercel (cuota compartida entre usuarios).
 
-## 1. Sube el código a GitHub
+Sin las vars `NEXT_PUBLIC_SUPABASE_*`, la app deja pasar sin login. **Para exigir cuenta, esas dos vars deben estar en Vercel.**
 
-El repo ya es `https://github.com/jxsu404/creator-os`. Asegúrate de que `main` tiene el código actual (carpeta `web/` incluida). **Nunca** subas `.env.local`.
+---
 
-## 2. Crea el proyecto en Vercel
+## 1. Código en GitHub
 
-1. Entra en [vercel.com](https://vercel.com) → **Add New… → Project**.
-2. Importa `jxsu404/creator-os`.
-3. **Root Directory:** pulsa *Edit* → elige **`web`** (importante: la app no está en la raíz del repo).
-4. Framework: Next.js (auto).
-5. Build Command: `npm run build` · Output: default Next.js.
-6. **Environment Variables** (Production + Preview):
+Repo: https://github.com/jxsu404/creator-os · branch `main`.  
+**Nunca** subas `.env.local`.
 
-| Variable | Obligatoria | Notas |
-|----------|-------------|--------|
-| `GEMINI_API_KEY` | Sí (o otra IA) | [AI Studio](https://aistudio.google.com/apikey) |
-| `GEMINI_MODEL` | No | Default `gemini-2.5-flash` |
-| `XAI_API_KEY` | No | Failover Grok |
-| `GROQ_API_KEY` | No | Failover Groq |
-| `YOUTUBE_API_KEY` | No | Solo si usas YouTube en la app |
-| `NEXT_PUBLIC_SUPABASE_URL` | No | Solo si quieres cuentas |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | No | Solo si quieres cuentas |
+## 2. Supabase (una vez)
 
-**Primera versión pública recomendada:** solo `GEMINI_API_KEY` (y opcional failover). **Sin** Supabase → cualquiera entra sin login.
+1. Proyecto en https://supabase.com (el tuyo ya existe si usabas sync local).
+2. **SQL Editor** → pega y Run el contenido de `web/supabase/schema.sql`.
+3. **Authentication → Providers**
+   - **Google:** ON (Client ID / Secret de Google Cloud).
+   - **Email:** ON (OTP / magic link) — útil de respaldo; puede rate-limitar.
+4. **Authentication → URL Configuration**
+   - **Site URL:** `https://TU-APP.vercel.app` (después del primer deploy; mientras tanto puedes poner `http://localhost:3000`).
+   - **Redirect URLs** (todas las que uses):
+     - `http://localhost:3000/auth/callback`
+     - `https://TU-APP.vercel.app/auth/callback`
+     - `https://TU-APP.vercel.app/auth/callback?**` (si el panel lo permite; si no, la exacta basta)
+5. **Project Settings → API** → copia:
+   - Project URL → `NEXT_PUBLIC_SUPABASE_URL`
+   - `anon` `public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
-7. Deploy.
+### Google Cloud (para “Continuar con Google”)
 
-## 3. URL pública
+1. [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials.
+2. OAuth Client ID (Web).
+3. Authorized redirect URIs debe incluir la de Supabase, tipo:  
+   `https://TU-REF.supabase.co/auth/v1/callback`  
+   (está en Supabase → Auth → Providers → Google).
+4. Pega Client ID y Secret en Supabase → Google provider.
 
-Tras el deploy tendrás algo como `https://creator-os-xxx.vercel.app`.  
-Opcional: Domains → dominio propio.
+## 3. Proyecto en Vercel
 
-## 4. Si más adelante activas Supabase (cuentas)
+1. [vercel.com](https://vercel.com) → Add New → Project → importa `jxsu404/creator-os`.
+2. **Root Directory = `web`** (Edit → `web`).
+3. Framework: Next.js.
+4. **Environment Variables** (Production + Preview + Development):
 
-En Supabase → Authentication → URL Configuration:
+| Variable | ¿Obligatoria? |
+|----------|----------------|
+| `GEMINI_API_KEY` | Sí (o otra IA) |
+| `GEMINI_MODEL` | No (`gemini-2.5-flash`) |
+| `NEXT_PUBLIC_SUPABASE_URL` | **Sí** (para exigir cuenta) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | **Sí** (para exigir cuenta) |
+| `XAI_API_KEY` / `GROQ_API_KEY` | No (failover) |
+| `YOUTUBE_API_KEY` | No |
 
-- **Site URL:** `https://tu-dominio.vercel.app`
-- **Redirect URLs:** `https://tu-dominio.vercel.app/auth/callback`
+Puedes **importar tu `.env.local`** en el panel de Vercel (copiar valores). Incluye las dos de Supabase **sin** el `#`.
 
-Y añade las dos `NEXT_PUBLIC_SUPABASE_*` en Vercel → Redeploy.
+5. Deploy.
 
-Con Supabase configurado, la app **exige login** (Google/email). Sin esas vars, funciona en modo invitado.
+## 4. Después del primer deploy
 
-## 5. CLI (alternativa)
+1. Copia la URL `https://….vercel.app`.
+2. En Supabase → URL Configuration: Site URL + Redirect con ese dominio (Paso 2.4).
+3. Si cambiaste URLs o env: Vercel → Redeploy.
 
-Desde la carpeta `web/`:
+## 5. Probar
 
-```bash
-npm i -g vercel
-vercel login
-vercel          # preview
-vercel --prod   # producción
-```
+1. Abre la URL en incógnito → debe mandarte a **`/login`**.
+2. **Continuar con Google** (preferido).
+3. Onboarding → capturar idea → enfoques.
 
-La primera vez, cuando pregunte Root Directory / dónde está el proyecto, apunta a `web` o ejecuta los comandos ya dentro de `web/`.
+## Local
 
-## Checklist pre-deploy
+En `web/.env.local` las dos `NEXT_PUBLIC_SUPABASE_*` deben estar **descomentadas**. Reinicia `npm run dev`.
 
-- [ ] `cd web && npm run build` pasa en local
-- [ ] Keys solo en Vercel Env, no en el repo
+## Checklist
+
+- [ ] Schema SQL corrido
+- [ ] Google provider ON + redirect de Google Cloud correcto
+- [ ] Redirect URLs localhost + Vercel
+- [ ] Env en Vercel: Gemini + Supabase URL + anon key
 - [ ] Root Directory = `web`
-- [ ] Prueba el loop: onboarding → capturar → enfoques → guía en la URL de Vercel
+- [ ] Incógnito → `/login` → Google → app
 
-## Límites a tener en cuenta
+## Notas
 
-- Cuota compartida de IA entre todos los visitantes.
-- Sin Supabase: si el usuario limpia datos del navegador, pierde ideas.
-- Hobby de Vercel tiene límites de serverless; para dogfood / early users suele bastar.
+- Preferir **Google** frente a email OTP (menos rate limits).
+- Si ves “rate limit” en email: espera o usa Google.
+- Hobby Vercel + free Supabase alcanzan para early users.

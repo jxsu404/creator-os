@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rateLimit } from "@/lib/rate-limit";
 import { getApiAuth } from "@/lib/supabase/admin";
 
 function inviteOnlyEnabled() {
@@ -40,6 +41,22 @@ export async function POST(request: Request) {
   const auth = await getApiAuth();
   if (!auth) {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+  }
+
+  const limited = rateLimit(`invite:${auth.user.id}`, {
+    limit: 10,
+    windowMs: 60_000,
+  });
+  if (!limited.ok) {
+    return NextResponse.json(
+      { error: "Demasiados intentos. Espera un momento e inténtalo de nuevo." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(Math.ceil(limited.retryAfterMs / 1000)),
+        },
+      }
+    );
   }
 
   const body = (await request.json().catch(() => ({}))) as { code?: string };

@@ -278,6 +278,166 @@ function friendlyProviderError(err: unknown): string {
   return short.length > 160 ? `${short.slice(0, 157)}…` : short;
 }
 
+/**
+ * Genera una imagen (miniatura) con failover:
+ * Grok Imagine (xAI) → Gemini Imagen.
+ * Devuelve un data URL (image/jpeg o image/png).
+ */
+export async function generateImage(prompt: string): Promise<string> {
+  const providers = buildImageProviders();
+  if (providers.length === 0) {
+    throw new Error(
+      "No hay proveedor de imagen configurado. Añade XAI_API_KEY (Grok Imagine) o GEMINI_API_KEY (Imagen) en .env.local / Vercel."
+    );
+  }
+
+  const ready = providers.filter((p) => !isInCooldown(p.id));
+  if (ready.length === 0) {
+    throw new Error(
+      "Capacidad de imagen recargando. Prueba de nuevo en un momento (Perfil → Uso de IA)."
+    );
+  }
+
+  const failures: string[] = [];
+  for (const provider of ready) {
+    try {
+      const dataUrl = await provider.run(prompt);
+      if (!dataUrl?.startsWith("data:image/")) {
+        throw new Error("Respuesta de imagen inválida");
+      }
+      clearCooldown(provider.id);
+      return dataUrl;
+    } catch (err) {
+      markCooldownFromError(provider, err);
+      const detail = friendlyProviderError(err);
+      console.warn(`[ai:image] ${provider.name} falló → siguiente:`, detail);
+      failures.push(`${provider.name}: ${detail}`);
+    }
+  }
+
+  throw new Error(
+    [
+      "Ningún proveedor pudo generar la miniatura.",
+      ...failures.map((f) => `• ${f}`),
+      "Revisa las keys de imagen en .env.local / Vercel.",
+    ].join("\n")
+  );
+}
+
+type ImageProvider = {
+  id: string;
+  label: string;
+  name: string;
+  run: (prompt: string) => Promise<string>;
+};
+
+function buildImageProviders(): ImageProvider[] {
+  const providers: ImageProvider[] = [];
+
+  const xai = process.env.XAI_API_KEY?.trim();
+  if (xai && !xai.includes("tu-clave")) {
+    providers.push({
+      id: "grok",
+      label: "Grok Imagine",
+      name: "Grok Imagine",
+      run: (prompt) => runXaiImage(xai, prompt),
+    });
+  }
+
+  geminiKeys().forEach((key, index, arr) => {
+    const id = `gemini:${maskKey(key)}`;
+    const label = arr.length === 1 ? "Gemini Imagen" : `Gemini Imagen ${index + 1}`;
+    providers.push({
+      id,
+      label,
+      name: `${label}(${maskKey(key)})`,
+      run: (prompt) => runGeminiImagen(key, prompt),
+    });
+  });
+
+  return providers;
+}
+
+async function runXaiImage(apiKey: string, prompt: string): Promise<string> {
+  const model = process.env.XAI_IMAGE_MODEL || "grok-2-image";
+  const res = await fetch("https://api.x.ai/v1/images/generations", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      prompt,
+      n: 1,
+      response_format: "b64_json",
+    }),
+  });
+  const raw = await res.text();
+  if (!res.ok) {
+    const retryAfter = res.headers.get("retry-after");
+    const suffix = retryAfter ? ` retry-after=${retryAfter}` : "";
+    throw new Error(`HTTP ${res.status}: ${raw.slice(0, 280)}${suffix}`);
+  }
+  let parsed: {
+    data?: Array<{ b64_json?: string; url?: string }>;
+  };
+  try {
+    parsed = JSON.parse(raw) as typeof parsed;
+  } catch {
+    throw new Error("Respuesta Grok Imagine no es JSON");
+  }
+  const b64 = parsed.data?.[0]?.b64_json?.trim();
+  if (b64) return `data:image/jpeg;base64,${b64}`;
+  const url = parsed.data?.[0]?.url?.trim();
+  if (url) return await fetchImageAsDataUrl(url);
+  throw new Error("Grok Imagine no devolvió imagen");
+}
+
+async function runGeminiImagen(apiKey: string, prompt: string): Promise<string> {
+  const model =
+    process.env.GEMINI_IMAGE_MODEL || "imagen-3.0-generate-002";
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:predict?key=${encodeURIComponent(apiKey)}`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      instances: [{ prompt }],
+      parameters: {
+        sampleCount: 1,
+        aspectRatio: "16:9",
+      },
+    }),
+  });
+  const raw = await res.text();
+  if (!res.ok) {
+    const retryAfter = res.headers.get("retry-after");
+    const suffix = retryAfter ? ` retry-after=${retryAfter}` : "";
+    throw new Error(`HTTP ${res.status}: ${raw.slice(0, 280)}${suffix}`);
+  }
+  let parsed: {
+    predictions?: Array<{ bytesBase64Encoded?: string; mimeType?: string }>;
+  };
+  try {
+    parsed = JSON.parse(raw) as typeof parsed;
+  } catch {
+    throw new Error("Respuesta Gemini Imagen no es JSON");
+  }
+  const pred = parsed.predictions?.[0];
+  const b64 = pred?.bytesBase64Encoded?.trim();
+  if (!b64) throw new Error("Gemini Imagen no devolvió bytes");
+  const mime = pred?.mimeType?.trim() || "image/png";
+  return `data:${mime};base64,${b64}`;
+}
+
+async function fetchImageAsDataUrl(url: string): Promise<string> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`No pude descargar la imagen (${res.status})`);
+  const buf = Buffer.from(await res.arrayBuffer());
+  const mime = res.headers.get("content-type") || "image/jpeg";
+  return `data:${mime};base64,${buf.toString("base64")}`;
+}
+
 export function parseJsonLoose<T>(raw: string): T {
   const cleaned = raw
     .replace(/^```json\s*/i, "")

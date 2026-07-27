@@ -1,13 +1,22 @@
 # Changelog
 
-## Unreleased
+## 2.0.0 — 2026-07-27
 
-- Docs: decisión de viabilidad — chat asistente + YouTube Analytics OAuth quedan en visión; memoria ligera priorizada; alineado a cupo free + donación PayPal (`BRAND_AND_ROADMAP.md` §6.1)
-- CI en GitHub Actions (`lint` / `typecheck` / `test` + scan de conflict markers)
-- Template de PR + reglas de agentes en `AGENTS.md`
-- Plan Free endurecido (snapshot seguro + RLS billing); Validación Usuario 1 fuera de Perfil (diferida)
-- Checkout Pro exige `SUPABASE_SERVICE_ROLE_KEY` (el cliente ya no puede auto-asignarse Pro)
-- Medidor de plan por **usuario**: % gastado del cupo mensual, se actualiza al generar (y en Perfil)
+Primera feature de la línea 2.x: miniaturas con IA.
+
+- Botón **Generar miniatura** activo en el paquete YouTube/TikTok
+- API `/api/generate-thumbnail` con `gateAiGeneration` (Grok Imagine → Gemini Imagen)
+- Guarda `idea.thumbnailUrl` y se muestra en listas (prioridad sobre stock de categoría)
+
+## 1.7.0 — 2026-07-27
+
+Estable: ajustes, versión visible e historial en la app.
+
+- Versión visible en Perfil + **Historial de versiones** (`/profile/versiones`)
+- **Ajustes** (`/profile/ajustes`): apariencia (claro / oscuro / sistema), idioma ES/EN, reducir movimiento
+- Tema claro/oscuro con los mismos tokens de marca
+- UI chrome bilingüe (español / inglés); la generación IA sigue en español
+- Preferencias en `localStorage` (`creatoros_prefs_v1`)
 
 ## 1.6.0 — 2026-07-27
 
@@ -17,6 +26,12 @@
 - Legal: `/terms` y `/privacy`
 - Gate Usuario 1 in-app: Perfil → Validación (`/profile/validacion`)
 - Docs: `LAUNCH.md`, `DEPLOY.md` actualizado
+- Docs: decisión de viabilidad — chat asistente + YouTube Analytics OAuth quedan en visión; memoria ligera priorizada; alineado a cupo free + donación PayPal (`BRAND_AND_ROADMAP.md` §6.1)
+- CI en GitHub Actions (`lint` / `typecheck` / `test` + scan de conflict markers)
+- Template de PR + reglas de agentes en `AGENTS.md`
+- Plan Free endurecido (snapshot seguro + RLS billing); Validación Usuario 1 fuera de Perfil (diferida)
+- Checkout Pro exige `SUPABASE_SERVICE_ROLE_KEY` (el cliente ya no puede auto-asignarse Pro)
+- Medidor de plan por **usuario**: % gastado del cupo mensual, se actualiza al generar (y en Perfil)
 
 ## Unreleased (previo)
 

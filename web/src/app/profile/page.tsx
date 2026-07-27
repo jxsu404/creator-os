@@ -5,7 +5,9 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/components/AuthProvider";
+import { usePrefs } from "@/components/PrefsProvider";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
+import { APP_VERSION } from "@/lib/app-version";
 import { paypalDonateUrl, SUPPORT_PATH } from "@/lib/donations";
 import { hasGamingNiche, withUser1Defaults } from "@/lib/profile-context";
 import { getProfile } from "@/lib/storage";
@@ -65,6 +67,7 @@ function clampPercent(n: number): number {
 function ProfileHub() {
   const router = useRouter();
   const { configured, user, signOut, refreshSync } = useAuth();
+  const { t } = usePrefs();
   const [profile, setProfile] = useState<CreatorProfile | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [aiStatus, setAiStatus] = useState<AiStatusResponse | null>(null);
@@ -211,7 +214,7 @@ function ProfileHub() {
   }
 
   return (
-    <AppShell title="Perfil">
+    <AppShell title={t("profile.title")}>
       <section className="profile-hero">
         <div className="profile-avatar" aria-hidden>
           {initials(name)}
@@ -219,16 +222,18 @@ function ProfileHub() {
         <h2 className="profile-name">{name}</h2>
         <p className="profile-bio">{bio}</p>
         <Link href="/profile/edit" className="btn-secondary btn-block">
-          Editar perfil
+          {t("profile.edit")}
         </Link>
       </section>
 
-      <nav className="settings-list" aria-label="Apartados">
+      <nav className="settings-list" aria-label={t("profile.title")}>
         {showGames ? (
           <Link href="/profile/juegos" className="settings-row">
             <div>
-              <p className="settings-title">Juegos</p>
-              <p className="settings-desc">Activo: {gameLabel}</p>
+              <p className="settings-title">{t("profile.games")}</p>
+              <p className="settings-desc">
+                {t("profile.gamesDesc", { game: gameLabel })}
+              </p>
             </div>
             <span className="chevron" aria-hidden>
               →
@@ -237,8 +242,8 @@ function ProfileHub() {
         ) : null}
         <Link href="/profile/personalizacion" className="settings-row">
           <div>
-            <p className="settings-title">Personalización</p>
-            <p className="settings-desc">Cómo grabas y tono</p>
+            <p className="settings-title">{t("profile.personalization")}</p>
+            <p className="settings-desc">{t("profile.personalizationDesc")}</p>
           </div>
           <span className="chevron" aria-hidden>
             →
@@ -246,12 +251,32 @@ function ProfileHub() {
         </Link>
         <Link href="/profile/conexiones" className="settings-row">
           <div>
-            <p className="settings-title">Conexiones</p>
+            <p className="settings-title">{t("profile.connections")}</p>
             <p className="settings-desc">
               {profile.youtube?.channelTitle
-                ? `YouTube · ${profile.youtube.channelTitle}`
-                : "YouTube · TikTok"}
+                ? t("profile.connectionsDescYt", {
+                    channel: profile.youtube.channelTitle,
+                  })
+                : t("profile.connectionsDescDefault")}
             </p>
+          </div>
+          <span className="chevron" aria-hidden>
+            →
+          </span>
+        </Link>
+        <Link href="/profile/ajustes" className="settings-row">
+          <div>
+            <p className="settings-title">{t("profile.settings")}</p>
+            <p className="settings-desc">{t("profile.settingsDesc")}</p>
+          </div>
+          <span className="chevron" aria-hidden>
+            →
+          </span>
+        </Link>
+        <Link href="/profile/versiones" className="settings-row">
+          <div>
+            <p className="settings-title">{t("profile.versions")}</p>
+            <p className="settings-desc">{t("profile.versionsDesc")}</p>
           </div>
           <span className="chevron" aria-hidden>
             →
@@ -262,12 +287,11 @@ function ProfileHub() {
       <section className="section">
         <div className="plan-card">
           <div className="plan-card-head">
-            <h2 className="section-title plan-card-title">Uso de IA</h2>
+            <h2 className="section-title plan-card-title">
+              {t("profile.aiUsage")}
+            </h2>
           </div>
-          <p className="muted plan-card-lead">
-            Porcentaje de uso de inteligencia artificial que te queda
-            (Gemini, Groq, xAI).
-          </p>
+          <p className="muted plan-card-lead">{t("profile.aiUsageLead")}</p>
 
           <div className="plan-meter-row">
             <div
@@ -290,10 +314,8 @@ function ProfileHub() {
           <p className="plan-meter-meta">{capacityLabel}</p>
 
           <div className="plan-pro-teaser">
-            <p className="plan-pro-title">Apoya Ideazo</p>
-            <p className="plan-pro-desc">
-              Donación por PayPal · sin suscripción por ahora.
-            </p>
+            <p className="plan-pro-title">{t("profile.supportTitle")}</p>
+            <p className="plan-pro-desc">{t("profile.supportDesc")}</p>
             {donateUrl ? (
               <a
                 href={donateUrl}
@@ -311,11 +333,11 @@ function ProfileHub() {
                   });
                 }}
               >
-                Donar con PayPal
+                {t("profile.donate")}
               </a>
             ) : (
               <Link href={SUPPORT_PATH} className="btn-primary btn-block">
-                Cómo apoyar
+                {t("profile.howToSupport")}
               </Link>
             )}
           </div>
@@ -323,18 +345,18 @@ function ProfileHub() {
       </section>
 
       <section className="section">
-        <h2 className="section-title">Cuenta</h2>
+        <h2 className="section-title">{t("profile.account")}</h2>
         {configured ? (
           <div className="stack">
             <div className="settings-row" style={{ cursor: "default" }}>
               <div>
                 <p className="settings-title">
-                  {user?.email || "Sesión activa"}
+                  {user?.email || t("profile.sessionActive")}
                 </p>
                 <p className="settings-desc">
                   {isCloudSyncEnabled()
-                    ? "Tus datos van entre celular y PC"
-                    : "Conectando tu cuenta…"}
+                    ? t("profile.syncingDevices")
+                    : t("profile.connectingAccount")}
                 </p>
               </div>
             </div>
@@ -357,20 +379,25 @@ function ProfileHub() {
                 void refreshSync().finally(() => setSyncing(false));
               }}
             >
-              {syncing ? "Sincronizando…" : "Sincronizar ahora"}
+              {syncing ? t("profile.syncing") : t("profile.syncNow")}
             </button>
             <button
               type="button"
               className="text-link"
               onClick={() => {
+                if (!window.confirm(t("profile.signOutConfirm"))) return;
                 void signOut().then(() => router.replace("/login"));
               }}
             >
-              Cerrar sesión
+              {t("profile.signOut")}
             </button>
           </>
         ) : null}
       </section>
+
+      <p className="app-version-footer">
+        {t("profile.versionBadge", { version: APP_VERSION })}
+      </p>
     </AppShell>
   );
 }

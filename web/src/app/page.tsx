@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
-import { quoteForToday, tipsForToday } from "@/lib/home-copy";
+import { quoteForSession, tipsForSession, type HomeTip } from "@/lib/home-copy";
 import { ideaHref } from "@/lib/idea-href";
 import { backfillIdeaTitles, ideaTitle } from "@/lib/idea-title";
 import {
@@ -39,15 +39,25 @@ function HomeHub() {
   const [ytError, setYtError] = useState("");
   const [ytLoading, setYtLoading] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [quote, setQuote] = useState("");
+  const [tips, setTips] = useState<HomeTip[]>([]);
   const backfillKeyRef = useRef("");
-  const quote = quoteForToday();
-  const tips = tipsForToday(3);
+  const copyReadyRef = useRef(false);
 
   const refreshLocal = useCallback(() => {
     setIdeas(getIdeas().filter((i) => i.status !== "archived"));
     const p = getProfile();
     setProfile(p ? withUser1Defaults(p) : null);
   }, []);
+
+  useEffect(() => {
+    if (!hydrated || copyReadyRef.current) return;
+    // Leer de storage (ya hidratado) para no depender del setState async
+    const niches = getProfile()?.niches || [];
+    setQuote(quoteForSession(niches));
+    setTips(tipsForSession(niches, 3));
+    copyReadyRef.current = true;
+  }, [hydrated]);
 
   const syncYoutube = useCallback(async (force = false) => {
     if (ytInFlight) await ytInFlight;

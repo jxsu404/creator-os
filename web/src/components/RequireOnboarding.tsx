@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AppShell } from "@/components/AppShell";
 import { RequireAuth } from "@/components/RequireAuth";
 import { getProfile } from "@/lib/storage";
 import { onSynced } from "@/lib/sync";
@@ -25,11 +26,9 @@ function OnboardingGate({ children }: { children: React.ReactNode }) {
 
   if (!ready) {
     return (
-      <div className="app-shell">
-        <main className="app-main">
-          <p className="muted">Cargando…</p>
-        </main>
-      </div>
+      <AppShell showNav={false}>
+        <p className="muted">Cargando…</p>
+      </AppShell>
     );
   }
 

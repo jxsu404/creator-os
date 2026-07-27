@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AppShell } from "@/components/AppShell";
 import { RequireAuth } from "@/components/RequireAuth";
 import { NICHE_CHIPS } from "@/lib/types";
 import { getProfile, saveProfile } from "@/lib/storage";
@@ -62,18 +63,20 @@ function OnboardingForm() {
 
   if (!ready) {
     return (
-      <div className="app-shell">
-        <main className="app-main onboarding">
-          <p className="muted">Cargando…</p>
-        </main>
-      </div>
+      <AppShell showNav={false}>
+        <p className="muted">Cargando…</p>
+      </AppShell>
     );
   }
 
   return (
-    <div className="app-shell">
-      <main className="app-main onboarding">
+    <AppShell showNav={false}>
+      <div className="onboarding">
+        <p className="onboarding-kicker">Tu canal</p>
         <h1 className="hero-title">¿De qué va tu contenido?</h1>
+        <p className="muted onboarding-lead">
+          Elige nichos. Así las ideas y consejos hablan tu idioma.
+        </p>
 
         <div className="chip-grid">
           {NICHE_CHIPS.map((niche) => {
@@ -110,8 +113,8 @@ function OnboardingForm() {
         >
           Continuar
         </button>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }
 

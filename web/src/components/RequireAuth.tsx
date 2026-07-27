@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
+import { AppShell } from "@/components/AppShell";
 
 /**
  * Si Supabase está configurado, exige sesión.
@@ -25,13 +26,11 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
 
   if (loading || !user || !syncReady) {
     return (
-      <div className="app-shell">
-        <main className="app-main">
-          <p className="muted">
-            {loading || !user ? "Cargando cuenta…" : "Sincronizando…"}
-          </p>
-        </main>
-      </div>
+      <AppShell showNav={false}>
+        <p className="muted">
+          {loading || !user ? "Cargando cuenta…" : "Sincronizando…"}
+        </p>
+      </AppShell>
     );
   }
 

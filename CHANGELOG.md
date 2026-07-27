@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- CI en GitHub Actions (`lint` / `typecheck` / `test` + scan de conflict markers)
+- Template de PR + reglas de agentes en `AGENTS.md`
+
 ## 1.6.0 — 2026-07-27
 
 - Lanzamiento Ideazo: landing pública, `/pricing`, `/waitlist`, `/invite`

@@ -735,8 +735,8 @@ a.idea-row:hover {
 }
 
 .idea-thumb {
-  width: 96px;
-  height: 54px;
+  width: 128px;
+  height: 72px;
   object-fit: cover;
   border-radius: 10px;
   flex-shrink: 0;
@@ -745,8 +745,8 @@ a.idea-row:hover {
 }
 
 .idea-thumb-sm {
-  width: 72px;
-  height: 40px;
+  width: 96px;
+  height: 54px;
   border-radius: 8px;
 }
 

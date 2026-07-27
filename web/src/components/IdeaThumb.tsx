@@ -28,8 +28,8 @@ export function IdeaThumb({
       src={src}
       alt=""
       className={className}
-      width={160}
-      height={90}
+      width={size === "sm" ? 96 : 128}
+      height={size === "sm" ? 54 : 72}
       loading="lazy"
     />
   );

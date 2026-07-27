@@ -11,19 +11,11 @@ import {
 } from "@/components/UpgradePrompt";
 import { applyGenerationBilling } from "@/lib/apply-generation-billing";
 import { trackFunnel } from "@/lib/metrics";
-import { profileContextFor } from "@/lib/profile-context";
+import { aiResponseError, safeAiJson } from "@/lib/fetch-ai-json";
+import { ideaAiContext } from "@/lib/idea-ai-context";
 import { buildUnifiedScript } from "@/lib/script";
-import { getIdea, getProfile, upsertIdea } from "@/lib/storage";
+import { getIdea, upsertIdea } from "@/lib/storage";
 import type { Direction, Idea } from "@/lib/types";
-
-function ideaAiContext(idea: Idea) {
-  const profile = getProfile();
-  if (!profile) return "";
-  return profileContextFor(profile, {
-    gameId: idea.gameId,
-    contentAngle: idea.contentAngle,
-  });
-}
 
 function DraftPreview() {
   const params = useParams();
@@ -113,16 +105,33 @@ function DraftPreview() {
           },
         }),
       });
-      const data = await res.json();
+      const data = await safeJson(res);
       if (!res.ok) {
         if (res.status === 402 || isUsageLimitPayload(data)) {
           setNeedsUpgrade(true);
           trackFunnel("hit_limit");
         }
-        throw new Error(data.error || "Error");
+        throw new Error(apiError(data));
       }
-      void applyGenerationBilling(data.billing);
-      const draftPayload = data.draft;
+      void applyGenerationBilling(
+        data && typeof data === "object" && "billing" in data
+          ? (data as { billing: Parameters<typeof applyGenerationBilling>[0] })
+              .billing
+          : undefined
+      );
+      const draftPayload =
+        data && typeof data === "object" && "draft" in data
+          ? (
+              data as {
+                draft?: {
+                  hook?: string;
+                  scriptBody?: string;
+                  closing?: string;
+                  estimatedSeconds?: number;
+                };
+              }
+            ).draft
+          : undefined;
       if (!draftPayload?.hook?.trim() || !draftPayload?.scriptBody?.trim()) {
         throw new Error("La guía llegó incompleta. Intenta de nuevo.");
       }
@@ -247,7 +256,19 @@ function DraftPreview() {
       />
       {needsUpgrade ? <UpgradePrompt message={reviseError} /> : null}
       {reviseError && !needsUpgrade ? (
-        <p className="error">{reviseError}</p>
+        <div className="error-box" role="alert">
+          <p className="error">{reviseError}</p>
+          {adjustment.trim() ? (
+            <button
+              type="button"
+              className="btn-secondary btn-block"
+              disabled={revising}
+              onClick={applyAdjustments}
+            >
+              Reintentar
+            </button>
+          ) : null}
+        </div>
       ) : null}
       {adjustment.trim() ? (
         <button
@@ -267,7 +288,7 @@ function DraftPreview() {
           disabled={revising}
           onClick={continueToScript}
         >
-          Continuar
+          Continuar al guion
         </button>
         <Link href={`/ideas/${id}/directions`} className="text-link">
           Cambiar enfoque

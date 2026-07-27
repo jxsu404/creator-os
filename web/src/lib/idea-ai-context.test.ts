@@ -41,4 +41,15 @@ describe("ideaAiContextFromProfile", () => {
     expect(ctx).toContain("Anime Fighters");
     expect(ctx).toContain("Update");
   });
+
+  it("clamps oversized profile context to the AI cap", () => {
+    const huge = "x".repeat(8000);
+    const profile = baseProfile({
+      customDescription: huge,
+      niches: ["Gaming", "Roblox"],
+    });
+    const ctx = ideaAiContextFromProfile(profile, {});
+    expect(ctx.length).toBeLessThanOrEqual(4500);
+    expect(ctx.length).toBeGreaterThan(100);
+  });
 });

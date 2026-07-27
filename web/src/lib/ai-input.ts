@@ -4,7 +4,8 @@ import { NextResponse } from "next/server";
 export const AI_INPUT_CAPS = {
   ideaText: 4000,
   adjustment: 2000,
-  profileContext: 3000,
+  /** Perfiles content_os (brand + juego + estilo) suelen pasar de 3k. */
+  profileContext: 4500,
   script: 6000,
   recentContent: 3000,
   existingTitle: 200,
@@ -19,6 +20,24 @@ export type InputFieldCheck = {
   label: string;
 };
 
+/** Recorta sin romper a mitad de palabra cuando se puede. */
+export function clampAiText(
+  value: string | undefined | null,
+  max: number
+): string {
+  const raw = value ?? "";
+  if (raw.length <= max) return raw;
+  const sliced = raw.slice(0, max);
+  const lastBreak = Math.max(
+    sliced.lastIndexOf("\n"),
+    sliced.lastIndexOf(" ")
+  );
+  if (lastBreak > max * 0.7) {
+    return sliced.slice(0, lastBreak).trimEnd();
+  }
+  return sliced.trimEnd();
+}
+
 export function rejectIfTooLong(
   value: string | undefined | null,
   max: number,
@@ -27,7 +46,7 @@ export function rejectIfTooLong(
   if (value != null && value.length > max) {
     return NextResponse.json(
       {
-        error: `El texto de ${label} es demasiado largo. Acórtalo e intenta de nuevo.`,
+        error: `${label} es demasiado largo. Acórtalo e intenta de nuevo.`,
       },
       { status: 400 }
     );

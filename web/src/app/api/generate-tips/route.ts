@@ -20,8 +20,8 @@ export async function POST(request: Request) {
     };
 
     const tooLong = rejectIfAnyTooLong([
-      { value: profileContext, max: AI_INPUT_CAPS.profileContext, label: "el contexto del perfil" },
-      { value: recentContent, max: AI_INPUT_CAPS.recentContent, label: "el contenido reciente" },
+      { value: profileContext, max: AI_INPUT_CAPS.profileContext, label: "El contexto del perfil" },
+      { value: recentContent, max: AI_INPUT_CAPS.recentContent, label: "El contenido reciente" },
     ]);
     if (tooLong) return tooLong;
 

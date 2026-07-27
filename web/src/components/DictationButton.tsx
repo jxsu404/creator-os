@@ -11,8 +11,8 @@ type Props = {
 };
 
 /**
- * Botón de dictado por micrófono. Se oculta el control activo si el
- * navegador no soporta Speech API (muestra un aviso discreto).
+ * Ícono de micrófono para dictado, pensado para vivir dentro del
+ * mismo cuadro de texto (`.field-with-mic`).
  */
 export function DictationButton({
   onTranscript,
@@ -28,41 +28,27 @@ export function DictationButton({
     if (disabled && listening) stop();
   }, [disabled, listening, stop]);
 
-  if (!supported) {
-    return (
-      <p className="idea-meta dictation-unsupported">
-        Dictado no disponible aquí. Usa Chrome o Edge.
-      </p>
-    );
-  }
+  if (!supported) return null;
 
   return (
-    <div className="dictation-bar">
+    <>
       <button
         type="button"
-        className={`btn-secondary btn-block dictation-btn${
-          listening ? " dictation-btn-active" : ""
-        }`}
+        className={`dictation-mic${listening ? " dictation-mic-active" : ""}`}
         disabled={disabled}
         aria-pressed={listening}
+        aria-label={listening ? "Detener dictado" : "Dictar con micrófono"}
+        title={listening ? "Detener" : "Dictar"}
         onClick={toggle}
       >
-        <span className="dictation-btn-label" aria-hidden>
-          {listening ? <span className="dictation-dot" /> : <MicIcon />}
-        </span>
-        {listening ? "Escuchando… toca para parar" : "Dictar con micrófono"}
+        {listening ? <span className="dictation-dot" aria-hidden /> : <MicIcon />}
       </button>
-      {listening ? (
-        <p className="muted dictation-hint">
-          Habla con naturalidad. Se escribe solo.
-        </p>
-      ) : null}
       {error ? (
-        <p className="error" role="alert">
+        <p className="error dictation-error" role="alert">
           {error}
         </p>
       ) : null}
-    </div>
+    </>
   );
 }
 

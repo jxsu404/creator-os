@@ -27,7 +27,14 @@ import {
   STATUS_GROUP_TONE,
   type IdeaStatusGroup,
 } from "@/lib/idea-labels";
-import { withUser1Defaults } from "@/lib/profile-context";
+import { profileContextFor, withUser1Defaults } from "@/lib/profile-context";
+import {
+  buildTipsContext,
+  isHomeTipsCacheFresh,
+  normalizeTips,
+  readHomeTipsCache,
+  writeHomeTipsCache,
+} from "@/lib/tips-context";
 import { formatYtCount } from "@/lib/youtube-format";
 
 type PublishedItem = {
@@ -53,7 +60,8 @@ function HomeHub() {
   const [quote, setQuote] = useState("");
   const [tips, setTips] = useState<HomeTip[]>([]);
   const backfillKeyRef = useRef("");
-  const copyReadyRef = useRef(false);
+  const quoteReadyRef = useRef(false);
+  const tipsSettledRef = useRef("");
 
   const refreshLocal = useCallback(() => {
     setIdeas(getIdeas().filter((i) => i.status !== "archived"));
@@ -77,13 +85,76 @@ function HomeHub() {
   );
 
   useEffect(() => {
-    if (!hydrated || copyReadyRef.current) return;
-    // Leer de storage (ya hidratado) para no depender del setState async
+    if (!hydrated || quoteReadyRef.current) return;
     const niches = getProfile()?.niches || [];
     setQuote(quoteForSession(niches));
-    setTips(tipsForSession(niches, 3));
-    copyReadyRef.current = true;
+    quoteReadyRef.current = true;
   }, [hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+
+    const p = getProfile();
+    const allIdeas = getIdeas();
+    const niches = p?.niches || [];
+    const fallback = tipsForSession(niches, 3);
+    const ctx = buildTipsContext(p, allIdeas);
+
+    if (tipsSettledRef.current === ctx.fingerprint) {
+      return;
+    }
+
+    const cached = readHomeTipsCache();
+    if (cached && isHomeTipsCacheFresh(cached, ctx.fingerprint)) {
+      tipsSettledRef.current = ctx.fingerprint;
+      setTips(cached.tips.slice(0, 3));
+      return;
+    }
+
+    // Sin videos recientes: tips estáticos por nicho (sin gastar cuota).
+    if (!ctx.hasRecentSignal) {
+      tipsSettledRef.current = ctx.fingerprint;
+      setTips(fallback);
+      return;
+    }
+
+    // Mostrar estáticos mientras llega la IA.
+    setTips(fallback);
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/generate-tips", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            profileContext: p ? profileContextFor(p) : "",
+            recentContent: ctx.recentContent,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Error");
+        const next = normalizeTips(data.tips);
+        if (next.length < 3) throw new Error("tips incompletos");
+        if (cancelled) return;
+        writeHomeTipsCache({
+          fingerprint: ctx.fingerprint,
+          generatedAt: new Date().toISOString(),
+          tips: next,
+        });
+        tipsSettledRef.current = ctx.fingerprint;
+        setTips(next);
+      } catch {
+        if (cancelled) return;
+        tipsSettledRef.current = ctx.fingerprint;
+        setTips(fallback);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [hydrated, profile, ideas]);
 
   const syncYoutube = useCallback(async (force = false) => {
     if (ytInFlight) await ytInFlight;

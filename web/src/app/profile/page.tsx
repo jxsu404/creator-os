@@ -7,6 +7,7 @@ import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/components/AuthProvider";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
 import type { BillingSnapshot } from "@/lib/billing/plans";
+import { FREE_MONTHLY_GENERATIONS } from "@/lib/billing/plans";
 import { hasGamingNiche, withUser1Defaults } from "@/lib/profile-context";
 import { getProfile } from "@/lib/storage";
 import { isCloudSyncEnabled, onSynced } from "@/lib/sync";
@@ -298,15 +299,6 @@ function ProfileHub() {
             →
           </span>
         </Link>
-        <Link href="/profile/validacion" className="settings-row">
-          <div>
-            <p className="settings-title">Validación Usuario 1</p>
-            <p className="settings-desc">Checklist go / no-go</p>
-          </div>
-          <span className="chevron" aria-hidden>
-            →
-          </span>
-        </Link>
       </nav>
 
       <section className="section">
@@ -320,7 +312,7 @@ function ProfileHub() {
           <p className="muted plan-card-lead">
             {isPro
               ? "Capacidad Pro activa. Gestiona tu suscripción cuando quieras."
-              : "15 generaciones IA al mes en Free. Pasa a Pro cuando te quedes corto."}
+              : `${FREE_MONTHLY_GENERATIONS} generaciones IA al mes en Free. Pasa a Pro cuando te quedes corto.`}
           </p>
 
           <div className="plan-meter-row">
@@ -358,9 +350,16 @@ function ProfileHub() {
               <p className="plan-pro-desc">
                 500 generaciones/mes · $14/mes o $119/año.
               </p>
-              <Link href="/pricing" className="btn-primary btn-block">
-                Mejorar a Pro
-              </Link>
+              {stripeReady ? (
+                <Link href="/pricing" className="btn-primary btn-block">
+                  Mejorar a Pro
+                </Link>
+              ) : (
+                <p className="muted plan-meter-meta">
+                  El upgrade a Pro se activa cuando Stripe esté configurado en
+                  el entorno. Mientras tanto usas Free con el cupo mensual.
+                </p>
+              )}
             </div>
           )}
         </div>

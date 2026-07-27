@@ -5,7 +5,7 @@
 
 ## Antes de abrir
 
-1. Checklist Usuario 1 en verde (`/profile/validacion` + `VALIDATION_USER1.md`)
+1. Checklist Usuario 1 en verde (`VALIDATION_USER1.md` / `LAUNCH.md`)
 2. Soft launch 5–10 creadores sin incendios (`INVITE_ONLY=true`)
 3. Stripe live + webhook OK + 1 compra de prueba real
 4. Dominio custom + `/terms` `/privacy` revisados

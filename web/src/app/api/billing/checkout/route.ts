@@ -41,9 +41,17 @@ export async function POST(request: Request) {
     const stripe = getStripe();
     const origin = appOrigin(request);
     const admin = createSupabaseAdmin();
-    const db = admin || auth.supabase;
+    if (!admin) {
+      return NextResponse.json(
+        {
+          error:
+            "Falta SUPABASE_SERVICE_ROLE_KEY para guardar la suscripción de forma segura.",
+        },
+        { status: 503 }
+      );
+    }
 
-    const { data: existing } = await db
+    const { data: existing } = await admin
       .from("billing_subscriptions")
       .select("stripe_customer_id")
       .eq("user_id", auth.user.id)
@@ -59,7 +67,7 @@ export async function POST(request: Request) {
         metadata: { supabase_user_id: auth.user.id },
       });
       customerId = customer.id;
-      await db.from("billing_subscriptions").upsert({
+      await admin.from("billing_subscriptions").upsert({
         user_id: auth.user.id,
         plan: "free",
         status: "active",

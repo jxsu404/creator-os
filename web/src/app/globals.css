@@ -746,7 +746,7 @@ a.idea-row:hover {
 
 .idea-meta {
   font-size: 0.74rem;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -777,7 +777,7 @@ a.idea-row:hover {
   margin-left: 8px;
   font-size: 0.78rem;
   font-weight: 500;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
   vertical-align: middle;
 }
 
@@ -1091,7 +1091,7 @@ a:hover .chevron {
 .save-indicator {
   margin-left: auto;
   font-size: 0.76rem;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
 }
 
 .sticky-actions {
@@ -1204,7 +1204,7 @@ a:hover .chevron {
 .settings-desc {
   margin: 0;
   font-size: 0.8rem;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
 }
 
 /* ============================================================
@@ -1695,17 +1695,35 @@ a.pub-row:hover {
   *::after {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
   }
 
-  .dictation-dot {
-    animation: none;
-  }
-
+  .dictation-dot,
   .app-atmosphere,
   .app-glow,
   .app-main,
-  .home-quote-text {
+  .home-quote-text,
+  .auth-atmosphere,
+  .auth-glow,
+  .auth-panel,
+  .auth-email {
     animation: none !important;
+  }
+
+  .btn-primary:hover:not(:disabled),
+  .btn-primary:active:not(:disabled),
+  .bottom-nav-create:hover,
+  .auth-btn-google:hover:not(:disabled),
+  .auth-btn-primary:hover:not(:disabled),
+  .chip-active,
+  .chip-active:hover {
+    transform: none !important;
+  }
+
+  a:hover > .chevron,
+  a:hover .chevron {
+    transform: none !important;
   }
 }
 
@@ -2305,15 +2323,6 @@ a.pub-row:hover {
 
   .auth-legal {
     margin-top: 1.5rem;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .auth-atmosphere,
-  .auth-glow,
-  .auth-panel,
-  .auth-email {
-    animation: none;
   }
 }
 

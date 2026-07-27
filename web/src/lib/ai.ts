@@ -52,7 +52,7 @@ export async function generateJson(prompt: string): Promise<string> {
     [
       "Ningún proveedor de IA pudo responder.",
       ...failures.map((f) => `• ${f}`),
-      "Revisa cuotas en Perfil → Cuota IA, o las keys en .env.local.",
+      "Revisa tu plan en Perfil, o las keys en .env.local.",
     ].join("\n")
   );
 }

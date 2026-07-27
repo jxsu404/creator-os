@@ -1072,33 +1072,105 @@ a.pub-row:hover {
   }
 }
 
-.ai-status-pill {
+/* Plan gratuito Creator OS — capacidad unificada */
+.plan-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.plan-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.plan-card-title {
+  margin: 0;
+}
+
+.plan-card-lead {
+  margin: 0;
+}
+
+.plan-badge {
   flex-shrink: 0;
   font-size: 0.72rem;
   font-weight: 600;
-  padding: 4px 10px;
+  letter-spacing: 0.02em;
+  padding: 5px 10px;
   border-radius: var(--radius-pill);
-  border: 1px solid var(--border);
   color: var(--text-secondary);
   background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.plan-meter {
+  width: 100%;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.plan-meter-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--gradient-brand);
+  transition: width var(--transition);
+}
+
+.plan-meter-ready .plan-meter-fill {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--success) 70%, var(--primary)) 0%,
+    var(--success) 100%
+  );
+}
+
+.plan-meter-recharge .plan-meter-fill {
+  background: linear-gradient(
+    90deg,
+    var(--accent) 0%,
+    color-mix(in srgb, var(--accent) 55%, var(--primary)) 100%
+  );
+}
+
+.plan-meter-offline .plan-meter-fill,
+.plan-meter-loading .plan-meter-fill {
+  background: var(--border-strong);
+}
+
+.plan-meter-meta {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
 }
 
-.ai-status-ok {
-  color: var(--success-strong);
-  border-color: color-mix(in srgb, var(--success) 35%, var(--border));
-  background: color-mix(in srgb, var(--success) 12%, transparent);
+.plan-pro-teaser {
+  margin-top: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.ai-status-wait {
-  color: var(--warning);
-  border-color: color-mix(in srgb, var(--warning) 40%, var(--border));
-  background: color-mix(in srgb, var(--warning) 12%, transparent);
+.plan-pro-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
 }
 
-.ai-status-off {
-  color: var(--text-tertiary);
+.plan-pro-desc {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
 }
 
 /* YouTube video stats detail */

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { RequireAuth } from "@/components/RequireAuth";
+import { RequireInvite } from "@/components/RequireInvite";
 import { NICHE_CHIPS } from "@/lib/types";
 import { getProfile, saveProfile } from "@/lib/storage";
 
@@ -58,6 +59,11 @@ function OnboardingForm() {
             youtubeCache: existing.youtubeCache,
           }
         : {}),
+    });
+    void fetch("/api/metrics/event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event: "onboarding_complete" }),
     });
     router.push("/");
   }
@@ -122,7 +128,9 @@ function OnboardingForm() {
 export default function OnboardingPage() {
   return (
     <RequireAuth>
-      <OnboardingForm />
+      <RequireInvite>
+        <OnboardingForm />
+      </RequireInvite>
     </RequireAuth>
   );
 }

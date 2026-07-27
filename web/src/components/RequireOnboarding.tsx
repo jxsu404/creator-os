@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { RequireAuth } from "@/components/RequireAuth";
+import { RequireInvite } from "@/components/RequireInvite";
 import { getProfile } from "@/lib/storage";
 import { onSynced } from "@/lib/sync";
 
@@ -38,7 +39,9 @@ function OnboardingGate({ children }: { children: React.ReactNode }) {
 export function RequireOnboarding({ children }: { children: React.ReactNode }) {
   return (
     <RequireAuth>
-      <OnboardingGate>{children}</OnboardingGate>
+      <RequireInvite>
+        <OnboardingGate>{children}</OnboardingGate>
+      </RequireInvite>
     </RequireAuth>
   );
 }

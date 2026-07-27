@@ -5,6 +5,10 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
+import {
+  isUsageLimitPayload,
+  UpgradePrompt,
+} from "@/components/UpgradePrompt";
 import { profileContextFor } from "@/lib/profile-context";
 import { buildUnifiedScript } from "@/lib/script";
 import { getIdea, getProfile, upsertIdea } from "@/lib/storage";
@@ -27,6 +31,7 @@ function DraftPreview() {
   const [adjustment, setAdjustment] = useState("");
   const [revising, setRevising] = useState(false);
   const [reviseError, setReviseError] = useState("");
+  const [needsUpgrade, setNeedsUpgrade] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(true);
   const ideaRef = useRef<Idea | null>(null);
 
@@ -86,6 +91,7 @@ function DraftPreview() {
 
     setRevising(true);
     setReviseError("");
+    setNeedsUpgrade(false);
     try {
       const res = await fetch("/api/generate-draft", {
         method: "POST",
@@ -107,7 +113,17 @@ function DraftPreview() {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error");
+      if (!res.ok) {
+        if (res.status === 402 || isUsageLimitPayload(data)) {
+          setNeedsUpgrade(true);
+          void fetch("/api/metrics/event", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ event: "hit_limit" }),
+          });
+        }
+        throw new Error(data.error || "Error");
+      }
       const draftPayload = data.draft;
       if (
         !draftPayload?.hook?.trim() ||
@@ -247,7 +263,10 @@ function DraftPreview() {
         onChange={(e) => setAdjustment(e.target.value)}
         disabled={revising}
       />
-      {reviseError ? <p className="error">{reviseError}</p> : null}
+      {needsUpgrade ? <UpgradePrompt message={reviseError} /> : null}
+      {reviseError && !needsUpgrade ? (
+        <p className="error">{reviseError}</p>
+      ) : null}
       {adjustment.trim() ? (
         <button
           type="button"

@@ -1,9 +1,12 @@
 # Validación — Usuario 1 (fundador)
 
 **Fecha:** 26 de julio de 2026  
+**Actualizado:** 27 de julio de 2026 (lanzamiento Ideazo)  
 **Estrategia:** Dogfooding primero. Visibilidad y venta **solo después** de que el fundador (creador de contenido) lo use de verdad y lo encuentre útil.
 
-**Documento hermano (plan B):** `VALIDATION.md` — guion para entrevistas externas cuando toque abrir.
+**Herramienta in-app:** Perfil → **Validación Usuario 1** (`/profile/validacion`)  
+**Checklist operativa:** [`LAUNCH.md`](LAUNCH.md)  
+**Documento hermano:** `VALIDATION.md` — entrevistas externas.
 
 ---
 
@@ -11,7 +14,10 @@
 
 - Eres el usuario primario que definimos: creador short-form que intenta publicar con regularidad y se frena en idea → grabable.
 - El wedge es íntimo (proceso creativo). Si **tú** no lo usas para tus videos reales, no lo venderemos con honestidad.
-- Retrasa marketing y monetización hasta tener evidencia vivida — correcto para no vender vapor.
+- Retrasa marketing agresivo hasta tener evidencia vivida — correcto para no vender vapor.
+- El build de marca/billing/PWA **sí** puede avanzar en paralelo (ver `LAUNCH.md`).
+
+---
 
 ## 2. Empuje de cofundador (no lo ignores)
 
@@ -29,7 +35,8 @@ Cuando el producto te sirva a ti, **entonces** 2–3 creadores externos (guion e
 ## 3. Protocolo Usuario 1
 
 ### Fase A — Build del loop mínimo
-Construir solo lo de `PRODUCT_VISION` + `UX_BRIEF` (contexto → captura → 3 enfoques → borrador → listo para grabar).
+Construir solo lo de `PRODUCT_VISION` + `UX_BRIEF` (contexto → captura → 3 enfoques → borrador → listo para grabar).  
+**Estado:** hecho (app v1.5+).
 
 ### Fase B — Uso real (sugerido: 2–4 semanas)
 Reglas:
@@ -37,13 +44,24 @@ Reglas:
 2. Al menos **N piezas** intentan el loop completo hasta “lista para grabar”  
    *(propuesta: mínimo 8 ideas capturadas, 5 con enfoques, 3 grabadas a partir del borrador)*.
 3. ChatGPT suelto solo si Ideazo no puede; anotar por qué.
-4. No añadir features nuevas a mitad del test salvo bugs que bloqueen el loop.
+4. No añadir features de visión lejana a mitad del test salvo bugs que bloqueen el loop.
 
 ### Fase C — Decisión go / no-go
-Usar la checklist de la sección 5.  
-- **Go (visibilidad / pensar en vender):** checklist en verde.  
+Usar la checklist de la sección 5 (también en la app).  
+- **Go (visibilidad / soft launch):** checklist en verde.  
 - **Iterate:** dolor claro pero fricción de producto.  
 - **No-go / replantear wedge:** no lo usaste o Notes+IA ganó siempre.
+
+**Registro del fundador (rellenar):**
+
+| Campo | Valor |
+|---|---|
+| Fase B iniciada | |
+| Ideas capturadas (meta ≥8) | |
+| Con enfoques (meta ≥5) | |
+| Grabadas desde borrador (meta ≥3) | |
+| Veredicto | [ ] Go · [ ] Iterate · [ ] No-go |
+| Fecha veredicto | |
 
 ---
 
@@ -64,7 +82,7 @@ Lo que más irritó / faltó:
 
 ## 5. Checklist — “me gusta y la veo útil”
 
-Marca con honestidad brutal después de la Fase B:
+Marca con honestidad brutal después de la Fase B (o en `/profile/validacion`):
 
 | # | Criterio | Sí / No |
 |---|---|---|
@@ -83,18 +101,18 @@ Marca con honestidad brutal después de la Fase B:
 
 ## 6. Qué no hacer en Usuario 1
 
-- Construir analytics / multi-red / motivación “para que se sienta producto completo”
-- Contar likes de una landing como validación
+- Contar likes de una landing como validación del wedge
 - Cambiar el wedge cada dos días según un capricho de una sesión
 - Pedir feedback masivo en redes antes de completar la checklist
+- Bloquear billing/rebrand “hasta que termine el dogfood” — van en paralelo
 
 ---
 
 ## 7. Después del go
 
-1. 2–3 entrevistas externas (`VALIDATION.md`) — ¿les pasa lo mismo?  
-2. Cerrar nombre público (`NAMING.md`) si aún es provisional  
-3. Visibilidad + hipótesis de precio / empaquetado (conversación aparte)
+1. Soft launch 5–10 creadores (`INVITE_ONLY` + códigos) — ver `LAUNCH.md`
+2. 2–3 entrevistas externas (`VALIDATION.md`)
+3. Activar Stripe en vivo + primer objetivo de Pro pagando
 
 ---
 
@@ -112,7 +130,7 @@ Marca con honestidad brutal después de la Fase B:
   - El dolor valida el loop idea → 3 enfoques → guía/guion grabable.
   - Rechazo vivido a “segundo cerebro en Notion” = no construir otro Notion.
   - Memoria de videos anteriores = visión (compañero que aprende); **no** bloquear v1.
-  - YouTube largo = ocasional; **v1 sigue anclado a vertical corto**; el mismo dolor de guion puede ayudar después al largo, sin diseñarlo primero.
+  - YouTube largo = ocasional; **v1 sigue anclado a vertical corto**.
   - Miniaturas = fuera de v1.
 
 ---

@@ -298,8 +298,10 @@ function LoginForm() {
         </div>
 
         <p className="auth-legal">
-          Al continuar aceptas que tus ideas se sincronicen de forma segura en
-          tu cuenta.
+          Al continuar aceptas los{" "}
+          <a href="/terms">Términos</a> y la{" "}
+          <a href="/privacy">Privacidad</a>. Tus ideas se sincronizan de forma
+          segura en tu cuenta.
         </p>
       </main>
     </div>

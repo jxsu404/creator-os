@@ -263,18 +263,23 @@ function ProfileHub() {
             recarga sola.
           </p>
 
-          <div
-            className={`plan-meter plan-meter-${capacityState}`}
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={capacityPercent}
-            aria-label="Capacidad del plan gratuito"
-          >
+          <div className="plan-meter-row">
             <div
-              className="plan-meter-fill"
-              style={{ width: `${capacityPercent}%` }}
-            />
+              className={`plan-meter plan-meter-${capacityState}`}
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={capacityPercent}
+              aria-label="Capacidad del plan gratuito"
+            >
+              <div
+                className="plan-meter-fill"
+                style={{ width: `${capacityPercent}%` }}
+              />
+            </div>
+            <span className="plan-meter-percent" aria-hidden>
+              {capacityPercent}%
+            </span>
           </div>
           <p className="plan-meter-meta">{capacityLabel}</p>
 

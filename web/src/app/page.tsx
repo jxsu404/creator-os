@@ -14,6 +14,7 @@ import { IdeaThumb } from "@/components/IdeaThumb";
 import {
   getIdeas,
   getProfile,
+  patchIdea,
   saveProfile,
   youtubeCacheFresh,
 } from "@/lib/storage";
@@ -52,6 +53,21 @@ function HomeHub() {
     const p = getProfile();
     setProfile(p ? withUser1Defaults(p) : null);
   }, []);
+
+  const archiveIdea = useCallback(
+    (idea: Idea) => {
+      const ok = window.confirm(
+        "¿Archivar esta idea? Dejará de verse en el Home."
+      );
+      if (!ok) return;
+      patchIdea(idea.id, {
+        status: "archived",
+        updatedAt: new Date().toISOString(),
+      });
+      refreshLocal();
+    },
+    [refreshLocal]
+  );
 
   useEffect(() => {
     if (!hydrated || copyReadyRef.current) return;
@@ -216,22 +232,22 @@ function HomeHub() {
         ) : (
           <div className="stack">
             {recent.map((idea) => (
-              <Link
-                key={idea.id}
-                href={ideaHref(idea)}
-                className="idea-row idea-row-media"
-              >
+              <div key={idea.id} className="idea-row idea-row-media">
                 <IdeaThumb idea={idea} niches={profile?.niches || []} />
-                <div className="idea-row-body">
+                <Link href={ideaHref(idea)} className="idea-row-body">
                   <p className="idea-text">{ideaTitle(idea)}</p>
                   <span className="idea-meta">
                     {STATUS_LABEL[idea.status]}
                   </span>
-                </div>
-                <span className="chevron" aria-hidden>
-                  →
-                </span>
-              </Link>
+                </Link>
+                <button
+                  type="button"
+                  className="section-link"
+                  onClick={() => archiveIdea(idea)}
+                >
+                  Archivar
+                </button>
+              </div>
             ))}
           </div>
         )}

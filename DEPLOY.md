@@ -1,15 +1,18 @@
-# Deploy — Ideazo en Vercel (con cuenta)
+# Deploy — Ideazo en Vercel (Web/PWA + Freemium Pro)
 
-**Recomendación:** Vercel (hobby) + Next.js en `web/` + **Supabase Auth** (login obligatorio).
+**Stack:** Vercel (hobby) + Next.js en `web/` + Supabase Auth + Stripe.
 
 ## Cómo funciona al entrar
 
-1. El usuario abre tu URL → si no hay sesión, va a **`/login`**.
-2. Entra con **Google** (recomendado) o email + código.
-3. Sus ideas/perfil se sincronizan en Supabase (celular ↔ PC).
-4. La IA usa tus API keys en Vercel (cuota compartida entre usuarios).
+1. El usuario abre tu URL → landing pública (sin sesión).
+2. **Empezar / Entrar** → `/login` (Google recomendado).
+3. Si `INVITE_ONLY=true`, pide código en `/invite` (seed: `IDEAZO-EARLY`).
+4. Onboarding → captura → enfoques → guía.
+5. Free tiene cupo mensual de IA; al agotarlo ve upgrade a Pro (`/pricing`).
 
-Sin las vars `NEXT_PUBLIC_SUPABASE_*`, la app deja pasar sin login. **Para exigir cuenta, esas dos vars deben estar en Vercel.**
+Sin `NEXT_PUBLIC_SUPABASE_*`, la app deja pasar sin login (dogfood local).
+
+Checklist operativa completa: [`LAUNCH.md`](../LAUNCH.md).
 
 ---
 
@@ -20,77 +23,89 @@ Repo: https://github.com/jxsu404/creator-os · branch `main`.
 
 ## 2. Supabase (una vez)
 
-1. Proyecto en https://supabase.com (el tuyo ya existe si usabas sync local).
-2. **SQL Editor** → pega y Run el contenido de `web/supabase/schema.sql`.
+1. Proyecto en https://supabase.com
+2. **SQL Editor** → pega y Run el contenido de `web/supabase/schema.sql` (incluye billing, invites, waitlist, funnel).
 3. **Authentication → Providers**
-   - **Google:** ON (Client ID / Secret de Google Cloud).
-   - **Email:** ON (OTP / magic link) — útil de respaldo; puede rate-limitar.
+   - **Google:** ON
+   - **Email:** ON (OTP) — respaldo
 4. **Authentication → URL Configuration**
-   - **Site URL:** `https://TU-APP.vercel.app` (después del primer deploy; mientras tanto puedes poner `http://localhost:3000`).
-   - **Redirect URLs** (todas las que uses):
+   - **Site URL:** dominio final (`https://ideazo.co` o `https://….vercel.app`)
+   - **Redirect URLs:**
      - `http://localhost:3000/auth/callback`
-     - `https://TU-APP.vercel.app/auth/callback`
-     - `https://TU-APP.vercel.app/auth/callback?**` (si el panel lo permite; si no, la exacta basta)
+     - `https://TU-DOMINIO/auth/callback`
 5. **Project Settings → API** → copia:
    - Project URL → `NEXT_PUBLIC_SUPABASE_URL`
-   - `anon` `public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `anon` `public` → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `service_role` → `SUPABASE_SERVICE_ROLE_KEY` (solo Vercel server)
 
-### Google Cloud (para “Continuar con Google”)
+### Google Cloud
 
-1. [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials.
-2. OAuth Client ID (Web).
-3. Authorized redirect URIs debe incluir la de Supabase, tipo:  
-   `https://TU-REF.supabase.co/auth/v1/callback`  
-   (está en Supabase → Auth → Providers → Google).
-4. Pega Client ID y Secret en Supabase → Google provider.
+Authorized redirect URI de Supabase:  
+`https://TU-REF.supabase.co/auth/v1/callback`
 
-## 3. Proyecto en Vercel
+## 3. Stripe (Ideazo Pro)
 
-1. [vercel.com](https://vercel.com) → Add New → Project → importa `jxsu404/creator-os`.
-2. **Root Directory = `web`** (Edit → `web`).
-3. Framework: Next.js.
-4. **Environment Variables** (Production + Preview + Development):
+1. Dashboard Stripe → Product **Ideazo Pro**
+2. Precios: mensual ($14) + anual ($119) — o los que elijas
+3. Copia Price IDs → `STRIPE_PRICE_PRO_MONTHLY` / `STRIPE_PRICE_PRO_YEARLY`
+4. Developers → Webhooks → endpoint  
+   `https://TU-DOMINIO/api/billing/webhook`  
+   Eventos: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
+5. Copia signing secret → `STRIPE_WEBHOOK_SECRET`
+6. Secret key → `STRIPE_SECRET_KEY`
 
-| Variable | ¿Obligatoria? |
-|----------|----------------|
+## 4. Proyecto en Vercel
+
+1. Importa `jxsu404/creator-os`
+2. **Root Directory = `web`**
+3. Framework: Next.js
+4. Env (Production + Preview):
+
+| Variable | Obligatoria |
+|----------|-------------|
 | `GEMINI_API_KEY` | Sí (o otra IA) |
-| `GEMINI_MODEL` | No (`gemini-2.5-flash`) |
-| `NEXT_PUBLIC_SUPABASE_URL` | **Sí** (para exigir cuenta) |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | **Sí** (para exigir cuenta) |
-| `XAI_API_KEY` / `GROQ_API_KEY` | No (failover) |
+| `NEXT_PUBLIC_SUPABASE_URL` | Sí (cuentas) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Sí |
+| `SUPABASE_SERVICE_ROLE_KEY` | Sí (webhooks / billing) |
+| `STRIPE_SECRET_KEY` | Sí para cobrar |
+| `STRIPE_WEBHOOK_SECRET` | Sí para cobrar |
+| `STRIPE_PRICE_PRO_MONTHLY` | Sí para cobrar |
+| `STRIPE_PRICE_PRO_YEARLY` | Recomendada |
+| `NEXT_PUBLIC_APP_URL` | Recomendada (dominio) |
+| `INVITE_ONLY` | `true` en soft launch |
+| `XAI_API_KEY` / `GROQ_API_KEY` | Failover |
 | `YOUTUBE_API_KEY` | No |
-
-Puedes **importar tu `.env.local`** en el panel de Vercel (copiar valores). Incluye las dos de Supabase **sin** el `#`.
 
 5. Deploy.
 
-## 4. Después del primer deploy
+## 5. Dominio
 
-1. Copia la URL `https://….vercel.app`.
-2. En Supabase → URL Configuration: Site URL + Redirect con ese dominio (Paso 2.4).
-3. Si cambiaste URLs o env: Vercel → Redeploy.
+1. Compra candidato (`ideazo.co` / `getideazo.com` — ver `NAMING.md`)
+2. Vercel → Domains → añade dominio
+3. Actualiza Supabase Site URL + redirects + `NEXT_PUBLIC_APP_URL`
+4. Redeploy
 
-## 5. Probar
+## 6. Probar
 
-1. Abre la URL en incógnito → debe mandarte a **`/login`**.
-2. **Continuar con Google** (preferido).
-3. Onboarding → capturar idea → enfoques.
-
-## Local
-
-En `web/.env.local` las dos `NEXT_PUBLIC_SUPABASE_*` deben estar **descomentadas**. Reinicia `npm run dev`.
+1. Incógnito → landing Ideazo
+2. Entrar con Google
+3. (Si invite-only) código `IDEAZO-EARLY`
+4. Onboarding → idea → enfoques
+5. `/pricing` → Checkout test mode
+6. Webhook CLI local opcional: `stripe listen --forward-to localhost:3000/api/billing/webhook`
 
 ## Checklist
 
-- [ ] Schema SQL corrido
-- [ ] Google provider ON + redirect de Google Cloud correcto
-- [ ] Redirect URLs localhost + Vercel
-- [ ] Env en Vercel: Gemini + Supabase URL + anon key
+- [ ] Schema SQL corrido (billing + invites)
+- [ ] Google OAuth + redirects
+- [ ] Env Vercel: Gemini + Supabase + Stripe + service role
 - [ ] Root Directory = `web`
-- [ ] Incógnito → `/login` → Google → app
+- [ ] Landing → login → loop
+- [ ] Paywall 402 → `/pricing`
+- [ ] Webhook Stripe en verde
 
 ## Notas
 
-- Preferir **Google** frente a email OTP (menos rate limits).
-- Si ves “rate limit” en email: espera o usa Google.
-- Hobby Vercel + free Supabase alcanzan para early users.
+- Preferir Google frente a email OTP.
+- Hobby Vercel + free Supabase alcanzan early users; con Pro pagando, sube Gemini a plan de pago.
+- Soft launch: `INVITE_ONLY=true` + waitlist en `/waitlist`.

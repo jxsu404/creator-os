@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { RequireAuth } from "@/components/RequireAuth";
+import { RequireInvite } from "@/components/RequireInvite";
 import { NICHE_CHIPS } from "@/lib/types";
+import { trackFunnel } from "@/lib/metrics";
 import { getProfile, saveProfile } from "@/lib/storage";
 
 function OnboardingForm() {
@@ -59,6 +61,7 @@ function OnboardingForm() {
           }
         : {}),
     });
+    void trackFunnel("onboarding_complete");
     router.push("/");
   }
 
@@ -122,7 +125,9 @@ function OnboardingForm() {
 export default function OnboardingPage() {
   return (
     <RequireAuth>
-      <OnboardingForm />
+      <RequireInvite>
+        <OnboardingForm />
+      </RequireInvite>
     </RequireAuth>
   );
 }

@@ -1,6 +1,15 @@
 # Changelog
 
-## Unreleased
+## 1.6.0 — 2026-07-27
+
+- Lanzamiento Ideazo: landing pública, `/pricing`, `/waitlist`, `/invite`
+- Freemium: límites mensuales de IA + Ideazo Pro (Stripe Checkout/Portal/webhooks)
+- Soft launch: `INVITE_ONLY`, códigos, waitlist, eventos de funnel
+- Legal: `/terms` y `/privacy`
+- Gate Usuario 1 in-app: Perfil → Validación (`/profile/validacion`)
+- Docs: `LAUNCH.md`, `DEPLOY.md` actualizado
+
+## Unreleased (previo)
 
 - Marca pública: **Ideazo** (repo técnico sigue `creator-os`)
 - Tagline de trabajo: *De idea a listo para grabar.*

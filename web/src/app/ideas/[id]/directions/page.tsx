@@ -4,8 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
+import {
+  isUsageLimitPayload,
+  UpgradePrompt,
+} from "@/components/UpgradePrompt";
 import { createId } from "@/lib/id";
 import { ideaPreview } from "@/lib/idea-preview";
+import { trackFunnel } from "@/lib/metrics";
 import { profileContextFor } from "@/lib/profile-context";
 import { buildUnifiedScript } from "@/lib/script";
 import { getIdea, getProfile, upsertIdea } from "@/lib/storage";
@@ -27,6 +32,7 @@ function DirectionsFlow() {
   const [idea, setIdea] = useState<Idea | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [needsUpgrade, setNeedsUpgrade] = useState(false);
   const [creatingId, setCreatingId] = useState<string | null>(null);
   const generatingRef = useRef(false);
   const autoStartedRef = useRef<string | null>(null);
@@ -57,6 +63,7 @@ function DirectionsFlow() {
     generatingRef.current = true;
     setLoading(true);
     setError("");
+    setNeedsUpgrade(false);
     try {
       const res = await fetch("/api/generate-directions", {
         method: "POST",
@@ -67,13 +74,20 @@ function DirectionsFlow() {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error");
+      if (!res.ok) {
+        if (res.status === 402 || isUsageLimitPayload(data)) {
+          setNeedsUpgrade(true);
+          trackFunnel("hit_limit");
+        }
+        throw new Error(data.error || "Error");
+      }
       const directions: Direction[] = data.directions.map(
         (d: Omit<Direction, "id">) => ({
           ...d,
           id: createId("dir"),
         })
       );
+      trackFunnel("directions_generated");
       const latest = getIdea(current.id) ?? current;
       const next: Idea = {
         ...latest,
@@ -118,6 +132,7 @@ function DirectionsFlow() {
     if (!idea || creatingId) return;
     setCreatingId(selected.id);
     setError("");
+    setNeedsUpgrade(false);
     try {
       const res = await fetch("/api/generate-draft", {
         method: "POST",
@@ -129,7 +144,13 @@ function DirectionsFlow() {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error");
+      if (!res.ok) {
+        if (res.status === 402 || isUsageLimitPayload(data)) {
+          setNeedsUpgrade(true);
+          trackFunnel("hit_limit");
+        }
+        throw new Error(data.error || "Error");
+      }
       const draftPayload = data.draft;
       if (
         !draftPayload?.hook?.trim() ||
@@ -139,6 +160,7 @@ function DirectionsFlow() {
       ) {
         throw new Error("La guía llegó incompleta. Intenta de nuevo.");
       }
+      trackFunnel("draft_ready");
       const now = new Date().toISOString();
       const latest = getIdea(idea.id) ?? idea;
       const draft = {
@@ -192,7 +214,9 @@ function DirectionsFlow() {
 
       {creatingId ? <p className="muted">Creando guía…</p> : null}
 
-      {error ? (
+      {needsUpgrade ? <UpgradePrompt message={error} /> : null}
+
+      {error && !needsUpgrade ? (
         <div className="error-box">
           <p className="error">{error}</p>
           <button

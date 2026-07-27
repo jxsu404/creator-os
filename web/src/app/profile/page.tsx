@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/components/AuthProvider";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
+import type { BillingSnapshot } from "@/lib/billing/plans";
 import { hasGamingNiche, withUser1Defaults } from "@/lib/profile-context";
 import { getProfile } from "@/lib/storage";
 import { isCloudSyncEnabled, onSynced } from "@/lib/sync";
@@ -68,6 +69,9 @@ function ProfileHub() {
   const [syncing, setSyncing] = useState(false);
   const [installHint, setInstallHint] = useState(false);
   const [aiStatus, setAiStatus] = useState<AiStatusResponse | null>(null);
+  const [billing, setBilling] = useState<BillingSnapshot | null>(null);
+  const [stripeReady, setStripeReady] = useState(false);
+  const [portalBusy, setPortalBusy] = useState(false);
   const [fetchedAt, setFetchedAt] = useState(0);
   const [tick, setTick] = useState(0);
   const cooldownWindowMs = useRef(0);
@@ -115,8 +119,26 @@ function ProfileHub() {
       }
     }
 
+    async function loadBilling() {
+      try {
+        const res = await fetch("/api/billing/status", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled) {
+          setStripeReady(Boolean(data.stripeReady));
+          setBilling(data.billing || null);
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
     void loadAi();
-    const poll = window.setInterval(() => void loadAi(), 15_000);
+    void loadBilling();
+    const poll = window.setInterval(() => {
+      void loadAi();
+      void loadBilling();
+    }, 15_000);
     return () => {
       cancelled = true;
       window.clearInterval(poll);
@@ -147,8 +169,8 @@ function ProfileHub() {
     "Añade una descripción de tu canal.";
   const showGames = hasGamingNiche(profile);
   const gameLabel = shortGame(profile.gameBrief?.name);
+  const isPro = billing?.plan === "pro";
 
-  // Countdown local entre polls del servidor
   void tick;
   const elapsed = fetchedAt ? Date.now() - fetchedAt : 0;
   const providers = (aiStatus?.providers || []).map((p) => {
@@ -175,7 +197,18 @@ function ProfileHub() {
   let capacityLabel = "Cargando estado…";
   let capacityState: "loading" | "ready" | "recharge" | "offline" = "loading";
 
-  if (!aiStatus) {
+  if (billing) {
+    capacityPercent = clampPercent(
+      billing.limit > 0 ? (100 * billing.remaining) / billing.limit : 0
+    );
+    capacityLabel = `${billing.used}/${billing.limit} generaciones este mes`;
+    capacityState =
+      billing.remaining <= 0
+        ? "offline"
+        : billing.remaining <= Math.ceil(billing.limit * 0.2)
+          ? "recharge"
+          : "ready";
+  } else if (!aiStatus) {
     capacityPercent = 0;
     capacityLabel = "Cargando estado…";
     capacityState = "loading";
@@ -196,7 +229,7 @@ function ProfileHub() {
     capacityPercent = clampPercent(
       100 * (1 - nextCooling.remainingMs / windowMs)
     );
-    capacityLabel = `Recargando · vuelve en ${
+    capacityLabel = `Proveedor recargando · ${
       nextCooling.remainingLabel || "…"
     }`;
     capacityState = "recharge";
@@ -204,6 +237,18 @@ function ProfileHub() {
     capacityPercent = 0;
     capacityLabel = "Capacidad agotada por ahora";
     capacityState = "offline";
+  }
+
+  async function openPortal() {
+    setPortalBusy(true);
+    try {
+      const res = await fetch("/api/billing/portal", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error");
+      if (data.url) window.location.href = data.url;
+    } catch {
+      setPortalBusy(false);
+    }
   }
 
   return (
@@ -253,17 +298,29 @@ function ProfileHub() {
             →
           </span>
         </Link>
+        <Link href="/profile/validacion" className="settings-row">
+          <div>
+            <p className="settings-title">Validación Usuario 1</p>
+            <p className="settings-desc">Checklist go / no-go</p>
+          </div>
+          <span className="chevron" aria-hidden>
+            →
+          </span>
+        </Link>
       </nav>
 
       <section className="section">
         <div className="plan-card">
           <div className="plan-card-head">
             <h2 className="section-title plan-card-title">Tu plan</h2>
-            <span className="plan-badge">Plan gratuito</span>
+            <span className="plan-badge">
+              {isPro ? "Ideazo Pro" : "Plan gratuito"}
+            </span>
           </div>
           <p className="muted plan-card-lead">
-            Capacidad de IA incluida en Ideazo. Cuando se agote, se
-            recarga sola.
+            {isPro
+              ? "Capacidad Pro activa. Gestiona tu suscripción cuando quieras."
+              : "15 generaciones IA al mes en Free. Pasa a Pro cuando te quedes corto."}
           </p>
 
           <div className="plan-meter-row">
@@ -273,7 +330,7 @@ function ProfileHub() {
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={capacityPercent}
-              aria-label="Capacidad del plan gratuito"
+              aria-label="Capacidad del plan"
             >
               <div
                 className="plan-meter-fill"
@@ -286,12 +343,26 @@ function ProfileHub() {
           </div>
           <p className="plan-meter-meta">{capacityLabel}</p>
 
-          <div className="plan-pro-teaser">
-            <p className="plan-pro-title">Próximamente · Ideazo Pro</p>
-            <p className="plan-pro-desc">
-              Más potencia y más capacidad para crear sin frenar.
-            </p>
-          </div>
+          {isPro ? (
+            <button
+              type="button"
+              className="btn-secondary btn-block"
+              disabled={portalBusy || !stripeReady}
+              onClick={() => void openPortal()}
+            >
+              {portalBusy ? "Abriendo…" : "Gestionar suscripción"}
+            </button>
+          ) : (
+            <div className="plan-pro-teaser">
+              <p className="plan-pro-title">Ideazo Pro</p>
+              <p className="plan-pro-desc">
+                500 generaciones/mes · $14/mes o $119/año.
+              </p>
+              <Link href="/pricing" className="btn-primary btn-block">
+                Mejorar a Pro
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
@@ -345,10 +416,16 @@ function ProfileHub() {
         ) : null}
 
         {installHint ? (
-          <p className="muted dictation-hint">
-            En el celular (Chrome): menú → <strong>Instalar app</strong> o{" "}
-            <strong>Añadir a pantalla de inicio</strong> para usarla como app.
-          </p>
+          <div className="install-hint">
+            <p className="settings-title">Instalar como app (PWA)</p>
+            <p className="muted dictation-hint">
+              <strong>Android / Chrome:</strong> menú → Instalar app o Añadir a
+              pantalla de inicio.
+              <br />
+              <strong>iPhone Safari:</strong> Compartir → Añadir a pantalla de
+              inicio.
+            </p>
+          </div>
         ) : null}
       </section>
     </AppShell>

@@ -59,7 +59,8 @@ Detalle histórico de tablas: ver commits anteriores de este archivo si hace fal
 - [x] Superficies UI / metadata: login, shell, layout, manifest, perfil, home
 - [x] Docs de marca (`BRAND_*`)
 - [x] Wordmark / favicon con “Ideazo” (mark “I” + texto)
-- [ ] Dominio + handle redes
+- [x] Landing + pricing + legal en producto
+- [ ] Dominio + handle redes (fundador: compra y apunta a Vercel)
 - [ ] Repo rename (opcional, no urgente)
 
 **Regla de copy:** en UI el sujeto sigue siendo la idea y el creador; el nombre Ideazo es marca, no jerga (“abrir Ideazo” ok; no “sistema operativo”).

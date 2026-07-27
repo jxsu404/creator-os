@@ -10,6 +10,7 @@ import {
   profileContextFor,
   withUser1Defaults,
 } from "@/lib/profile-context";
+import { trackFunnel } from "@/lib/metrics";
 import { buildUnifiedScript } from "@/lib/script";
 import { getIdea, getProfile, upsertIdea } from "@/lib/storage";
 import type { Idea, YoutubeUploadPackage } from "@/lib/types";
@@ -104,6 +105,9 @@ function ScriptEditor() {
         : current.draft,
     };
     upsertIdea(next);
+    if (status === "ready") {
+      trackFunnel("marked_ready");
+    }
     if (opts?.bannerKey) {
       try {
         sessionStorage.setItem(opts.bannerKey, "1");

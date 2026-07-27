@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
+import { useAuth } from "@/components/AuthProvider";
+import { LandingPage } from "@/components/LandingPage";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
 import { quoteForSession, tipsForSession, type HomeTip } from "@/lib/home-copy";
 import { ideaHref } from "@/lib/idea-href";
@@ -317,6 +319,12 @@ function HomeHub() {
 }
 
 export default function HomePage() {
+  const { configured, loading, user } = useAuth();
+
+  if (configured && !loading && !user) {
+    return <LandingPage />;
+  }
+
   return (
     <RequireOnboarding>
       <HomeHub />

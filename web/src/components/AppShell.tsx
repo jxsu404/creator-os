@@ -40,43 +40,71 @@ function PrimaryNav({
         </div>
       ) : null}
 
-      <Link
-        href="/"
-        className={`${item}${navActive(pathname, "/") ? ` ${itemActive}` : ""}`}
-      >
-        Inicio
-      </Link>
-
-      <Link
-        href="/capture"
-        className={`${create}${createActive ? ` ${createActiveClass}` : ""}`}
-        aria-label="Nueva idea para un video"
-      >
-        {isSide ? (
-          <>
+      {isSide ? (
+        <>
+          <Link
+            href="/capture"
+            className={`${create}${createActive ? ` ${createActiveClass}` : ""}`}
+            aria-label="Nueva idea para un video"
+          >
             <span className="side-nav-create-mark" aria-hidden>
               +
             </span>
             <span>Nueva idea</span>
-          </>
-        ) : (
-          <>
+          </Link>
+
+          <Link
+            href="/"
+            className={`${item}${
+              navActive(pathname, "/") ? ` ${itemActive}` : ""
+            }`}
+          >
+            Inicio
+          </Link>
+
+          <Link
+            href="/profile"
+            className={`${item}${
+              navActive(pathname, "/profile") ? ` ${itemActive}` : ""
+            }`}
+          >
+            Perfil
+          </Link>
+        </>
+      ) : (
+        <>
+          <Link
+            href="/"
+            className={`${item}${
+              navActive(pathname, "/") ? ` ${itemActive}` : ""
+            }`}
+          >
+            Inicio
+          </Link>
+
+          <Link
+            href="/capture"
+            className={`${create}${
+              createActive ? ` ${createActiveClass}` : ""
+            }`}
+            aria-label="Nueva idea para un video"
+          >
             <span className="bottom-nav-create-orb" aria-hidden>
               <span className="bottom-nav-create-plus">+</span>
             </span>
             <span className="bottom-nav-create-label">Nueva</span>
-          </>
-        )}
-      </Link>
+          </Link>
 
-      <Link
-        href="/profile"
-        className={`${item}${
-          navActive(pathname, "/profile") ? ` ${itemActive}` : ""
-        }`}
-      >
-        Perfil
-      </Link>
+          <Link
+            href="/profile"
+            className={`${item}${
+              navActive(pathname, "/profile") ? ` ${itemActive}` : ""
+            }`}
+          >
+            Perfil
+          </Link>
+        </>
+      )}
     </nav>
   );
 }
@@ -110,6 +138,7 @@ export function AppShell({
   showNav?: boolean;
 }) {
   const pathname = usePathname();
+  const showHeader = Boolean(title || backHref);
 
   return (
     <div
@@ -121,25 +150,27 @@ export function AppShell({
       {showNav ? <PrimaryNav pathname={pathname} variant="side" /> : null}
 
       <div className="app-shell-body">
-        <header className="app-header">
-          <div className="app-header-row">
-            {backHref ? (
-              <Link
-                href={backHref}
-                className="back-link"
-                aria-label={backAriaLabel(backHref, backLabel)}
-              >
-                ← Volver
-              </Link>
-            ) : (
-              <span className="app-header-brand">
-                <BrandMark />
-              </span>
-            )}
-            {title ? <h1 className="screen-title">{title}</h1> : <span />}
-            <span className="header-spacer" aria-hidden />
-          </div>
-        </header>
+        {showHeader ? (
+          <header className="app-header">
+            <div className="app-header-row">
+              {backHref ? (
+                <Link
+                  href={backHref}
+                  className="back-link"
+                  aria-label={backAriaLabel(backHref, backLabel)}
+                >
+                  ← Volver
+                </Link>
+              ) : (
+                <span className="app-header-brand">
+                  <BrandMark />
+                </span>
+              )}
+              {title ? <h1 className="screen-title">{title}</h1> : <span />}
+              <span className="header-spacer" aria-hidden />
+            </div>
+          </header>
+        ) : null}
 
         <main className="app-main">{children}</main>
       </div>

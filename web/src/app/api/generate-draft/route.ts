@@ -71,7 +71,7 @@ Responde SOLO JSON:
   "estimatedSeconds": 45
 }
 Si hay contexto de juego: usa términos correctos; no inventes stats, códigos ni patch notes que no estén en el update pegado.
-Si hay estilo de grabación: el guion debe encajar (gameplay + voiceover, ritmo short, sin intros largas ni asumir facecam).
+Si hay bloque "CÓMO GRABA ESTE CREADOR": síguelo de forma obligatoria (formato, voz, saludo, ritmo, qué evitar). Prioriza esas reglas sobre convenciones genéricas de shorts. No asumas facecam salvo que lo diga.
 Si la idea no es de ese juego, no fuerces el contexto del juego.
 
 Contexto del creador:

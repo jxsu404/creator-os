@@ -278,7 +278,8 @@ export function profileContextFor(
     }
   }
 
-  if (p.useGameContext !== false && p.recordingStyle) {
+  // Estilo de grabación: siempre (no depende de Gaming / useGameContext).
+  if (p.recordingStyle) {
     const r = p.recordingStyle;
     const hasStyle = Boolean(
       r.howIRecord.trim() ||
@@ -288,12 +289,15 @@ export function profileContextFor(
     );
     if (hasStyle) {
       parts.push("");
-      parts.push("=== CÓMO GRABA ESTE CREADOR ===");
+      parts.push("=== CÓMO GRABA ESTE CREADOR (obligatorio) ===");
+      parts.push(
+        "Sigue estas reglas en el guion. Si pide saludo, intro o cierre fijo, inclúyelo."
+      );
       if (r.howIRecord.trim()) parts.push(`Formato: ${r.howIRecord}`);
       if (r.videoTypes.length)
         parts.push(`Tipos / ángulos: ${r.videoTypes.join(", ")}`);
       if (r.voiceAndPacing.trim())
-        parts.push(`Voz y ritmo: ${r.voiceAndPacing}`);
+        parts.push(`Voz y ritmo (obligatorio): ${r.voiceAndPacing}`);
       if (r.typicalShots.length) {
         parts.push(`Tomas típicas:\n- ${r.typicalShots.join("\n- ")}`);
       }

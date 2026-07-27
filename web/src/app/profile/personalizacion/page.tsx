@@ -4,9 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
-import { withUser1Defaults } from "@/lib/profile-context";
+import { BLANK_RECORDING_STYLE, withUser1Defaults } from "@/lib/profile-context";
 import { getProfile, saveProfile } from "@/lib/storage";
-import { DEFAULT_RECORDING_STYLE } from "@/lib/user1-defaults";
 
 function PersonalizationSettings() {
   const router = useRouter();
@@ -29,7 +28,7 @@ function PersonalizationSettings() {
     saveProfile({
       ...base,
       recordingStyle: {
-        ...DEFAULT_RECORDING_STYLE,
+        ...BLANK_RECORDING_STYLE,
         ...base.recordingStyle,
         howIRecord: howIRecord.trim(),
         voiceAndPacing: voice.trim(),

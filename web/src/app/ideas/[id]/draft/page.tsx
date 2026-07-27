@@ -107,7 +107,6 @@ function DraftPreview() {
             hook: current.draft.hook,
             scriptBody: current.draft.scriptBody,
             closing: current.draft.closing,
-            beats: current.draft.beats,
             estimatedSeconds: current.draft.estimatedSeconds,
             creatorScript:
               current.draft.creatorScript || buildUnifiedScript(current.draft),
@@ -124,12 +123,7 @@ function DraftPreview() {
       }
       void applyGenerationBilling(data.billing);
       const draftPayload = data.draft;
-      if (
-        !draftPayload?.hook?.trim() ||
-        !draftPayload?.scriptBody?.trim() ||
-        !Array.isArray(draftPayload.beats) ||
-        draftPayload.beats.length === 0
-      ) {
+      if (!draftPayload?.hook?.trim() || !draftPayload?.scriptBody?.trim()) {
         throw new Error("La guía llegó incompleta. Intenta de nuevo.");
       }
       const now = new Date().toISOString();
@@ -138,7 +132,7 @@ function DraftPreview() {
         hook: draftPayload.hook,
         scriptBody: draftPayload.scriptBody,
         closing: draftPayload.closing || "",
-        beats: draftPayload.beats,
+        beats: [],
         estimatedSeconds: draftPayload.estimatedSeconds || 45,
         updatedAt: now,
         creatorScript: "",
@@ -235,17 +229,6 @@ function DraftPreview() {
               {"\n"}
               {draft.closing || "—"}
             </p>
-            {draft.beats.length > 0 ? (
-              <div className="beats-plain">
-                <strong>Tomas</strong>
-                {draft.beats.map((beat, index) => (
-                  <p key={index} className="preview-plain">
-                    {index + 1}. {beat.say}
-                    {beat.show ? ` · ${beat.show}` : ""}
-                  </p>
-                ))}
-              </div>
-            ) : null}
           </div>
         ) : null}
       </section>

@@ -1,71 +1,78 @@
 # AGENTS.md
 
-## Cursor Cloud specific instructions
+## Cursor Cloud / agents
 
-Ideazo (repo `creator-os`) is a single Next.js 15 / React 19 app. All app code lives in `web/`; the repo root only holds product docs (`*.md`).
+**Ideazo** (repo técnico `creator-os`) = una app Next.js 15 / React 19 en `web/`.  
+El root solo tiene docs de producto (`*.md`) y config de agentes.
 
-### Where to run commands
-Run everything from `web/` (not the repo root). Standard scripts are in `web/package.json`:
-- Dev server: `npm run dev` (serves on port 3000; `next dev`). Use `npm run dev:turbo` for Turbopack.
-- Lint: `npm run lint` — Test: `npm run test` (Vitest) — Typecheck: `npm run typecheck` — Build: `npm run build`.
+### Comandos (siempre desde `web/`)
+| Acción | Comando |
+|---|---|
+| Dev | `npm run dev` (o `npm run dev:turbo`) |
+| Verificar (antes de PR) | `npm run verify` → lint + typecheck + test |
+| Build | `npm run build` |
 
-### Env vars / running without secrets
-- No `.env.local` is required to boot the app. Setup is manual (see `web/README.md` / `DEPLOY.md`); there are no setup scripts, Docker, or a local Supabase.
-- Without `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY`, there is no login/auth: the app runs open and persists ideas/profile in the browser `localStorage`. With those vars set, `/login` is enforced and API routes return 401 without a session.
-- AI generation endpoints (`/api/generate-*`) require at least one AI provider key (`GEMINI_API_KEY`, `XAI_API_KEY`, or `GROQ_API_KEY`). Without a key the app still loads and the capture/onboarding flow works, but the "generate 3 directions / draft" steps return an error. `GET /api/ai-status` reports which providers are configured.
+Node: **20** (ver `.nvmrc`).
 
-### Testing note
-The core creative loop (idea → 3 directions → draft) needs an AI key to run end to end. The onboarding + idea-capture flow can be fully exercised with no secrets since it is localStorage-backed.
+### Sin secretos
+- Sin `.env.local` la app arranca: sin Supabase = open + `localStorage`.
+- Generación IA (`/api/generate-*`) necesita al menos una key: `GEMINI_API_KEY`, `XAI_API_KEY` o `GROQ_API_KEY`.
+- `GET /api/ai-status` dice qué providers hay.
+- Onboarding + captura se prueban sin keys. El loop creativo completo sí necesita key.
 
 ---
 
-## How to work in this repo (agents + humans)
+## Cómo trabajar
 
-### Golden rule
-**1 task = 1 agent = 1 branch = 1 PR.**  
-Do not mix branding, capture UI, billing, and home redesign in the same run.
+### Regla de oro
+**1 tarea = 1 agente = 1 branch = 1 PR.**
 
-### Branch / PR hygiene
-- Branch from latest `main`: `cursor/<short-kebab>-f7bf`
-- Keep PRs small and reviewable
-- Never leave Git conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`) in committed files
-- Prefer draft PRs until lint/test/typecheck are green
-- After merge: wait for Vercel ✅ before claiming “it doesn’t show in prod”
-- To verify static assets: hit the URL directly (e.g. `/thumbs/gaming.png`)
+### Branch / PR
+- Desde `main` fresco: `cursor/<short-kebab>-f7bf`
+- PRs chicos; draft hasta `npm run verify` verde
+- Nunca dejar marcadores de conflicto (`<<<<<<<` / `>>>>>>>`)
+- Tras merge: esperar Vercel ✅ antes de decir “no está en prod”
+- Assets estáticos: probar URL directa (ej. `/thumbs/gaming.png`)
 
-### Prompt template (copy/paste)
+### Prompt template
 ```
-Objetivo: <one concrete outcome>
-Área: <paths, e.g. web/src/app/capture>
-No tocar: <out of scope>
-Hecho cuando: <acceptance checks>
+Objetivo: <un resultado concreto>
+Área: <paths, ej. web/src/app/capture>
+No tocar: <fuera de scope>
+Hecho cuando: <checks de aceptación>
 Base: main actualizado
-Al final: commit + push + PR draft (usar el template)
+Al final: commit + push + PR draft
 ```
 
-### Recommended agent flow
-1. **Plan** (read-only): files, risks, steps — no code
-2. **Implement**: code + tests only for that task
-3. **Verify**: `npm run lint && npm run typecheck && npm run test` in `web/`
-4. **Ship**: commit, push, draft PR; merge only when CI + Vercel are green
+### Flujo
+1. **Plan** (solo lectura)
+2. **Implement** (código + tests de esa tarea)
+3. **Verify** (`cd web && npm run verify`)
+4. **Ship** (commit, push, draft PR)
 
-Do not run two agents that edit the same hot files at once (`capture/page.tsx`, `AppShell.tsx`, `globals.css`, billing routes).
+No dos agentes editando a la vez: `capture/page.tsx`, `AppShell.tsx`, `globals.css`, billing.
 
-### Product docs (read before inventing)
-| Doc | Use for |
+### Invariantes de producto (no reinventar)
+- Loop: idea → 3 enfoques → guía (hook + guion + cierre) → listo para grabar
+- **Sin tomas / plan de cámara / beats** en ideas nuevas (`beats: []` solo legacy)
+- Copy en español natural; marca pública **Ideazo**; repo `creator-os`
+- v1 no es dashboard, chat, calendario, editor de video ni analytics
+- Rutas `/api/generate-*` nuevas deben llamar `gateAiGeneration`
+
+### Docs (leer solo lo necesario)
+| Doc | Para |
 |---|---|
-| `PRODUCT_SYSTEM.md` / `PRODUCT_VISION.md` | Idea → directions → draft loop |
-| `BRAND_VOICE.md` / `NAMING.md` | Copy + brand (Ideazo) |
+| `PRODUCT_SYSTEM.md` / `PRODUCT_VISION.md` | Loop y scope |
+| `BRAND_VOICE.md` / `NAMING.md` | Copy + marca |
 | `TECH.md` / `DEPLOY.md` | Stack, env, deploy |
 | `LAUNCH.md` / `GO_TO_MARKET.md` | Launch / GTM |
-| `VALIDATION_USER1.md` | Dogfooding checklist |
+| `VALIDATION_USER1.md` | Dogfood |
 
-### Cost / AI hygiene
-- Prefer fixed assets or cached results over burning provider quota
-- Category thumbnails are stock under `web/public/thumbs/` — do not auto-generate with Gemini on capture
-- User-requested AI thumbnail can later set `idea.thumbnailUrl` and override stock
+### Coste / IA
+- No quemar quota: preferir assets fijos / cache
+- Thumbs de categoría = `web/public/thumbs/` (no Gemini en capture)
+- No pegarle a `/api/generate-*` salvo que la aceptación lo exija
+- Free 15 / Pro 500 generaciones al mes — no inventar límites distintos
 
 ### CI
-GitHub Actions (`.github/workflows/ci.yml`) runs on PRs to `main`:
-`lint` → `typecheck` → `test` → conflict-marker scan.
-Fix CI before asking for merge.
+`.github/workflows/ci.yml`: `verify` + scan de conflict markers. Arreglar CI antes de pedir merge.

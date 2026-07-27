@@ -90,7 +90,7 @@
 
 ### Borrador
 
-- Título según formato: *“Guion”* / *“Guía para grabar”* / *“Guion + guía”*
+- Título: *“Guía”* / *“Guion”* (mismo entregable; sin elegir formato)
 - CTA estado: *“Marcar lista para grabar”*
 - Volver a editar: *“Seguir editando”*
 - Regenerar (si existe): *“Probar otro borrador”* — nunca *“Mejorar con IA”* como promesa mágica
@@ -113,13 +113,13 @@ Cuando genera direcciones o borradores:
 - Tono y referencias alineados al **contexto del creador** (nicho / “mi contenido”)
 - Sin caer en clichés torpes del nicho (“bro” forzado en fitness, etc.)
 - Sin relleno tipo “¡Claro! Aquí tienes un guion increíble…”
-- Empieza por el contenido útil (nombre del enfoque, hook, beats)
+- Empieza por el contenido útil (nombre del enfoque, hook, guion)
 - Si investigó algo ligero: mostrar el dato con modestia, no como verdad absoluta
 
 **Micro-prefijos útiles (opcionales, discretos):**
 - *“Enfoque 1 — …”*
 - *“Hook: …”*
-- *“Beat 1 — …”*
+- *“Guion: …”*
 
 **Prohibido en outputs de IA:**
 - “Como modelo de lenguaje…”

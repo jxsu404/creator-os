@@ -155,12 +155,7 @@ function DirectionsFlow() {
       }
       void applyGenerationBilling(data.billing);
       const draftPayload = data.draft;
-      if (
-        !draftPayload?.hook?.trim() ||
-        !draftPayload?.scriptBody?.trim() ||
-        !Array.isArray(draftPayload.beats) ||
-        draftPayload.beats.length === 0
-      ) {
+      if (!draftPayload?.hook?.trim() || !draftPayload?.scriptBody?.trim()) {
         throw new Error("La guía llegó incompleta. Intenta de nuevo.");
       }
       trackFunnel("draft_ready");
@@ -171,7 +166,7 @@ function DirectionsFlow() {
         hook: draftPayload.hook,
         scriptBody: draftPayload.scriptBody,
         closing: draftPayload.closing || "",
-        beats: draftPayload.beats,
+        beats: [],
         estimatedSeconds: draftPayload.estimatedSeconds || 45,
         creatorScript: "",
         updatedAt: now,

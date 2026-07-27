@@ -1,6 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import {
+  isUsageLimitPayload,
+  UpgradePrompt,
+} from "@/components/UpgradePrompt";
 import { applyGenerationBilling } from "@/lib/apply-generation-billing";
 import type { Idea, YoutubeUploadPackage } from "@/lib/types";
 
@@ -27,13 +31,16 @@ export function YoutubePackagePanel({
   onSave,
 }: Props) {
   const pkg = idea.youtubePackage;
+  const [options, setOptions] = useState<YoutubeUploadPackage[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [needsUpgrade, setNeedsUpgrade] = useState(false);
   const [copied, setCopied] = useState("");
 
   async function generate() {
     setBusy(true);
     setError("");
+    setNeedsUpgrade(false);
     try {
       const direction = idea.directions?.find(
         (d) => d.id === idea.selectedDirectionId
@@ -57,14 +64,42 @@ export function YoutubePackagePanel({
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error al generar");
+      if (!res.ok) {
+        if (res.status === 402 || isUsageLimitPayload(data)) {
+          setNeedsUpgrade(true);
+        }
+        throw new Error(data.error || "Error al generar");
+      }
       void applyGenerationBilling(data.billing);
-      onSave(data.package as YoutubeUploadPackage);
+      const list = Array.isArray(data.packages)
+        ? (data.packages as YoutubeUploadPackage[])
+        : [];
+      if (list.length < 3) {
+        throw new Error("No llegaron 3 opciones. Intenta de nuevo.");
+      }
+      setOptions(list.slice(0, 3));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "No pude generar el paquete.");
+      setError(e instanceof Error ? e.message : "No pude generar las opciones.");
     } finally {
       setBusy(false);
     }
+  }
+
+  function chooseOption(chosen: YoutubeUploadPackage) {
+    onSave(chosen);
+    setOptions(null);
+  }
+
+  function requestOtherOptions() {
+    if (
+      pkg &&
+      !window.confirm(
+        "¿Generar otras 3 opciones? Se reemplazará el paquete actual cuando elijas una."
+      )
+    ) {
+      return;
+    }
+    void generate();
   }
 
   function patch(partial: Partial<YoutubeUploadPackage>) {
@@ -79,35 +114,97 @@ export function YoutubePackagePanel({
     window.setTimeout(() => setCopied(""), 1400);
   }
 
+  const showingPicker = Boolean(options?.length);
+  const showEditor = Boolean(pkg) && !showingPicker;
+
   return (
     <section className="section yt-package">
       <div className="section-head">
-        <h2 className="section-title">Subir a YouTube</h2>
+        <h2 className="section-title">Subir a YouTube / TikTok</h2>
       </div>
       <p className="muted">
-        Genera título, descripción, etiquetas e idea de miniatura para pegar en
-        YouTube Studio.
+        Tres opciones de título, descripción y etiquetas. Eliges una, editas si
+        hace falta y pegas al subir.
       </p>
 
-      <button
-        type="button"
-        className="btn-secondary btn-block"
-        disabled={busy || !script.trim()}
-        onClick={() => void generate()}
-      >
-        {busy
-          ? "Generando…"
-          : pkg
-            ? "Regenerar datos de YouTube"
-            : "Generar datos de YouTube"}
-      </button>
+      {!showingPicker && !busy ? (
+        <button
+          type="button"
+          className="btn-secondary btn-block"
+          disabled={!script.trim()}
+          onClick={() => {
+            if (pkg) {
+              requestOtherOptions();
+              return;
+            }
+            void generate();
+          }}
+        >
+          {pkg ? "Otras 3 opciones" : "Generar 3 opciones"}
+        </button>
+      ) : null}
 
-      {error ? <p className="error">{error}</p> : null}
+      {busy ? <p className="muted">Armando opciones…</p> : null}
 
-      {pkg ? (
+      {needsUpgrade ? <UpgradePrompt message={error} compact /> : null}
+
+      {error && !needsUpgrade ? <p className="error">{error}</p> : null}
+
+      {showingPicker && options ? (
+        <div className="stack yt-package-options">
+          {options.map((opt, i) => (
+            <article key={`${opt.title}-${i}`} className="direction-card">
+              <h3 className="direction-name">
+                {opt.label?.trim() || `Opción ${i + 1}`}
+              </h3>
+              <p className="yt-option-title">{opt.title}</p>
+              <p className="muted yt-option-desc">
+                {opt.description.slice(0, 140)}
+                {opt.description.length > 140 ? "…" : ""}
+              </p>
+              <p className="idea-meta">
+                {opt.tags.slice(0, 4).join(" · ")}
+                {opt.tags.length > 4 ? "…" : ""}
+              </p>
+              <button
+                type="button"
+                className="btn-primary btn-block"
+                disabled={busy}
+                onClick={() => chooseOption(opt)}
+              >
+                Elegir
+              </button>
+            </article>
+          ))}
+          <button
+            type="button"
+            className="text-link"
+            disabled={busy}
+            onClick={() => void generate()}
+          >
+            Otras opciones
+          </button>
+          {pkg ? (
+            <button
+              type="button"
+              className="text-link"
+              disabled={busy}
+              onClick={() => setOptions(null)}
+            >
+              Seguir con el paquete actual
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
+      {showEditor && pkg ? (
         <div className="yt-package-fields">
+          {pkg.label ? (
+            <p className="idea-meta">Elegiste: {pkg.label}</p>
+          ) : null}
+
           <label className="field-label" htmlFor="yt-pkg-title">
-            Título ({pkg.title.length}/100)
+            Título / caption ({pkg.title.length}/100)
           </label>
           <input
             id="yt-pkg-title"

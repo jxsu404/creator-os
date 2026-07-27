@@ -1,0 +1,15 @@
+---
+description: AI quota and billing safety for generate routes
+globs:
+  - web/src/app/api/**/*
+  - web/src/lib/ai.ts
+  - web/src/lib/billing/**/*
+---
+
+# AI + billing safety
+
+- Every new `/api/generate-*` (or paid AI) route must call `gateAiGeneration`.
+- Free = 15 gens/month, Pro = 500 soft cap — match `web/src/lib/billing/plans.ts`.
+- Do not burn provider keys in agents: skip live generate calls unless acceptance needs them; check `/api/ai-status` first.
+- Category thumbs are stock under `web/public/thumbs/` — never auto-generate with Gemini on capture.
+- Draft prompts must not ask for tomas / camera beats; return `beats: []`.

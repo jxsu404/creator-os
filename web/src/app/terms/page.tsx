@@ -27,13 +27,13 @@ export default function TermsPage() {
           Debes autenticarte (p. ej. Google o email). Eres responsable de la
           actividad bajo tu cuenta.
         </p>
-        <h2>Planes y pagos</h2>
+        <h2>Cupo y apoyo</h2>
         <p>
-          El plan Free incluye un cupo mensual de generaciones con IA. Ideazo
-          Pro se factura a través de Stripe según el precio mostrado en{" "}
-          <Link href="/pricing">/pricing</Link>. Puedes cancelar desde el portal
-          de facturación; el acceso Pro continúa hasta el fin del periodo
-          pagado.
+          Ideazo incluye un cupo mensual gratuito de generaciones con IA. Por
+          ahora no hay suscripción de pago. Puedes apoyar el proyecto con una
+          donación voluntaria (p. ej. PayPal) desde{" "}
+          <Link href="/pricing">/pricing</Link>; las donaciones no desbloquean
+          un plan Pro.
         </p>
         <h2>Contenido e IA</h2>
         <p>
@@ -52,7 +52,7 @@ export default function TermsPage() {
         <p>
           El servicio se ofrece “tal cual”. Puede haber interrupciones por
           mantenimiento, cuotas de proveedores de IA o fallos de terceros
-          (Supabase, Stripe, Vercel).
+          (Supabase, Vercel, proveedores de IA o PayPal).
         </p>
         <h2>Contacto</h2>
         <p>

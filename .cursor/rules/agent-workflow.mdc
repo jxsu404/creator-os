@@ -1,0 +1,12 @@
+---
+description: Cloud/agent workflow — one PR, verify, hot files
+alwaysApply: true
+---
+
+# Agent workflow
+
+- **1 task = 1 agent = 1 branch = 1 PR.** Branch: `cursor/<short-kebab>-f7bf` from latest `main`.
+- Run all npm commands from `web/`. Before PR: `npm run verify`.
+- Prefer draft PRs until verify + CI are green. Use `.github/PULL_REQUEST_TEMPLATE.md`.
+- Never commit conflict markers. Do not parallel-edit hot files: `capture/page.tsx`, `AppShell.tsx`, `globals.css`, billing routes.
+- After merge, wait for Vercel before claiming prod is wrong.

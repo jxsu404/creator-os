@@ -126,7 +126,7 @@ export interface Draft {
   hook: string;
   scriptBody: string;
   closing: string;
-  /** Tomas sugeridas de cámara / plan de grabación */
+  /** Legacy: ya no se generan tomas; se guarda vacío */
   beats: Beat[];
   /** Guion unificado editable por el creador (después de la vista previa de la IA) */
   creatorScript?: string;
@@ -134,7 +134,7 @@ export interface Draft {
   updatedAt: string;
 }
 
-/** Metadatos listos para pegar en YouTube Studio al subir. */
+/** Metadatos listos para pegar en YouTube Studio / caption TikTok-Shorts. */
 export interface YoutubeUploadPackage {
   title: string;
   description: string;
@@ -142,6 +142,8 @@ export interface YoutubeUploadPackage {
   /** Una sola línea: concepto visual de la miniatura (la imagen viene después). */
   thumbnailIdea: string;
   generatedAt: string;
+  /** Nombre corto de la estrategia (cuando eligió entre 3 opciones). */
+  label?: string;
 }
 
 export interface Idea {

@@ -54,7 +54,7 @@ function CaptureForm() {
     upsertIdea(idea);
     trackFunnel("idea_captured");
     void ensureIdeaTitle(idea);
-    router.push(`/ideas/${idea.id}`);
+    router.push(`/ideas/${idea.id}/directions`);
   }
 
   return (
@@ -73,6 +73,7 @@ function CaptureForm() {
               key={niche}
               type="button"
               className={`chip ${active ? "chip-active" : ""}`}
+              aria-pressed={active}
               onClick={() => setCategory(niche)}
             >
               {niche}

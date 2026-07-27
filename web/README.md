@@ -1,13 +1,14 @@
 # Ideazo — app
 
-De idea a listo para grabar. (Repo técnico: creator-os)
+De idea a listo para grabar. (Repo técnico: `creator-os`)
 
 ## Scripts
 
 ```bash
 npm install
-cp .env.example .env.local   # Gemini + Supabase (+ Stripe en prod)
+cp .env.example .env.local   # optional; AI keys for generate routes
 npm run dev
+npm run verify               # lint + typecheck + test
 ```
 
 ## Rutas clave
@@ -21,4 +22,4 @@ npm run dev
 | `/waitlist` | Lista de espera |
 | `/terms` `/privacy` | Legal |
 
-Ver raíz del repo: `LAUNCH.md`, `DEPLOY.md`, `GO_TO_MARKET.md`.
+Ver raíz: `AGENTS.md`, `LAUNCH.md`, `DEPLOY.md`, `GO_TO_MARKET.md`.

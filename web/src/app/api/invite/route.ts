@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
-<<<<<<< HEAD
-import { rateLimit } from "@/lib/rate-limit";
-=======
 import { inviteOnlyEnabled, userHasInviteAccess } from "@/lib/invite-access";
->>>>>>> origin/main
+import { rateLimit } from "@/lib/rate-limit";
 import { getApiAuth } from "@/lib/supabase/admin";
 
 export async function GET() {

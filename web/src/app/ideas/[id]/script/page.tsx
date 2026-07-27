@@ -6,13 +6,10 @@ import { useParams, useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
 import { YoutubePackagePanel } from "@/components/YoutubePackagePanel";
-import {
-  profileContextFor,
-  withUser1Defaults,
-} from "@/lib/profile-context";
+import { ideaAiContext } from "@/lib/idea-ai-context";
 import { trackFunnel } from "@/lib/metrics";
 import { buildUnifiedScript } from "@/lib/script";
-import { getIdea, getProfile, upsertIdea } from "@/lib/storage";
+import { getIdea, upsertIdea } from "@/lib/storage";
 import type { Idea, YoutubeUploadPackage } from "@/lib/types";
 
 const ARCHIVE_CONFIRM =
@@ -163,13 +160,7 @@ function ScriptEditor() {
   const creatorScript = idea.draft.creatorScript || buildUnifiedScript(idea.draft);
   const isReady = idea.status === "ready";
   const isRecorded = idea.status === "recorded";
-  const profile = getProfile();
-  const aiContext = profile
-    ? profileContextFor(withUser1Defaults(profile), {
-        gameId: idea.gameId,
-        contentAngle: idea.contentAngle,
-      })
-    : "";
+  const aiContext = ideaAiContext(idea);
 
   const youtubePanel = (
     <details className="yt-pack-details">

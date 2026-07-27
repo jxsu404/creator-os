@@ -30,6 +30,7 @@ Responde SOLO JSON válido con esta forma:
   ]
 }
 Sin introducción, sin viralidad garantizada, sin clichés forzados del nicho.
+Si hay contexto de juego y estilo de grabación, úsalo: vocabulario correcto, no inventes datos del update, y que los 3 enfoques encajen con cómo graba este creador (tipos de video, ritmo). Si la idea no es de ese juego, ignora el bloque de juego y no lo fuerzas.
 
 Contexto del creador:
 ${profileContext || "No especificado"}

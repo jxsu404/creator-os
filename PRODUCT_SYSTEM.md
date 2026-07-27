@@ -56,7 +56,8 @@ No hay proyectos, boards ni segundo cerebro. Solo ideas que avanzan (o no) hacia
 |---|---|---|
 | **Capturada** | Hay una chispa guardada; aún no se eligió dirección | Verla, editar el texto crudo, iniciar “3 direcciones” |
 | **En curso** | Ya hay dirección elegida y/o borrador en marcha | Seguir editando, regenerar borrador, cambiar formato (guion/guía/ambos) |
-| **Lista para grabar** | El creador declara: “ya puedo grabar con esto” | Abrir la guía/guion al grabar; (futuro) marcar publicada |
+| **Lista para grabar** | El creador declara: “ya puedo grabar con esto” | Abrir guion; marcar **Ya lo grabé** o **Descartar** |
+| **Grabada** | Ya se grabó; sale de “Listas para grabar” | Ver guion; volver a lista; archivar |
 | **Archivada** | No se hará (o ya no importa) | Restaurar a Capturada si vuelve el interés |
 
 **Reglas de transición**
@@ -65,6 +66,9 @@ No hay proyectos, boards ni segundo cerebro. Solo ideas que avanzan (o no) hacia
 - `En curso` → `Lista para grabar`: solo por acción explícita del creador (“Marcar lista para grabar”). La IA no lo decide.
 - `Lista para grabar` → `En curso`: si reabre y edita de forma sustancial (o “Seguir editando”).
 - Cualquier estado activo → `Archivada`: acción explícita.
+- `Lista para grabar` → `Grabada`: “Ya lo grabé”.
+- `Lista para grabar` → `Archivada`: “Descartar”.
+- `Grabada` → `Lista para grabar` o `Archivada`.
 - No hay estado “Publicada” en v1.
 
 **Anti-complejidad:** no añadimos “Investigando”, “Esperando IA”, “Borrador v2”, etc. como estados visibles. Si la IA tarda, es un momento de carga dentro del flujo — no un estado de la idea.
@@ -116,26 +120,15 @@ Esa frase condiciona el borrador. No abrimos un cuestionario.
 
 ## 3. Estructura del entregable “listo para grabar”
 
-Tras elegir dirección (+ ajuste opcional), el creador elige formato:
+Siempre una **guía para grabar** (sin elegir formato):
 
-### A) Guion (palabra por palabra)
-- Hook (lo que sale en los primeros 1–3 s)
-- Cuerpo hablado, por bloques cortos
-- Cierre / CTA verbal (opcional, una línea)
-- Duración estimada (aprox.)
+1. **Hook** — primeros segundos
+2. **Guion** — palabra por palabra (+ cierre)
+3. **Tomas sugeridas** — plan de cámara (qué decir / qué mostrar), alineado al guion
 
-### B) Guía por beats / escenas
-Para cada beat:
-- **Qué decir** (bullet o frase guía, no necesariamente literal)
-- **Qué mostrar** (visual)
-- **Notas** (ritmo, texto en pantalla, etc.) si aporta
-- Duración estimada total
+Todo editable en el **guion unificado** del creador. La vista previa de la IA es de solo lectura; los cambios estructurales van por **ajustes con IA**.
 
-### C) Ambos
-Misma pieza: beats + guion alineados. Editable en los dos; el creador usa el que prefiera al grabar.
-
-### Editable siempre
-Todo el borrador se puede reescribir. “Listo para grabar” es una **declaración del creador**, no un sello de la IA.
+“Listo para grabar” es una **declaración del creador**, no un sello de la IA.
 
 ---
 

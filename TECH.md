@@ -16,19 +16,19 @@
 | Datos (fase dogfood) | **localStorage** + capa `storage` abstraída | Cero setup de DB para empezar a usar hoy; migrable |
 | IA | **Google Gemini** (API gratuita AI Studio, `GEMINI_API_KEY`) | Dogfooding sin coste; OpenAI queda fuera del stack por defecto |
 | Auth | Ninguna en dogfood local | Un solo usuario (tú); añadir después si hace falta |
-| Deploy | Vercel free (cuando quieras usarlo en el teléfono) | HTTPS + PWA-friendly |
+| Deploy | **Vercel** (hobby) — ver `DEPLOY.md` | HTTPS + URL pública; Root Directory = `web/` |
 
 ### Principio de coste
 
-> Stack de dogfooding = **gratis**: localStorage, Next.js local / Vercel hobby, Gemini free tier.  
-> Los free tiers tienen límites de ritmo; si se saturan, esperamos o cambiamos de modelo gratis — no metemos billing de OpenAI por defecto.
+> Stack de dogfooding = **gratis**: localStorage (o Supabase free), Next.js / Vercel hobby, Gemini free tier.  
+> Los free tiers tienen límites de ritmo; en producción **todos los visitantes comparten** las API keys del proyecto — vigila cuotas.
 
 ### Principios técnicos alineados al producto
 
 1. El modelo de dominio refleja `PRODUCT_SYSTEM.md`: Idea, estados, direcciones, borrador, perfil.
-2. La capa de storage es **interfaz** — hoy localStorage, mañana Supabase/DB sin reescribir el loop.
+2. La capa de storage es **interfaz** — hoy localStorage (+ sync opcional Supabase), migrable.
 3. Prompts viven en servidor; el cliente no habla de “OS” ni de stack.
-4. Voz, memoria de videos, YouTube largo, miniaturas: **hooks/extensiones previstas**, no implementadas.
+4. Voz, memoria de videos, YouTube largo, miniaturas: **hooks/extensiones previstas**, no el núcleo del loop.
 
 ## App
 
@@ -41,6 +41,7 @@ cp .env.example .env.local   # añade GEMINI_API_KEY (gratis en aistudio.google.
 npm run dev
 ```
 
+**Producción:** `DEPLOY.md` (Vercel, Root Directory `web`, env vars).
 
 ### Fuera de v1 tech (pero no descartado)
 

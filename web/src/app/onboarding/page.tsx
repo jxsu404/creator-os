@@ -2,22 +2,29 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { RequireAuth } from "@/components/RequireAuth";
 import { NICHE_CHIPS } from "@/lib/types";
 import { getProfile, saveProfile } from "@/lib/storage";
 
-export default function OnboardingPage() {
+function OnboardingForm() {
   const router = useRouter();
   const [niches, setNiches] = useState<string[]>([]);
   const [custom, setCustom] = useState("");
   const [error, setError] = useState("");
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const existing = getProfile();
-    if (existing) {
-      setNiches(existing.niches);
-      setCustom(existing.customDescription);
+    if (existing?.onboardedAt) {
+      router.replace("/");
+      return;
     }
-  }, []);
+    if (existing) {
+      setNiches(existing.niches || []);
+      setCustom(existing.customDescription || "");
+    }
+    setReady(true);
+  }, [router]);
 
   function toggleNiche(niche: string) {
     setNiches((prev) =>
@@ -27,25 +34,45 @@ export default function OnboardingPage() {
 
   function continueOnboarding() {
     if (niches.length === 0 && !custom.trim()) {
-      setError("Elige al menos un chip o escribe de qué va tu contenido.");
+      setError("Elige un chip o escribe algo.");
       return;
     }
+    const existing = getProfile();
     saveProfile({
       niches,
       customDescription: custom.trim(),
-      onboardedAt: new Date().toISOString(),
+      onboardedAt: existing?.onboardedAt || new Date().toISOString(),
+      useGameContext: existing?.useGameContext !== false,
+      ...(existing
+        ? {
+            activeGameId: existing.activeGameId,
+            gamesLibrary: existing.gamesLibrary,
+            gameBrief: existing.gameBrief,
+            recordingStyle: existing.recordingStyle,
+            brand: existing.brand,
+            provenHooks: existing.provenHooks,
+            youtube: existing.youtube,
+            youtubeCache: existing.youtubeCache,
+          }
+        : {}),
     });
     router.push("/");
+  }
+
+  if (!ready) {
+    return (
+      <div className="app-shell">
+        <main className="app-main onboarding">
+          <p className="muted">Cargando…</p>
+        </main>
+      </div>
+    );
   }
 
   return (
     <div className="app-shell">
       <main className="app-main onboarding">
-        <p className="eyebrow">Creator OS</p>
         <h1 className="hero-title">¿De qué va tu contenido?</h1>
-        <p className="lede">
-          Así los enfoques y guiones se acercan a tu estilo — no a un genérico.
-        </p>
 
         <div className="chip-grid">
           {NICHE_CHIPS.map((niche) => {
@@ -63,24 +90,34 @@ export default function OnboardingPage() {
           })}
         </div>
 
-        <label className="field-label" htmlFor="custom">
-          Otro / más detalle
-        </label>
         <textarea
           id="custom"
           className="field"
-          rows={3}
-          placeholder="Ej. Roblox — guías y showcases de Anime Fighting Simulator"
+          rows={2}
+          placeholder="Más detalle (opcional)"
           value={custom}
           onChange={(e) => setCustom(e.target.value)}
+          aria-label="Más detalle"
         />
 
         {error ? <p className="error">{error}</p> : null}
 
-        <button type="button" className="btn-primary" onClick={continueOnboarding}>
+        <button
+          type="button"
+          className="btn-primary btn-block"
+          onClick={continueOnboarding}
+        >
           Continuar
         </button>
       </main>
     </div>
+  );
+}
+
+export default function OnboardingPage() {
+  return (
+    <RequireAuth>
+      <OnboardingForm />
+    </RequireAuth>
   );
 }

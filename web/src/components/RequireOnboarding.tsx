@@ -2,19 +2,25 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { RequireAuth } from "@/components/RequireAuth";
 import { getProfile } from "@/lib/storage";
+import { onSynced } from "@/lib/sync";
 
-export function RequireOnboarding({ children }: { children: React.ReactNode }) {
+function OnboardingGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const profile = getProfile();
-    if (!profile) {
-      router.replace("/onboarding");
-      return;
+    function check() {
+      const profile = getProfile();
+      if (!profile) {
+        router.replace("/onboarding");
+        return;
+      }
+      setReady(true);
     }
-    setReady(true);
+    check();
+    return onSynced(check);
   }, [router]);
 
   if (!ready) {
@@ -28,4 +34,12 @@ export function RequireOnboarding({ children }: { children: React.ReactNode }) {
   }
 
   return <>{children}</>;
+}
+
+export function RequireOnboarding({ children }: { children: React.ReactNode }) {
+  return (
+    <RequireAuth>
+      <OnboardingGate>{children}</OnboardingGate>
+    </RequireAuth>
+  );
 }

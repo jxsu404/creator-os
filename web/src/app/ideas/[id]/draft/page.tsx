@@ -1,19 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
-import { getIdea, upsertIdea } from "@/lib/storage";
-import type { Beat, Idea } from "@/lib/types";
+import { profileContextFor } from "@/lib/profile-context";
+import { buildUnifiedScript } from "@/lib/script";
+import { getIdea, getProfile, upsertIdea } from "@/lib/storage";
+import type { Direction, Idea } from "@/lib/types";
 
-function DraftEditor() {
+function ideaAiContext(idea: Idea) {
+  const profile = getProfile();
+  if (!profile) return "";
+  return profileContextFor(profile, {
+    gameId: idea.gameId,
+    contentAngle: idea.contentAngle,
+  });
+}
+
+function DraftPreview() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
   const [idea, setIdea] = useState<Idea | null>(null);
-  const [savedMsg, setSavedMsg] = useState("");
+  const [adjustment, setAdjustment] = useState("");
+  const [revising, setRevising] = useState(false);
+  const [reviseError, setReviseError] = useState("");
+  const [previewOpen, setPreviewOpen] = useState(true);
+  const ideaRef = useRef<Idea | null>(null);
 
   useEffect(() => {
     const found = getIdea(id);
@@ -21,150 +36,242 @@ function DraftEditor() {
       router.replace(`/ideas/${id}`);
       return;
     }
+    ideaRef.current = found;
     setIdea(found);
+    try {
+      const stored = sessionStorage.getItem(`creatoros_preview_open_${id}`);
+      if (stored === "0") setPreviewOpen(false);
+      if (stored === "1") setPreviewOpen(true);
+    } catch {
+      /* ignore */
+    }
   }, [id, router]);
+
+  function togglePreview() {
+    setPreviewOpen((open) => {
+      const next = !open;
+      try {
+        sessionStorage.setItem(
+          `creatoros_preview_open_${id}`,
+          next ? "1" : "0"
+        );
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }
 
   if (!idea?.draft) {
     return (
-      <AppShell backHref="/">
+      <AppShell backHref="/ideas">
         <p className="muted">Cargando…</p>
       </AppShell>
     );
   }
 
-  function persist(next: Idea, message?: string) {
-    upsertIdea(next);
-    setIdea(next);
-    if (message) {
-      setSavedMsg(message);
-      window.setTimeout(() => setSavedMsg(""), 2500);
+  function selectedDirection(): Direction | null {
+    const current = ideaRef.current ?? idea;
+    if (!current?.directions?.length) return null;
+    return (
+      current.directions.find((d) => d.id === current.selectedDirectionId) ||
+      current.directions[0]
+    );
+  }
+
+  async function applyAdjustments() {
+    const current = ideaRef.current ?? idea;
+    const direction = selectedDirection();
+    if (!current?.draft || !direction || !adjustment.trim() || revising) return;
+
+    setRevising(true);
+    setReviseError("");
+    try {
+      const res = await fetch("/api/generate-draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ideaText: current.rawText,
+          profileContext: ideaAiContext(current),
+          direction,
+          adjustment: adjustment.trim(),
+          currentDraft: {
+            hook: current.draft.hook,
+            scriptBody: current.draft.scriptBody,
+            closing: current.draft.closing,
+            beats: current.draft.beats,
+            estimatedSeconds: current.draft.estimatedSeconds,
+            creatorScript:
+              current.draft.creatorScript || buildUnifiedScript(current.draft),
+          },
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error");
+      const draftPayload = data.draft;
+      if (
+        !draftPayload?.hook?.trim() ||
+        !draftPayload?.scriptBody?.trim() ||
+        !Array.isArray(draftPayload.beats) ||
+        draftPayload.beats.length === 0
+      ) {
+        throw new Error("La guía llegó incompleta. Intenta de nuevo.");
+      }
+      const now = new Date().toISOString();
+      const revised = {
+        format: "guide" as const,
+        hook: draftPayload.hook,
+        scriptBody: draftPayload.scriptBody,
+        closing: draftPayload.closing || "",
+        beats: draftPayload.beats,
+        estimatedSeconds: draftPayload.estimatedSeconds || 45,
+        updatedAt: now,
+        creatorScript: "",
+      };
+      revised.creatorScript = buildUnifiedScript(revised);
+      const latest = getIdea(current.id) ?? current;
+      const next: Idea = {
+        ...latest,
+        status: "in_progress",
+        directionAdjustment: adjustment.trim(),
+        draft: revised,
+        updatedAt: now,
+      };
+      upsertIdea(next);
+      ideaRef.current = next;
+      setIdea(next);
+      setAdjustment("");
+      setPreviewOpen(true);
+      try {
+        sessionStorage.setItem(`creatoros_preview_open_${id}`, "1");
+      } catch {
+        /* ignore */
+      }
+    } catch (e) {
+      setReviseError(
+        e instanceof Error
+          ? e.message
+          : "No pude aplicar los ajustes. Intenta de nuevo."
+      );
+    } finally {
+      setRevising(false);
     }
   }
 
-  function updateDraft(partial: Partial<Idea["draft"]>) {
+  function continueToScript() {
+    const current = ideaRef.current ?? idea!;
+    if (!current.draft) return;
     const now = new Date().toISOString();
-    persist({
-      ...idea!,
+    const creatorScript =
+      current.draft.creatorScript?.trim() ||
+      buildUnifiedScript(current.draft);
+    const next: Idea = {
+      ...current,
       draft: {
-        ...idea!.draft!,
-        ...partial,
+        ...current.draft,
+        format: "guide",
+        creatorScript,
         updatedAt: now,
       },
       updatedAt: now,
-      status: idea!.status === "ready" ? "in_progress" : idea!.status,
-    });
-  }
-
-  function updateBeat(index: number, beat: Beat) {
-    const beats = [...idea!.draft!.beats];
-    beats[index] = beat;
-    updateDraft({ beats });
-  }
-
-  function markReady() {
-    const now = new Date().toISOString();
-    const next: Idea = {
-      ...idea!,
-      status: "ready",
-      updatedAt: now,
     };
     upsertIdea(next);
-    setIdea(next);
-    router.push("/");
+    router.push(`/ideas/${id}/script`);
   }
 
   const { draft } = idea;
-  const showScript = draft.format === "script" || draft.format === "both";
-  const showBeats = draft.format === "beats" || draft.format === "both";
 
   return (
-    <AppShell title="Borrador" backHref={`/ideas/${id}`}>
-      <p className="muted">
-        Formato:{" "}
-        {draft.format === "script"
-          ? "Guion"
-          : draft.format === "beats"
-            ? "Guía para grabar"
-            : "Guion + guía"}{" "}
-        · ~{draft.estimatedSeconds}s
-      </p>
+    <AppShell title="Guía" backHref={`/ideas/${id}`}>
+      <div className="draft-meta">
+        <span className="idea-meta">~{draft.estimatedSeconds}s</span>
+        <span className="save-indicator" aria-live="polite">
+          {revising ? "Ajustando…" : ""}
+        </span>
+      </div>
 
-      {savedMsg ? <p className="success">{savedMsg}</p> : null}
+      <section className={previewOpen ? "block" : "block block-collapsed"}>
+        <div className="preview-header">
+          <h2 className="section-title">Vista previa</h2>
+          <button
+            type="button"
+            className="text-link"
+            onClick={togglePreview}
+            aria-expanded={previewOpen}
+          >
+            {previewOpen ? "Cerrar" : "Abrir"}
+          </button>
+        </div>
 
-      <label className="field-label" htmlFor="hook">
-        Hook
+        {previewOpen ? (
+          <div className="preview-body">
+            <p className="preview-plain">
+              <strong>Hook</strong>
+              {"\n"}
+              {draft.hook || "—"}
+            </p>
+            <p className="preview-plain">
+              <strong>Guion</strong>
+              {"\n"}
+              {draft.scriptBody || "—"}
+            </p>
+            <p className="preview-plain">
+              <strong>Cierre</strong>
+              {"\n"}
+              {draft.closing || "—"}
+            </p>
+            {draft.beats.length > 0 ? (
+              <div className="beats-plain">
+                <strong>Tomas</strong>
+                {draft.beats.map((beat, index) => (
+                  <p key={index} className="preview-plain">
+                    {index + 1}. {beat.say}
+                    {beat.show ? ` · ${beat.show}` : ""}
+                  </p>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </section>
+
+      <label className="field-label" htmlFor="adj">
+        Ajustar
       </label>
       <textarea
-        id="hook"
+        id="adj"
         className="field"
         rows={2}
-        value={draft.hook}
-        onChange={(e) => updateDraft({ hook: e.target.value })}
+        placeholder="Qué cambiar…"
+        value={adjustment}
+        onChange={(e) => setAdjustment(e.target.value)}
+        disabled={revising}
       />
-
-      {showScript ? (
-        <>
-          <label className="field-label" htmlFor="body">
-            Guion
-          </label>
-          <textarea
-            id="body"
-            className="field field-lg"
-            rows={8}
-            value={draft.scriptBody}
-            onChange={(e) => updateDraft({ scriptBody: e.target.value })}
-          />
-          <label className="field-label" htmlFor="closing">
-            Cierre
-          </label>
-          <textarea
-            id="closing"
-            className="field"
-            rows={2}
-            value={draft.closing}
-            onChange={(e) => updateDraft({ closing: e.target.value })}
-          />
-        </>
+      {reviseError ? <p className="error">{reviseError}</p> : null}
+      {adjustment.trim() ? (
+        <button
+          type="button"
+          className="btn-secondary btn-block"
+          disabled={revising}
+          onClick={applyAdjustments}
+        >
+          {revising ? "Reescribiendo…" : "Aplicar"}
+        </button>
       ) : null}
 
-      {showBeats ? (
-        <section className="section">
-          <h2 className="section-title">Beats</h2>
-          <div className="stack">
-            {draft.beats.map((beat, index) => (
-              <div key={index} className="beat-card">
-                <p className="meta-label">Beat {index + 1}</p>
-                <label className="field-label">Qué decir</label>
-                <textarea
-                  className="field"
-                  rows={2}
-                  value={beat.say}
-                  onChange={(e) =>
-                    updateBeat(index, { ...beat, say: e.target.value })
-                  }
-                />
-                <label className="field-label">Qué mostrar</label>
-                <textarea
-                  className="field"
-                  rows={2}
-                  value={beat.show}
-                  onChange={(e) =>
-                    updateBeat(index, { ...beat, show: e.target.value })
-                  }
-                />
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      <button type="button" className="btn-primary btn-block" onClick={markReady}>
-        Marcar lista para grabar
-      </button>
-
-      <Link href={`/ideas/${id}/directions`} className="btn-secondary btn-block">
-        Cambiar enfoque
-      </Link>
+      <div className="sticky-actions">
+        <button
+          type="button"
+          className="btn-primary btn-block"
+          disabled={revising}
+          onClick={continueToScript}
+        >
+          Continuar
+        </button>
+        <Link href={`/ideas/${id}/directions`} className="text-link">
+          Cambiar enfoque
+        </Link>
+      </div>
     </AppShell>
   );
 }
@@ -172,7 +279,7 @@ function DraftEditor() {
 export default function DraftPage() {
   return (
     <RequireOnboarding>
-      <DraftEditor />
+      <DraftPreview />
     </RequireOnboarding>
   );
 }

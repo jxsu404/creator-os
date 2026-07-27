@@ -1,13 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
 import { createId } from "@/lib/id";
-import { profileContext } from "@/lib/profile-context";
+import { ideaPreview } from "@/lib/idea-preview";
+import { profileContextFor } from "@/lib/profile-context";
+import { buildUnifiedScript } from "@/lib/script";
 import { getIdea, getProfile, upsertIdea } from "@/lib/storage";
-import type { Direction, DraftFormat, Idea } from "@/lib/types";
+import type { Direction, Idea } from "@/lib/types";
+
+function ideaAiContext(idea: Idea) {
+  const profile = getProfile();
+  if (!profile) return "";
+  return profileContextFor(profile, {
+    gameId: idea.gameId,
+    contentAngle: idea.contentAngle,
+  });
+}
 
 function DirectionsFlow() {
   const params = useParams();
@@ -16,36 +27,43 @@ function DirectionsFlow() {
   const [idea, setIdea] = useState<Idea | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [selected, setSelected] = useState<Direction | null>(null);
-  const [adjustment, setAdjustment] = useState("");
-  const [format, setFormat] = useState<DraftFormat>("beats");
-  const [creating, setCreating] = useState(false);
+  const [creatingId, setCreatingId] = useState<string | null>(null);
+  const generatingRef = useRef(false);
+  const autoStartedRef = useRef<string | null>(null);
+  const aliveRef = useRef(true);
+
+  useEffect(() => {
+    aliveRef.current = true;
+    return () => {
+      aliveRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     const found = getIdea(id);
     if (!found) {
-      router.replace("/");
+      router.replace("/ideas");
       return;
     }
     setIdea(found);
-    if (found.directions?.length) {
-      // keep existing until regenerate
-    }
   }, [id, router]);
 
-  async function generateDirections(force = false) {
-    if (!idea) return;
-    if (idea.directions?.length && !force) return;
+  async function generateDirections(force = false, base?: Idea) {
+    const current = base ?? idea;
+    if (!current) return;
+    if (current.directions?.length && !force) return;
+    if (generatingRef.current) return;
+
+    generatingRef.current = true;
     setLoading(true);
     setError("");
     try {
-      const profile = getProfile();
       const res = await fetch("/api/generate-directions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ideaText: idea.rawText,
-          profileContext: profile ? profileContext(profile) : "",
+          ideaText: current.rawText,
+          profileContext: ideaAiContext(current),
         }),
       });
       const data = await res.json();
@@ -56,190 +74,172 @@ function DirectionsFlow() {
           id: createId("dir"),
         })
       );
-      const next = {
-        ...idea,
+      const latest = getIdea(current.id) ?? current;
+      const next: Idea = {
+        ...latest,
         directions,
         updatedAt: new Date().toISOString(),
       };
+      // Al regenerar, limpia selección vieja (IDs nuevos) para no revisar con ángulo incorrecto
+      if (force) {
+        delete next.selectedDirectionId;
+        delete next.directionAdjustment;
+        delete next.draft;
+        if (latest.status === "in_progress" || latest.status === "ready") {
+          next.status = "captured";
+        }
+      }
       upsertIdea(next);
-      setIdea(next);
-      setSelected(null);
+      if (aliveRef.current) setIdea(next);
     } catch (e) {
-      setError(
-        e instanceof Error
-          ? e.message
-          : "No pude armar buenos enfoques. Intenta de nuevo."
-      );
+      if (aliveRef.current) {
+        setError(
+          e instanceof Error
+            ? e.message
+            : "No pude armar buenos enfoques. Intenta de nuevo."
+        );
+      }
     } finally {
-      setLoading(false);
+      generatingRef.current = false;
+      if (aliveRef.current) setLoading(false);
     }
   }
 
   useEffect(() => {
-    if (idea && !idea.directions?.length && !loading && !error) {
-      void generateDirections();
-    }
+    if (!idea) return;
+    if (idea.directions?.length) return;
+    if (autoStartedRef.current === idea.id) return;
+    autoStartedRef.current = idea.id;
+    void generateDirections(false, idea);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idea?.id]);
+  }, [idea?.id, idea?.directions?.length]);
 
-  async function createDraft() {
-    if (!idea || !selected) return;
-    setCreating(true);
+  async function selectDirection(selected: Direction) {
+    if (!idea || creatingId) return;
+    setCreatingId(selected.id);
     setError("");
     try {
-      const profile = getProfile();
       const res = await fetch("/api/generate-draft", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ideaText: idea.rawText,
-          profileContext: profile ? profileContext(profile) : "",
+          profileContext: ideaAiContext(idea),
           direction: selected,
-          adjustment,
-          format,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error");
+      const draftPayload = data.draft;
+      if (
+        !draftPayload?.hook?.trim() ||
+        !draftPayload?.scriptBody?.trim() ||
+        !Array.isArray(draftPayload.beats) ||
+        draftPayload.beats.length === 0
+      ) {
+        throw new Error("La guía llegó incompleta. Intenta de nuevo.");
+      }
       const now = new Date().toISOString();
+      const latest = getIdea(idea.id) ?? idea;
+      const draft = {
+        format: "guide" as const,
+        hook: draftPayload.hook,
+        scriptBody: draftPayload.scriptBody,
+        closing: draftPayload.closing || "",
+        beats: draftPayload.beats,
+        estimatedSeconds: draftPayload.estimatedSeconds || 45,
+        creatorScript: "",
+        updatedAt: now,
+      };
+      draft.creatorScript = buildUnifiedScript(draft);
       const next: Idea = {
-        ...idea,
+        ...latest,
         status: "in_progress",
         selectedDirectionId: selected.id,
-        directionAdjustment: adjustment.trim() || undefined,
-        directions: idea.directions,
-        draft: {
-          format,
-          hook: data.draft.hook || "",
-          scriptBody: data.draft.scriptBody || "",
-          closing: data.draft.closing || "",
-          beats: data.draft.beats || [],
-          estimatedSeconds: data.draft.estimatedSeconds || 45,
-          updatedAt: now,
-        },
+        directions: latest.directions ?? idea.directions,
+        draft,
         updatedAt: now,
       };
       upsertIdea(next);
       router.push(`/ideas/${idea.id}/draft`);
     } catch (e) {
-      setError(
-        e instanceof Error
-          ? e.message
-          : "No pude crear el borrador. Intenta de nuevo."
-      );
-    } finally {
-      setCreating(false);
+      if (aliveRef.current) {
+        setError(
+          e instanceof Error
+            ? e.message
+            : "No pude crear la guía. Intenta de nuevo."
+        );
+        setCreatingId(null);
+      }
     }
   }
 
   if (!idea) {
     return (
-      <AppShell backHref="/">
+      <AppShell backHref="/ideas">
         <p className="muted">Cargando…</p>
       </AppShell>
     );
   }
 
-  if (selected) {
-    return (
-      <AppShell title="Personalizar" backHref={`/ideas/${id}/directions`}>
-        <p className="muted">
-          Enfoque: <strong>{selected.name}</strong>
-        </p>
-        <label className="field-label" htmlFor="adj">
-          ¿Algún ajuste antes del borrador?
-        </label>
-        <textarea
-          id="adj"
-          className="field"
-          rows={3}
-          placeholder="Ej. más directo, menos técnico…"
-          value={adjustment}
-          onChange={(e) => setAdjustment(e.target.value)}
-        />
-
-        <p className="field-label">Formato</p>
-        <div className="format-row">
-          {(
-            [
-              ["beats", "Guía para grabar"],
-              ["script", "Guion"],
-              ["both", "Ambos"],
-            ] as const
-          ).map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              className={`chip ${format === value ? "chip-active" : ""}`}
-              onClick={() => setFormat(value)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        {error ? <p className="error">{error}</p> : null}
-
-        <button
-          type="button"
-          className="btn-primary btn-block"
-          disabled={creating}
-          onClick={createDraft}
-        >
-          {creating ? "Creando borrador…" : "Crear borrador"}
-        </button>
-        <button
-          type="button"
-          className="btn-ghost"
-          onClick={() => setSelected(null)}
-        >
-          Elegir otro enfoque
-        </button>
-      </AppShell>
-    );
-  }
-
   return (
-    <AppShell title="Tres enfoques" backHref={`/ideas/${id}`}>
-      <p className="lede tight">
-        Elige el que más suene a lo que quieres grabar.
-      </p>
+    <AppShell title="Enfoques" backHref={`/ideas/${id}`}>
+      <p className="idea-snippet">{ideaPreview(idea.rawText, 120)}</p>
 
-      {loading ? <p className="muted">Armando enfoques…</p> : null}
-      {error ? <p className="error">{error}</p> : null}
+      {loading ? (
+        <p className="muted">Armando enfoques…</p>
+      ) : null}
+
+      {creatingId ? <p className="muted">Creando guía…</p> : null}
+
+      {error ? (
+        <div className="error-box">
+          <p className="error">{error}</p>
+          <button
+            type="button"
+            className="btn-secondary btn-block"
+            onClick={() => generateDirections(true, idea)}
+          >
+            Reintentar
+          </button>
+        </div>
+      ) : null}
 
       <div className="stack">
         {idea.directions?.map((dir) => (
           <article key={dir.id} className="direction-card">
             <h2 className="direction-name">{dir.name}</h2>
-            <p>
-              <span className="meta-label">Promesa</span> {dir.promise}
-            </p>
-            <p>
-              <span className="meta-label">Ángulo</span> {dir.angle}
-            </p>
-            <p>
-              <span className="meta-label">Hook</span> {dir.hook}
-            </p>
-            <p className="muted">{dir.why}</p>
+            <p className="muted">{dir.promise}</p>
+            <p>{dir.hook}</p>
             <button
               type="button"
               className="btn-primary btn-block"
-              onClick={() => setSelected(dir)}
+              disabled={loading || Boolean(creatingId)}
+              onClick={() => selectDirection(dir)}
             >
-              Usar este enfoque
+              {creatingId === dir.id ? "Creando…" : "Elegir"}
             </button>
           </article>
         ))}
       </div>
 
-      {!loading ? (
+      {!loading && !creatingId && idea.directions?.length ? (
         <button
           type="button"
-          className="btn-secondary btn-block"
-          onClick={() => generateDirections(true)}
+          className="text-link"
+          onClick={() => {
+            if (
+              idea.draft &&
+              !window.confirm(
+                "¿Generar otros enfoques? Se descartará la guía actual."
+              )
+            ) {
+              return;
+            }
+            void generateDirections(true, idea);
+          }}
         >
-          Probar otros enfoques
+          Otros enfoques
         </button>
       ) : null}
     </AppShell>

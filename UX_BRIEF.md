@@ -170,53 +170,26 @@ Retomar: Home → Continuar (En curso) → Borrador → Listo.
 
 ---
 
-### 5 — Ajuste corto
+### 5–6 — Elegir formato / ajuste previo
+**Eliminado.** Al elegir enfoque se genera la guía. Los ajustes viven en la vista previa del borrador.
 
-**Trabajo:** personalizar sin cuestionario.
+### 7 — Guía para grabar (vista previa)
 
-**Forma:** bottom sheet o bloque inline tras elegir enfoque — **no** pantalla nueva pesada si se puede evitar.
-
-**Elementos**
-- Enfoque elegido (resumen de 1 línea)
-- Campo: *“¿Algún ajuste antes del borrador?”*
-- CTA: **Crear borrador** / **Continuar**
-- Omitir: permitir continuar vacío (= sin ajuste)
-
----
-
-### 6 — Elegir formato de salida
-
-**Trabajo:** guion / guía / ambos.
-
-**Forma:** puede ir **en la misma step que el ajuste** (menos pantallas = mejor).
+**Trabajo:** revisar + ajustes con IA.
 
 **Elementos**
-- Tres opciones excluyentes: **Guion** · **Guía para grabar** · **Ambos**
-- Default sugerido: **Guía para grabar** (más “listo para ejecutar”; el usuario puede cambiar)
-- CTA único junto con “Crear borrador”
+- Vista previa solo lectura (hook, guion, cierre, tomas sugeridas)
+- Panel **Ajustes con IA**
+- CTA: **Continuar** → pantalla de guion editable
 
-**Regla:** una decisión, no dos productos paralelos.
+### 7b — Tu guion
 
----
-
-### 7 — Borrador
-
-**Trabajo:** editar hasta poder grabar.
+**Trabajo:** decidir si editar a mano y marcar listo.
 
 **Elementos**
-- Indicador de formato activo
-- Contenido editable:
-  - Guion: hook + cuerpo + cierre
-  - Guía: lista de beats (qué decir / qué mostrar)
-  - Ambos: secciones claras, misma pieza
-- Duración estimada (aprox., editable o solo informativa)
-- CTA primario: **Marcar lista para grabar**
-- Secundarios: **Probar otro borrador** · **Cambiar formato** · **Cambiar enfoque** (vuelve a tres enfoques o confirma)
-
-**Reglas**
-- Edición inline; no “modo lectura” vs “modo edición” si complica
-- Tras marcar lista → confirmación corta → Home (o quedarse en borrador con estado actualizado)
-- Nunca autoproclamar “listo” sin el tap del usuario
+- Pregunta: *¿Quieres hacer algún cambio?*
+- Si sí → un cuadro de guion unificado editable
+- Si no / al terminar → **Marcar lista para grabar**
 
 ---
 

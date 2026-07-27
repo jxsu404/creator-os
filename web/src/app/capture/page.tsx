@@ -1,20 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
+import {
+  DictationButton,
+  appendDictation,
+} from "@/components/DictationButton";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
 import { createId } from "@/lib/id";
+import { ensureIdeaTitle } from "@/lib/idea-title";
 import { upsertIdea } from "@/lib/storage";
 import type { Idea } from "@/lib/types";
 
 function CaptureForm() {
   const router = useRouter();
   const [text, setText] = useState("");
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+
+  const onTranscript = useCallback((transcript: string) => {
+    setText((prev) => appendDictation(prev, transcript));
+  }, []);
 
   function save() {
     const trimmed = text.trim();
-    if (!trimmed) return;
+    if (!trimmed || savingRef.current) return;
+    savingRef.current = true;
+    setSaving(true);
     const now = new Date().toISOString();
     const idea: Idea = {
       id: createId("idea"),
@@ -24,30 +37,38 @@ function CaptureForm() {
       updatedAt: now,
     };
     upsertIdea(idea);
+    void ensureIdeaTitle(idea);
     router.push(`/ideas/${idea.id}`);
   }
 
   return (
-    <AppShell title="Capturar" backHref="/">
-      <label className="field-label" htmlFor="idea">
-        ¿Qué se te ocurrió?
-      </label>
+    <AppShell title="Capturar" backHref="/ideas">
       <textarea
         id="idea"
         className="field field-lg"
-        rows={6}
-        placeholder="No hace falta que esté claro."
+        rows={5}
+        placeholder="¿Qué se te ocurrió? Escribe o dicta."
         value={text}
         onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => {
+          if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+            e.preventDefault();
+            save();
+          }
+        }}
         autoFocus
+        aria-label="Idea"
       />
+
+      <DictationButton onTranscript={onTranscript} disabled={saving} />
+
       <button
         type="button"
         className="btn-primary btn-block"
-        disabled={!text.trim()}
+        disabled={!text.trim() || saving}
         onClick={save}
       >
-        Guardar idea
+        {saving ? "Guardando…" : "Guardar"}
       </button>
     </AppShell>
   );

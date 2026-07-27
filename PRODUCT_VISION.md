@@ -95,13 +95,9 @@ El creador elige una y puede ajustar en una frase.
 
 **Siente:** “Ya sé qué video es.”
 
-### Momento 3 — Borrador (3–8 min)
-Elige formato de salida:
-- Guion palabra por palabra
-- Guía por escenas / beats
-- Ambos
-
-Recibe hook + estructura + cuerpo **editable**. Personaliza hasta que sea suyo.
+### Momento 3 — Guía para grabar (3–8 min)
+Al elegir un enfoque, recibe una **vista previa**: hook + guion + **tomas sugeridas**.  
+Puede pedir ajustes a la IA o editar a mano hasta que sea suyo.
 
 **Siente:** “Esto ya se puede grabar. No empiezo en blanco.”
 
@@ -133,9 +129,9 @@ Lo que el compañero debe quitar de encima (sin pensar *por* el creador):
 2. **Lista simple de ideas** con estados: capturada / en curso / lista para grabar  
    *(no un dashboard motivacional)*
 3. **Generar 3 direcciones** a partir de la idea *(usando el contexto del creador)*
-4. **Elegir una + personalizar** (ajuste corto de enfoque/tono)
-5. **Borrador listo para grabar:** hook + estructura + guion/guía editable
-6. **Editar el borrador** hasta “ya puedo grabar”
+4. **Elegir una dirección** → se genera la guía al momento
+5. **Guía para grabar (vista previa):** hook + guion + tomas sugeridas; ajustes con IA o a mano
+6. **Editar / ajustar** hasta “ya puedo grabar”
 7. **Marcar como lista para grabar**
 8. **Editar contexto después** — el nicho/perfil se puede cambiar sin rehacer onboarding eterno
 
@@ -158,8 +154,8 @@ Sin este contexto, el compañero suena a ChatGPT genérico. Con una encuesta lar
 
 ### Formato “listo para grabar”
 
-Opción del creador por idea: **guion / guía por beats / ambos**.  
-Misma decisión clara; no dos productos distintos.
+Siempre **guía para grabar**: guion + tomas sugeridas (sin elegir formato).  
+El creador revisa la vista previa y puede pedir ajustes a la IA o editar a mano.
 
 ---
 

@@ -4,8 +4,8 @@ import { gateAiGeneration } from "@/lib/billing/gate";
 
 export async function POST(request: Request) {
   try {
-    const denied = await gateAiGeneration();
-    if (denied) return denied;
+    const gate = await gateAiGeneration();
+    if (gate.blocked) return gate.blocked;
 
     const body = await request.json();
     const { ideaText } = body as { ideaText?: string };
@@ -38,7 +38,7 @@ ${ideaText.trim()}`;
       );
     }
 
-    return NextResponse.json({ title });
+    return NextResponse.json({ title, billing: gate.billing });
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Error al generar el título.";

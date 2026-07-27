@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { applyGenerationBilling } from "@/lib/apply-generation-billing";
 import type { Idea, YoutubeUploadPackage } from "@/lib/types";
 
 type Props = {
@@ -57,6 +58,7 @@ export function YoutubePackagePanel({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error al generar");
+      void applyGenerationBilling(data.billing);
       onSave(data.package as YoutubeUploadPackage);
     } catch (e) {
       setError(e instanceof Error ? e.message : "No pude generar el paquete.");

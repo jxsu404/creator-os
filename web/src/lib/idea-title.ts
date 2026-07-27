@@ -1,6 +1,8 @@
+import { applyGenerationBilling } from "./apply-generation-billing";
 import { ideaPreview } from "./idea-preview";
 import { patchIdea } from "./storage";
 import type { Idea } from "./types";
+import type { BillingSnapshot } from "./billing/plans";
 
 /** Título a mostrar en listas: el generado por IA o, mientras llega, el preview del texto */
 export function ideaTitle(idea: Idea, max = 110): string {
@@ -52,9 +54,13 @@ async function requestTitle(
       body: JSON.stringify({ ideaText: idea.rawText }),
     });
     if (!res.ok) return null;
-    const data = (await res.json()) as { title?: string };
+    const data = (await res.json()) as {
+      title?: string;
+      billing?: BillingSnapshot | null;
+    };
     const title = data.title?.trim();
     if (!title) return null;
+    void applyGenerationBilling(data.billing);
 
     // Merge atómico: descarta si el texto cambió (respuesta stale)
     const next = patchIdea(idea.id, (current) => {

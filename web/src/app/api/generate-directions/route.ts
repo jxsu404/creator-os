@@ -4,8 +4,8 @@ import { gateAiGeneration } from "@/lib/billing/gate";
 
 export async function POST(request: Request) {
   try {
-    const denied = await gateAiGeneration();
-    if (denied) return denied;
+    const gate = await gateAiGeneration();
+    if (gate.blocked) return gate.blocked;
 
     const body = await request.json();
     const { ideaText, profileContext } = body as {
@@ -74,6 +74,7 @@ ${ideaText.trim()}`;
 
     return NextResponse.json({
       directions: directions.slice(0, 3),
+      billing: gate.billing,
     });
   } catch (err) {
     const message =

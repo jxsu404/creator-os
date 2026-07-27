@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { BillingSnapshot } from "@/lib/billing/plans";
 import {
   consumeGeneration,
   UsageLimitError,
@@ -7,24 +8,35 @@ import {
 import { getApiAuth } from "@/lib/supabase/admin";
 import { unauthorizedApiResponse } from "@/lib/supabase/require-api-user";
 
+export type AiGateOk = {
+  blocked: null;
+  billing: BillingSnapshot | null;
+};
+
+export type AiGateBlocked = {
+  blocked: NextResponse;
+};
+
 /**
- * Auth + cupo de generación IA.
+ * Auth + cupo de generación IA por usuario.
  * - Sin Supabase: pasa (modo local).
- * - Con sesión: consume 1 del cupo mensual.
+ * - Con sesión: consume 1 del cupo mensual de ese user_id.
  */
-export async function gateAiGeneration(): Promise<NextResponse | null> {
+export async function gateAiGeneration(): Promise<AiGateOk | AiGateBlocked> {
   const denied = await unauthorizedApiResponse();
-  if (denied) return denied;
+  if (denied) return { blocked: denied };
 
   const auth = await getApiAuth();
-  if (!auth) return null;
+  if (!auth) return { blocked: null, billing: null };
 
   try {
-    await consumeGeneration(auth.supabase, auth.user.id);
-    return null;
+    const billing = await consumeGeneration(auth.supabase, auth.user.id);
+    return { blocked: null, billing };
   } catch (err) {
     if (err instanceof UsageLimitError) {
-      return NextResponse.json(usageLimitResponse(err), { status: 402 });
+      return {
+        blocked: NextResponse.json(usageLimitResponse(err), { status: 402 }),
+      };
     }
     throw err;
   }

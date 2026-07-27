@@ -28,9 +28,9 @@ Si una pantalla no empuja ese camino, no existe en v1.
 | 2 | Capturar idea | Sí | Home (CTA primario) |
 | 3 | Detalle de idea | Sí | Home (cualquier idea) |
 | 4 | Tres enfoques | Sí | Detalle (idea Capturada o regenerar) |
-| 5 | Ajuste corto (puede ser sheet/modal) | Sí | Tras elegir enfoque |
-| 6 | Elegir formato de salida | Sí | Tras ajuste (o junto al ajuste) |
-| 7 | Borrador (guion / guía / ambos) | Sí | Tras generar |
+| 5 | Ajuste corto (puede ser sheet/modal) | Sí | En la vista previa de la guía |
+| 6 | Guía para grabar (vista previa) | Sí | Tras elegir enfoque |
+| 7 | Tu guion (editable) | Sí | Tras Continuar |
 | 8 | Mi contenido (perfil mínimo) | Sí | Home / settings ligeros |
 | — | Archivar confirmación | Ligero | Detalle de idea |
 

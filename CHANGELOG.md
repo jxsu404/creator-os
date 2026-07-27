@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Docs: decisión de viabilidad — chat asistente Pro + YouTube Analytics queda en visión; memoria ligera priorizada (`BRAND_AND_ROADMAP.md` §6.1)
+- Docs: decisión de viabilidad — chat asistente + YouTube Analytics OAuth quedan en visión; memoria ligera priorizada; alineado a cupo free + donación PayPal (`BRAND_AND_ROADMAP.md` §6.1)
 - CI en GitHub Actions (`lint` / `typecheck` / `test` + scan de conflict markers)
 - Template de PR + reglas de agentes en `AGENTS.md`
 - Plan Free endurecido (snapshot seguro + RLS billing); Validación Usuario 1 fuera de Perfil (diferida)

@@ -149,6 +149,16 @@ export interface Idea {
   rawText: string;
   /** Título corto generado con IA a partir de rawText (para listas) */
   title?: string;
+  /**
+   * Categoría visual de la idea (chip de nicho).
+   * Define la miniatura predeterminada; `thumbnailUrl` la reemplaza si existe.
+   */
+  category?: string;
+  /**
+   * Miniatura propia (p. ej. generada con IA a petición del usuario).
+   * Si está, tiene prioridad sobre la imagen de categoría.
+   */
+  thumbnailUrl?: string;
   status: IdeaStatus;
   createdAt: string;
   updatedAt: string;

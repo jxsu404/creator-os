@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import {
@@ -10,14 +10,27 @@ import {
 import { RequireOnboarding } from "@/components/RequireOnboarding";
 import { createId } from "@/lib/id";
 import { ensureIdeaTitle } from "@/lib/idea-title";
-import { upsertIdea } from "@/lib/storage";
-import type { Idea } from "@/lib/types";
+import { getProfile, upsertIdea } from "@/lib/storage";
+import { NICHE_CHIPS, type Idea } from "@/lib/types";
 
 function CaptureForm() {
   const router = useRouter();
   const [text, setText] = useState("");
+  const [category, setCategory] = useState("default");
+  const [nicheOptions, setNicheOptions] = useState<string[]>([...NICHE_CHIPS]);
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
+
+  useEffect(() => {
+    const niches = getProfile()?.niches?.filter(Boolean) || [];
+    if (niches.length > 0) {
+      setNicheOptions(niches);
+      setCategory(niches[0]);
+    } else {
+      setNicheOptions([...NICHE_CHIPS]);
+      setCategory("Gaming");
+    }
+  }, []);
 
   const onTranscript = useCallback((transcript: string) => {
     setText((prev) => appendDictation(prev, transcript));
@@ -32,6 +45,7 @@ function CaptureForm() {
     const idea: Idea = {
       id: createId("idea"),
       rawText: trimmed,
+      category: category || "default",
       status: "captured",
       createdAt: now,
       updatedAt: now,
@@ -47,6 +61,44 @@ function CaptureForm() {
         Anota la idea de tu próximo video. Luego eliges el enfoque y armamos la
         guía para grabar.
       </p>
+<<<<<<< HEAD
+
+      <p className="field-label">Categoría</p>
+      <div className="chip-grid" role="group" aria-label="Categoría del video">
+        {nicheOptions.map((niche) => {
+          const active = category === niche;
+          return (
+            <button
+              key={niche}
+              type="button"
+              className={`chip ${active ? "chip-active" : ""}`}
+              onClick={() => setCategory(niche)}
+            >
+              {niche}
+            </button>
+          );
+        })}
+      </div>
+
+      <textarea
+        id="idea"
+        className="field field-lg"
+        rows={5}
+        placeholder="¿De qué va el video?"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => {
+          if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+            e.preventDefault();
+            save();
+          }
+        }}
+        autoFocus
+        aria-label="Idea del nuevo video"
+      />
+
+      <DictationButton onTranscript={onTranscript} disabled={saving} />
+=======
       <div className="field-with-mic">
         <textarea
           id="idea"
@@ -66,6 +118,7 @@ function CaptureForm() {
         />
         <DictationButton onTranscript={onTranscript} disabled={saving} />
       </div>
+>>>>>>> origin/main
 
       <button
         type="button"

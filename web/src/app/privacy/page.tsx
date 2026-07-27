@@ -32,25 +32,26 @@ export default function PrivacyPage() {
             perfil de nicho que guardas en la app.
           </li>
           <li>
-            <strong>Uso / facturación:</strong> contadores de generaciones,
-            plan, IDs de Stripe necesarios para cobrar Pro.
+            <strong>Uso:</strong> contadores de generaciones del cupo mensual.
+            Si donas por PayPal, PayPal procesa el pago (no almacenamos datos de
+            tarjeta).
           </li>
           <li>
             <strong>Técnicos:</strong> logs de error, eventos de funnel
-            agregables (p. ej. onboarding, upgrade).
+            agregables (p. ej. onboarding, donación).
           </li>
         </ul>
         <h2>Para qué</h2>
         <p>
-          Prestar el servicio (sync, IA, límites de plan), mejorar el producto y
-          gestionar suscripciones. No vendemos tus ideas a terceros.
+          Prestar el servicio (sync, IA, límites de cupo) y mejorar el producto.
+          No vendemos tus ideas a terceros.
         </p>
         <h2>Proveedores</h2>
         <p>
           Usamos proveedores de infraestructura: Vercel (hosting), Supabase
-          (auth/base de datos), Stripe (pagos) y APIs de modelos de IA (p. ej.
-          Google Gemini y failovers configurados). Cada uno trata datos según
-          su propio encargo y ubicación.
+          (auth/base de datos), PayPal (donaciones opcionales) y APIs de modelos
+          de IA (p. ej. Google Gemini y failovers configurados). Cada uno trata
+          datos según su propio encargo y ubicación.
         </p>
         <h2>Retención y derechos</h2>
         <p>

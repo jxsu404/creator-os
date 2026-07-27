@@ -14,6 +14,7 @@ function OnboardingForm() {
   const [niches, setNiches] = useState<string[]>([]);
   const [custom, setCustom] = useState("");
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -36,10 +37,12 @@ function OnboardingForm() {
   }
 
   function continueOnboarding() {
+    if (busy) return;
     if (niches.length === 0 && !custom.trim()) {
       setError("Elige un chip o escribe algo.");
       return;
     }
+    setBusy(true);
     const existing = getProfile();
     const gaming = niches.some((n) => n.trim().toLowerCase() === "gaming");
     saveProfile({
@@ -82,7 +85,7 @@ function OnboardingForm() {
           Elige nichos. Así las ideas y consejos hablan tu idioma.
         </p>
 
-        <div className="chip-grid">
+        <div className="chip-grid" role="group" aria-label="Nichos de tu contenido">
           {NICHE_CHIPS.map((niche) => {
             const active = niches.includes(niche);
             return (
@@ -90,6 +93,7 @@ function OnboardingForm() {
                 key={niche}
                 type="button"
                 className={`chip ${active ? "chip-active" : ""}`}
+                aria-pressed={active}
                 onClick={() => toggleNiche(niche)}
               >
                 {niche}
@@ -108,14 +112,19 @@ function OnboardingForm() {
           aria-label="Más detalle"
         />
 
-        {error ? <p className="error">{error}</p> : null}
+        {error ? (
+          <p className="error" role="alert">
+            {error}
+          </p>
+        ) : null}
 
         <button
           type="button"
           className="btn-primary btn-block"
           onClick={continueOnboarding}
+          disabled={busy}
         >
-          Continuar
+          {busy ? "Guardando…" : "Continuar"}
         </button>
       </div>
     </AppShell>

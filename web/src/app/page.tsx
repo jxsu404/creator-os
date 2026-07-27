@@ -7,10 +7,12 @@ import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/components/AuthProvider";
 import { LandingPage } from "@/components/LandingPage";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
+import { applyGenerationBilling } from "@/lib/apply-generation-billing";
 import { quoteForSession, tipsForSession, type HomeTip } from "@/lib/home-copy";
 import { ideaHref } from "@/lib/idea-href";
 import { backfillIdeaTitles, ideaTitle } from "@/lib/idea-title";
 import { IdeaThumb } from "@/components/IdeaThumb";
+import { IdeaLabels } from "@/components/IdeaLabels";
 import {
   getIdeas,
   getProfile,
@@ -20,8 +22,20 @@ import {
 } from "@/lib/storage";
 import { onSynced } from "@/lib/sync";
 import type { CreatorProfile, Idea } from "@/lib/types";
-import { STATUS_LABEL } from "@/lib/types";
-import { withUser1Defaults } from "@/lib/profile-context";
+import {
+  groupIdeasByStatus,
+  STATUS_GROUP_LABEL,
+  STATUS_GROUP_TONE,
+  type IdeaStatusGroup,
+} from "@/lib/idea-labels";
+import { profileContextFor, withUser1Defaults } from "@/lib/profile-context";
+import {
+  buildTipsContext,
+  isHomeTipsCacheFresh,
+  normalizeTips,
+  readHomeTipsCache,
+  writeHomeTipsCache,
+} from "@/lib/tips-context";
 import { formatYtCount } from "@/lib/youtube-format";
 
 type PublishedItem = {
@@ -32,6 +46,7 @@ type PublishedItem = {
   /** Link interno a stats de YouTube (no abre YouTube externo). */
   youtube?: boolean;
   thumb?: string;
+  idea?: Idea;
 };
 
 let ytInFlight: Promise<void> | null = null;
@@ -46,7 +61,8 @@ function HomeHub() {
   const [quote, setQuote] = useState("");
   const [tips, setTips] = useState<HomeTip[]>([]);
   const backfillKeyRef = useRef("");
-  const copyReadyRef = useRef(false);
+  const quoteReadyRef = useRef(false);
+  const tipsSettledRef = useRef("");
 
   const refreshLocal = useCallback(() => {
     setIdeas(getIdeas().filter((i) => i.status !== "archived"));
@@ -57,7 +73,7 @@ function HomeHub() {
   const archiveIdea = useCallback(
     (idea: Idea) => {
       const ok = window.confirm(
-        "¿Archivar esta idea? Dejará de verse en el Home."
+        "¿Archivar esta idea? Dejará de verse en Inicio e Ideas."
       );
       if (!ok) return;
       patchIdea(idea.id, {
@@ -70,13 +86,77 @@ function HomeHub() {
   );
 
   useEffect(() => {
-    if (!hydrated || copyReadyRef.current) return;
-    // Leer de storage (ya hidratado) para no depender del setState async
+    if (!hydrated || quoteReadyRef.current) return;
     const niches = getProfile()?.niches || [];
     setQuote(quoteForSession(niches));
-    setTips(tipsForSession(niches, 3));
-    copyReadyRef.current = true;
+    quoteReadyRef.current = true;
   }, [hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+
+    const p = getProfile();
+    const allIdeas = getIdeas();
+    const niches = p?.niches || [];
+    const fallback = tipsForSession(niches, 3);
+    const ctx = buildTipsContext(p, allIdeas);
+
+    if (tipsSettledRef.current === ctx.fingerprint) {
+      return;
+    }
+
+    const cached = readHomeTipsCache();
+    if (cached && isHomeTipsCacheFresh(cached, ctx.fingerprint)) {
+      tipsSettledRef.current = ctx.fingerprint;
+      setTips(cached.tips.slice(0, 3));
+      return;
+    }
+
+    // Sin videos recientes: tips estáticos por nicho (sin gastar cuota).
+    if (!ctx.hasRecentSignal) {
+      tipsSettledRef.current = ctx.fingerprint;
+      setTips(fallback);
+      return;
+    }
+
+    // Mostrar estáticos mientras llega la IA.
+    setTips(fallback);
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/generate-tips", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            profileContext: p ? profileContextFor(p) : "",
+            recentContent: ctx.recentContent,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Error");
+        void applyGenerationBilling(data.billing);
+        const next = normalizeTips(data.tips);
+        if (next.length < 3) throw new Error("tips incompletos");
+        if (cancelled) return;
+        writeHomeTipsCache({
+          fingerprint: ctx.fingerprint,
+          generatedAt: new Date().toISOString(),
+          tips: next,
+        });
+        tipsSettledRef.current = ctx.fingerprint;
+        setTips(next);
+      } catch {
+        if (cancelled) return;
+        tipsSettledRef.current = ctx.fingerprint;
+        setTips(fallback);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [hydrated, profile, ideas]);
 
   const syncYoutube = useCallback(async (force = false) => {
     if (ytInFlight) await ytInFlight;
@@ -174,11 +254,11 @@ function HomeHub() {
     );
   }
 
-  const recent = ideas
-    .filter((i) => i.status !== "recorded")
-    .slice(0, 4);
-
-  const recorded = ideas.filter((i) => i.status === "recorded").slice(0, 4);
+  const niches = profile?.niches || [];
+  const grouped = groupIdeasByStatus(ideas);
+  const pending = grouped.pending.slice(0, 4);
+  const ready = grouped.ready.slice(0, 4);
+  const recordedIdeas = grouped.recorded.slice(0, 4);
   const ytVideos = profile?.youtubeCache?.videos || [];
 
   const published: PublishedItem[] = [
@@ -197,16 +277,25 @@ function HomeHub() {
         thumb: v.thumbnailUrl,
       };
     }),
-    ...recorded.map((idea) => ({
+    ...recordedIdeas.map((idea) => ({
       key: idea.id,
       title: ideaTitle(idea, 80),
       meta: "En Ideazo",
       href: ideaHref(idea),
       thumb: idea.thumbnailUrl?.trim() || undefined,
+      idea,
     })),
   ].slice(0, 6);
 
   const ytConnected = Boolean(profile?.youtube?.channelId);
+  const hasAnyIdeas = ideas.length > 0;
+  const statusSections: {
+    key: IdeaStatusGroup;
+    items: Idea[];
+  }[] = [
+    { key: "pending", items: pending },
+    { key: "ready", items: ready },
+  ];
 
   return (
     <AppShell>
@@ -214,59 +303,76 @@ function HomeHub() {
         <p className="home-quote-text">{quote}</p>
       </section>
 
-      <section className="section">
-        <div className="section-head">
-          <h2 className="section-title">Ideas recientes</h2>
-          <Link href="/ideas" className="section-link">
-            Ver todas
-          </Link>
-        </div>
-        {recent.length === 0 ? (
+      {!hasAnyIdeas ? (
+        <section className="section">
+          <div className="section-head">
+            <h2 className="section-title">Ideas</h2>
+            <Link href="/ideas" className="section-link">
+              Ver todas
+            </Link>
+          </div>
           <p className="muted">
-            Aún no hay ideas. Toca el{" "}
+            Aún no hay ideas. Toca{" "}
             <Link href="/capture" className="inline-link">
-              + del centro
+              Nueva idea
             </Link>{" "}
             para crear tu primer video.
           </p>
-        ) : (
-          <div className="stack">
-            {recent.map((idea) => (
-              <div key={idea.id} className="idea-row idea-row-media">
-                <IdeaThumb idea={idea} niches={profile?.niches || []} />
-                <Link href={ideaHref(idea)} className="idea-row-body">
-                  <p className="idea-text">{ideaTitle(idea)}</p>
-                  <span className="idea-meta">
-                    {STATUS_LABEL[idea.status]}
-                  </span>
+        </section>
+      ) : (
+        statusSections.map(({ key, items }) => {
+          if (items.length === 0) return null;
+          const tone = STATUS_GROUP_TONE[key];
+          return (
+            <section key={key} className="section">
+              <div className="section-head">
+                <h2 className="section-title">
+                  <span className={`status-group-dot tone-${tone}`} aria-hidden />
+                  {STATUS_GROUP_LABEL[key]}
+                </h2>
+                <Link href="/ideas" className="section-link">
+                  Ver todas
                 </Link>
-                <button
-                  type="button"
-                  className="section-link"
-                  onClick={() => archiveIdea(idea)}
-                >
-                  Archivar
-                </button>
               </div>
-            ))}
-          </div>
-        )}
-        <Link href="/ideas" className="text-link">
-          Ver todas las ideas
-        </Link>
-      </section>
+              <div className="stack">
+                {items.map((idea) => (
+                  <div key={idea.id} className="idea-row idea-row-media">
+                    <IdeaThumb idea={idea} niches={niches} />
+                    <Link href={ideaHref(idea)} className="idea-row-body">
+                      <p className="idea-text">{ideaTitle(idea)}</p>
+                      <IdeaLabels idea={idea} niches={niches} />
+                    </Link>
+                    <button
+                      type="button"
+                      className="section-link"
+                      onClick={() => archiveIdea(idea)}
+                    >
+                      Archivar
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </section>
+          );
+        })
+      )}
 
       <section className="section">
         <div className="section-head">
-          <h2 className="section-title">Publicados</h2>
+          <h2 className="section-title">
+            <span className="status-group-dot tone-green" aria-hidden />
+            Publicados
+          </h2>
           {ytConnected ? (
             <button
               type="button"
               className="section-link"
               disabled={ytLoading}
+              aria-busy={ytLoading}
+              aria-label={ytLoading ? "Actualizando videos" : "Actualizar videos"}
               onClick={() => void syncYoutube(true)}
             >
-              {ytLoading ? "…" : "Actualizar"}
+              {ytLoading ? "Actualizando…" : "Actualizar"}
             </button>
           ) : (
             <Link href="/profile/conexiones" className="section-link">
@@ -275,7 +381,11 @@ function HomeHub() {
           )}
         </div>
 
-        {ytError ? <p className="error">{ytError}</p> : null}
+        {ytError ? (
+          <p className="error" role="alert">
+            {ytError}
+          </p>
+        ) : null}
 
         {!ytConnected && published.length === 0 ? (
           <p className="muted">
@@ -292,7 +402,9 @@ function HomeHub() {
           <div className="stack">
             {published.map((item) => (
               <Link key={item.key} href={item.href} className="pub-row">
-                {item.thumb ? (
+                {item.idea ? (
+                  <IdeaThumb idea={item.idea} niches={niches} size="sm" />
+                ) : item.thumb ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={item.thumb}
@@ -306,7 +418,11 @@ function HomeHub() {
                 )}
                 <div className="pub-body">
                   <p className="pub-title">{item.title}</p>
-                  <span className="idea-meta">{item.meta}</span>
+                  {item.idea ? (
+                    <IdeaLabels idea={item.idea} niches={niches} />
+                  ) : (
+                    <span className="idea-meta">{item.meta}</span>
+                  )}
                 </div>
                 {item.youtube ? (
                   <span className="chevron" aria-hidden>
@@ -317,6 +433,11 @@ function HomeHub() {
             ))}
           </div>
         )}
+        {hasAnyIdeas ? (
+          <Link href="/ideas" className="text-link">
+            Ver todas las ideas
+          </Link>
+        ) : null}
       </section>
 
       <section className="section">
@@ -335,9 +456,11 @@ function HomeHub() {
 }
 
 export default function HomePage() {
-  const { configured, loading, user } = useAuth();
+  const { configured, user } = useAuth();
 
-  if (configured && !loading && !user) {
+  // Anónimos (y primer paint mientras resuelve sesión sin user): nunca
+  // "Cargando cuenta…" dentro del shell de la app.
+  if (configured && !user) {
     return <LandingPage />;
   }
 

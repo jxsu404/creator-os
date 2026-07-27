@@ -118,7 +118,7 @@ function IdeaDetail() {
 
   function archive() {
     const ok = window.confirm(
-      "¿Archivar esta idea? Dejará de verse en el Home."
+      "¿Archivar esta idea? Dejará de verse en Inicio e Ideas."
     );
     if (!ok) return;
     if (saveTimer.current) {
@@ -136,9 +136,16 @@ function IdeaDetail() {
 
   function restore() {
     const current = ideaRef.current ?? idea!;
+    // Inferir estado útil: no forzar siempre "captured" si ya hay guía.
+    let status: Idea["status"] = "captured";
+    if (current.draft) {
+      status = "in_progress";
+    } else if (current.selectedDirectionId) {
+      status = "in_progress";
+    }
     flushIdea({
       ...current,
-      status: "captured",
+      status,
       updatedAt: new Date().toISOString(),
     });
   }
@@ -205,7 +212,7 @@ function IdeaDetail() {
           Ya lo grabé
         </button>
         <button type="button" className="btn-danger btn-block" onClick={archive}>
-          Descartar
+          Archivar
         </button>
       </>
     ) : idea.status === "recorded" ? (
@@ -235,6 +242,18 @@ function IdeaDetail() {
         <button type="button" className="btn-danger btn-block" onClick={archive}>
           Archivar
         </button>
+      </>
+    ) : idea.draft ? (
+      <>
+        <button type="button" className="btn-primary btn-block" onClick={restore}>
+          Restaurar
+        </button>
+        <Link
+          href={`/ideas/${idea.id}/draft`}
+          className="btn-secondary btn-block"
+        >
+          Abrir guía
+        </Link>
       </>
     ) : (
       <button type="button" className="btn-primary btn-block" onClick={restore}>

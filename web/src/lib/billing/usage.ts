@@ -15,12 +15,26 @@ export class UsageLimitError extends Error {
     super(
       snapshot.plan === "pro"
         ? "Llegaste al límite suave de Ideazo Pro este mes. Escríbenos si necesitas más."
-        : "Agotaste las generaciones free de este mes. Pasa a Ideazo Pro para seguir."
+        : "Agotaste las generaciones free de este mes. Si Ideazo te sirve, puedes apoyar el proyecto con una donación."
     );
     this.name = "UsageLimitError";
     this.snapshot = snapshot;
   }
 }
+
+export class UsagePersistenceError extends Error {
+  readonly code = "usage_persistence";
+  readonly status = 500;
+
+  constructor() {
+    super(
+      "No pude registrar tu generación. Intenta de nuevo en unos segundos."
+    );
+    this.name = "UsagePersistenceError";
+  }
+}
+
+type DbErrorLike = { message?: string; code?: string } | null | undefined;
 
 type SubRow = {
   plan: string;
@@ -28,6 +42,37 @@ type SubRow = {
   stripe_customer_id: string | null;
   current_period_end: string | null;
 };
+
+/** Tabla/RPC aún no migrados (dogfood local sin schema). */
+export function isSchemaMissingError(error: DbErrorLike): boolean {
+  if (!error) return false;
+  const msg = (error.message || "").toLowerCase();
+  const code = error.code || "";
+  return (
+    code === "42P01" ||
+    code === "PGRST205" ||
+    msg.includes("does not exist") ||
+    (msg.includes("relation") && msg.includes("usage_monthly")) ||
+    msg.includes("could not find the function") ||
+    msg.includes("increment_ai_generation")
+  );
+}
+
+/**
+ * Fail-open solo en local/dev o cuando el schema claramente no existe.
+ * En producción con tablas presentes, un fallo de RPC+upsert debe bloquear.
+ */
+export function shouldFailOpenUsagePersistence(options: {
+  nodeEnv: string | undefined;
+  rpcError: DbErrorLike;
+  upsertError: DbErrorLike;
+}): boolean {
+  if (options.nodeEnv !== "production") return true;
+  return (
+    isSchemaMissingError(options.rpcError) ||
+    isSchemaMissingError(options.upsertError)
+  );
+}
 
 function asPlan(raw: string | null | undefined): PlanId {
   return raw === "pro" ? "pro" : "free";
@@ -127,8 +172,17 @@ export async function consumeGeneration(
     );
     if (upsertErr) {
       console.error("[billing] increment failed", error, upsertErr);
-      // Fail open en dogfood si el schema no está: no bloquear al fundador.
-      return before;
+      if (
+        shouldFailOpenUsagePersistence({
+          nodeEnv: process.env.NODE_ENV,
+          rpcError: error,
+          upsertError: upsertErr,
+        })
+      ) {
+        // Fail-open: NODE_ENV !== production, o schema sin migrar (dogfood local).
+        return before;
+      }
+      throw new UsagePersistenceError();
     }
     return {
       ...before,
@@ -150,5 +204,13 @@ export function usageLimitResponse(err: UsageLimitError) {
     code: err.code,
     upgrade: err.snapshot.plan === "free",
     billing: err.snapshot,
+  };
+}
+
+
+export function usagePersistenceResponse(err: UsagePersistenceError) {
+  return {
+    error: err.message,
+    code: err.code,
   };
 }

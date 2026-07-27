@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
+import { inviteOnlyEnabled, userHasInviteAccess } from "@/lib/invite-access";
+import { rateLimit } from "@/lib/rate-limit";
 import { getApiAuth } from "@/lib/supabase/admin";
-
-function inviteOnlyEnabled() {
-  return process.env.INVITE_ONLY === "true" || process.env.INVITE_ONLY === "1";
-}
 
 export async function GET() {
   const auth = await getApiAuth();
@@ -23,16 +21,12 @@ export async function GET() {
     });
   }
 
-  const { data } = await auth.supabase
-    .from("user_access")
-    .select("user_id")
-    .eq("user_id", auth.user.id)
-    .maybeSingle();
+  const granted = await userHasInviteAccess(auth.supabase, auth.user.id);
 
   return NextResponse.json({
     inviteOnly: true,
     authenticated: true,
-    granted: Boolean(data),
+    granted,
   });
 }
 
@@ -40,6 +34,22 @@ export async function POST(request: Request) {
   const auth = await getApiAuth();
   if (!auth) {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+  }
+
+  const limited = rateLimit(`invite:${auth.user.id}`, {
+    limit: 10,
+    windowMs: 60_000,
+  });
+  if (!limited.ok) {
+    return NextResponse.json(
+      { error: "Demasiados intentos. Espera un momento e inténtalo de nuevo." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(Math.ceil(limited.retryAfterMs / 1000)),
+        },
+      }
+    );
   }
 
   const body = (await request.json().catch(() => ({}))) as { code?: string };

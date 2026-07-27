@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
 import { generateJson, parseJsonLoose } from "@/lib/ai";
+import {
+  AI_INPUT_CAPS,
+  aiRouteError,
+  rejectIfTooLong,
+} from "@/lib/ai-input";
 import { gateAiGeneration } from "@/lib/billing/gate";
 
 export async function POST(request: Request) {
   try {
-    const denied = await gateAiGeneration();
-    if (denied) return denied;
+    const gate = await gateAiGeneration();
+    if (gate.blocked) return gate.blocked;
 
     const body = await request.json();
     const { ideaText } = body as { ideaText?: string };
@@ -13,6 +18,9 @@ export async function POST(request: Request) {
     if (!ideaText?.trim()) {
       return NextResponse.json({ error: "Falta la idea." }, { status: 400 });
     }
+
+    const tooLong = rejectIfTooLong(ideaText, AI_INPUT_CAPS.ideaText, "la idea");
+    if (tooLong) return tooLong;
 
     const prompt = `Eres un compañero creativo para creadores de TikTok/Reels/Shorts.
 A partir de una idea de video escrita de forma rápida y desordenada, eliges UN título corto y claro para identificarla en una lista.
@@ -38,10 +46,8 @@ ${ideaText.trim()}`;
       );
     }
 
-    return NextResponse.json({ title });
+    return NextResponse.json({ title, billing: gate.billing });
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Error al generar el título.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return aiRouteError("generate-title", err, "No pudimos generar el título. Intenta de nuevo en un momento.");
   }
 }

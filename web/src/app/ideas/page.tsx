@@ -4,39 +4,29 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
-import { IdeaThumb } from "@/components/IdeaThumb";
+import { IdeaRow } from "@/components/IdeaRow";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
-import { ideaHref } from "@/lib/idea-href";
-import { backfillIdeaTitles, ideaTitle } from "@/lib/idea-title";
+import {
+  groupIdeasByStatus,
+  STATUS_GROUP_LABEL,
+  STATUS_GROUP_TONE,
+  type IdeaStatusGroup,
+} from "@/lib/idea-labels";
+import { backfillIdeaTitles } from "@/lib/idea-title";
 import { getIdeas, getProfile } from "@/lib/storage";
 import { onSynced } from "@/lib/sync";
 import type { Idea } from "@/lib/types";
-import { STATUS_LABEL } from "@/lib/types";
 
 const READY_BANNER_KEY = "creatoros_ready_banner";
 const RECORDED_BANNER_KEY = "creatoros_recorded_banner";
 
-function IdeaRow({ idea, niches }: { idea: Idea; niches: string[] }) {
-  return (
-    <Link href={ideaHref(idea)} className="idea-row idea-row-media">
-      <IdeaThumb idea={idea} niches={niches} />
-      <div className="idea-row-body">
-        <p className="idea-text">{ideaTitle(idea)}</p>
-        <span className="idea-meta">{STATUS_LABEL[idea.status]}</span>
-      </div>
-      <span className="chevron" aria-hidden>
-        →
-      </span>
-    </Link>
-  );
-}
+const SECTION_ORDER: IdeaStatusGroup[] = ["pending", "ready", "recorded"];
 
 function IdeasList() {
   const pathname = usePathname();
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [niches, setNiches] = useState<string[]>([]);
   const [banner, setBanner] = useState("");
-  const [showDone, setShowDone] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const backfillKeyRef = useRef("");
 
@@ -100,8 +90,9 @@ function IdeasList() {
     );
   }
 
-  const active = ideas.filter((i) => i.status !== "recorded");
-  const recorded = ideas.filter((i) => i.status === "recorded");
+  const grouped = groupIdeasByStatus(ideas);
+  const total =
+    grouped.pending.length + grouped.ready.length + grouped.recorded.length;
 
   return (
     <AppShell title="Ideas">
@@ -109,40 +100,39 @@ function IdeasList() {
         Nueva idea
       </Link>
 
-      {banner ? <p className="banner-success">{banner}</p> : null}
+      {banner ? (
+        <p className="banner-success" role="status" aria-live="polite">
+          {banner}
+        </p>
+      ) : null}
 
-      {active.length === 0 && recorded.length === 0 ? (
+      {total === 0 ? (
         <p className="empty-state">Captura una idea para empezar.</p>
       ) : (
-        <>
-          {active.length > 0 ? (
-            <section className="section">
-              <div className="stack">
-                {active.map((idea) => (
+        SECTION_ORDER.map((key) => {
+          const items = grouped[key];
+          if (items.length === 0) return null;
+          const tone = STATUS_GROUP_TONE[key];
+          return (
+            <section key={key} className="section">
+              <div className="section-head">
+                <h2 className="section-title">
+                  <span
+                    className={`status-group-dot tone-${tone}`}
+                    aria-hidden
+                  />
+                  {STATUS_GROUP_LABEL[key]}
+                  <span className="section-count">{items.length}</span>
+                </h2>
+              </div>
+              <div className={`stack${key === "recorded" ? " stack-quiet" : ""}`}>
+                {items.map((idea) => (
                   <IdeaRow key={idea.id} idea={idea} niches={niches} />
                 ))}
               </div>
             </section>
-          ) : null}
-
-          {recorded.length > 0 ? (
-            <button
-              type="button"
-              className="text-link"
-              onClick={() => setShowDone((v) => !v)}
-            >
-              {showDone ? "Ocultar grabadas" : `Grabadas (${recorded.length})`}
-            </button>
-          ) : null}
-
-          {showDone ? (
-            <div className="stack stack-quiet">
-              {recorded.map((idea) => (
-                <IdeaRow key={idea.id} idea={idea} niches={niches} />
-              ))}
-            </div>
-          ) : null}
-        </>
+          );
+        })
       )}
     </AppShell>
   );

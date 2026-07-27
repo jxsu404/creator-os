@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 import { generateJson, parseJsonLoose } from "@/lib/ai";
+import {
+  AI_INPUT_CAPS,
+  aiRouteError,
+  rejectIfAnyTooLong,
+} from "@/lib/ai-input";
 import { gateAiGeneration } from "@/lib/billing/gate";
 
 export async function POST(request: Request) {
@@ -16,6 +21,12 @@ export async function POST(request: Request) {
     if (!ideaText?.trim()) {
       return NextResponse.json({ error: "Falta la idea." }, { status: 400 });
     }
+
+    const tooLong = rejectIfAnyTooLong([
+      { value: ideaText, max: AI_INPUT_CAPS.ideaText, label: "la idea" },
+      { value: profileContext, max: AI_INPUT_CAPS.profileContext, label: "el contexto del perfil" },
+    ]);
+    if (tooLong) return tooLong;
 
     const prompt = `Eres un compañero creativo para creadores de TikTok/Reels/Shorts.
 Generas exactamente 3 enfoques DISTINTOS para convertir una idea vaga en un video short-form.
@@ -77,8 +88,6 @@ ${ideaText.trim()}`;
       billing: gate.billing,
     });
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Error al generar enfoques.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return aiRouteError("generate-directions", err, "No pudimos generar los enfoques. Intenta de nuevo en un momento.");
   }
 }

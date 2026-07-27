@@ -11,6 +11,7 @@ import { quoteForSession, tipsForSession, type HomeTip } from "@/lib/home-copy";
 import { ideaHref } from "@/lib/idea-href";
 import { backfillIdeaTitles, ideaTitle } from "@/lib/idea-title";
 import { IdeaThumb } from "@/components/IdeaThumb";
+import { IdeaLabels } from "@/components/IdeaLabels";
 import {
   getIdeas,
   getProfile,
@@ -20,7 +21,12 @@ import {
 } from "@/lib/storage";
 import { onSynced } from "@/lib/sync";
 import type { CreatorProfile, Idea } from "@/lib/types";
-import { STATUS_LABEL } from "@/lib/types";
+import {
+  groupIdeasByStatus,
+  STATUS_GROUP_LABEL,
+  STATUS_GROUP_TONE,
+  type IdeaStatusGroup,
+} from "@/lib/idea-labels";
 import { withUser1Defaults } from "@/lib/profile-context";
 import { formatYtCount } from "@/lib/youtube-format";
 
@@ -32,6 +38,7 @@ type PublishedItem = {
   /** Link interno a stats de YouTube (no abre YouTube externo). */
   youtube?: boolean;
   thumb?: string;
+  idea?: Idea;
 };
 
 let ytInFlight: Promise<void> | null = null;
@@ -174,11 +181,11 @@ function HomeHub() {
     );
   }
 
-  const recent = ideas
-    .filter((i) => i.status !== "recorded")
-    .slice(0, 4);
-
-  const recorded = ideas.filter((i) => i.status === "recorded").slice(0, 4);
+  const niches = profile?.niches || [];
+  const grouped = groupIdeasByStatus(ideas);
+  const pending = grouped.pending.slice(0, 4);
+  const ready = grouped.ready.slice(0, 4);
+  const recordedIdeas = grouped.recorded.slice(0, 4);
   const ytVideos = profile?.youtubeCache?.videos || [];
 
   const published: PublishedItem[] = [
@@ -197,16 +204,25 @@ function HomeHub() {
         thumb: v.thumbnailUrl,
       };
     }),
-    ...recorded.map((idea) => ({
+    ...recordedIdeas.map((idea) => ({
       key: idea.id,
       title: ideaTitle(idea, 80),
       meta: "En Ideazo",
       href: ideaHref(idea),
       thumb: idea.thumbnailUrl?.trim() || undefined,
+      idea,
     })),
   ].slice(0, 6);
 
   const ytConnected = Boolean(profile?.youtube?.channelId);
+  const hasAnyIdeas = ideas.length > 0;
+  const statusSections: {
+    key: IdeaStatusGroup;
+    items: Idea[];
+  }[] = [
+    { key: "pending", items: pending },
+    { key: "ready", items: ready },
+  ];
 
   return (
     <AppShell>
@@ -214,14 +230,14 @@ function HomeHub() {
         <p className="home-quote-text">{quote}</p>
       </section>
 
-      <section className="section">
-        <div className="section-head">
-          <h2 className="section-title">Ideas recientes</h2>
-          <Link href="/ideas" className="section-link">
-            Ver todas
-          </Link>
-        </div>
-        {recent.length === 0 ? (
+      {!hasAnyIdeas ? (
+        <section className="section">
+          <div className="section-head">
+            <h2 className="section-title">Ideas</h2>
+            <Link href="/ideas" className="section-link">
+              Ver todas
+            </Link>
+          </div>
           <p className="muted">
             Aún no hay ideas. Toca el{" "}
             <Link href="/capture" className="inline-link">
@@ -229,36 +245,51 @@ function HomeHub() {
             </Link>{" "}
             para crear tu primer video.
           </p>
-        ) : (
-          <div className="stack">
-            {recent.map((idea) => (
-              <div key={idea.id} className="idea-row idea-row-media">
-                <IdeaThumb idea={idea} niches={profile?.niches || []} />
-                <Link href={ideaHref(idea)} className="idea-row-body">
-                  <p className="idea-text">{ideaTitle(idea)}</p>
-                  <span className="idea-meta">
-                    {STATUS_LABEL[idea.status]}
-                  </span>
+        </section>
+      ) : (
+        statusSections.map(({ key, items }) => {
+          if (items.length === 0) return null;
+          const tone = STATUS_GROUP_TONE[key];
+          return (
+            <section key={key} className="section">
+              <div className="section-head">
+                <h2 className="section-title">
+                  <span className={`status-group-dot tone-${tone}`} aria-hidden />
+                  {STATUS_GROUP_LABEL[key]}
+                </h2>
+                <Link href="/ideas" className="section-link">
+                  Ver todas
                 </Link>
-                <button
-                  type="button"
-                  className="section-link"
-                  onClick={() => archiveIdea(idea)}
-                >
-                  Archivar
-                </button>
               </div>
-            ))}
-          </div>
-        )}
-        <Link href="/ideas" className="text-link">
-          Ver todas las ideas
-        </Link>
-      </section>
+              <div className="stack">
+                {items.map((idea) => (
+                  <div key={idea.id} className="idea-row idea-row-media">
+                    <IdeaThumb idea={idea} niches={niches} />
+                    <Link href={ideaHref(idea)} className="idea-row-body">
+                      <p className="idea-text">{ideaTitle(idea)}</p>
+                      <IdeaLabels idea={idea} niches={niches} />
+                    </Link>
+                    <button
+                      type="button"
+                      className="section-link"
+                      onClick={() => archiveIdea(idea)}
+                    >
+                      Archivar
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </section>
+          );
+        })
+      )}
 
       <section className="section">
         <div className="section-head">
-          <h2 className="section-title">Publicados</h2>
+          <h2 className="section-title">
+            <span className="status-group-dot tone-green" aria-hidden />
+            Publicados
+          </h2>
           {ytConnected ? (
             <button
               type="button"
@@ -292,7 +323,9 @@ function HomeHub() {
           <div className="stack">
             {published.map((item) => (
               <Link key={item.key} href={item.href} className="pub-row">
-                {item.thumb ? (
+                {item.idea ? (
+                  <IdeaThumb idea={item.idea} niches={niches} size="sm" />
+                ) : item.thumb ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={item.thumb}
@@ -306,7 +339,11 @@ function HomeHub() {
                 )}
                 <div className="pub-body">
                   <p className="pub-title">{item.title}</p>
-                  <span className="idea-meta">{item.meta}</span>
+                  {item.idea ? (
+                    <IdeaLabels idea={item.idea} niches={niches} />
+                  ) : (
+                    <span className="idea-meta">{item.meta}</span>
+                  )}
                 </div>
                 {item.youtube ? (
                   <span className="chevron" aria-hidden>
@@ -317,6 +354,11 @@ function HomeHub() {
             ))}
           </div>
         )}
+        {hasAnyIdeas ? (
+          <Link href="/ideas" className="text-link">
+            Ver todas las ideas
+          </Link>
+        ) : null}
       </section>
 
       <section className="section">

@@ -159,7 +159,7 @@ function LoginForm() {
       <main className="auth-panel">
         <header className="auth-top">
           <p className="auth-brand">Creator OS</p>
-          <p className="auth-kicker">Para creadores short-form</p>
+          <p className="auth-kicker">Para creadores de TikTok, Reels y Shorts</p>
         </header>
 
         <div className="auth-copy">

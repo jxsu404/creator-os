@@ -42,12 +42,16 @@ function CaptureForm() {
   }
 
   return (
-    <AppShell title="Capturar" backHref="/ideas">
+    <AppShell title="Nueva idea" backHref="/">
+      <p className="muted">
+        Anota la idea de tu próximo video. Luego eliges el enfoque y armamos la
+        guía para grabar.
+      </p>
       <textarea
         id="idea"
         className="field field-lg"
         rows={5}
-        placeholder="¿Qué se te ocurrió? Escribe o dicta."
+        placeholder="¿De qué va el video? Escribe o dicta la idea…"
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => {
@@ -57,7 +61,7 @@ function CaptureForm() {
           }
         }}
         autoFocus
-        aria-label="Idea"
+        aria-label="Idea del nuevo video"
       />
 
       <DictationButton onTranscript={onTranscript} disabled={saving} />
@@ -68,7 +72,7 @@ function CaptureForm() {
         disabled={!text.trim() || saving}
         onClick={save}
       >
-        {saving ? "Guardando…" : "Guardar"}
+        {saving ? "Guardando…" : "Crear idea"}
       </button>
     </AppShell>
   );

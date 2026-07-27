@@ -96,8 +96,8 @@ function ConnectionsSettings() {
       <section className="section">
         <h2 className="section-title">YouTube</h2>
         <p className="muted">
-          Pega el @handle, la URL del canal o el ID (UC…). Usa una API key
-          gratis de Google Cloud (YouTube Data API v3).
+          Pega tu @, la URL del canal o el ID. Conectamos con YouTube para
+          mostrar tus videos aquí.
         </p>
 
         {yt ? (
@@ -147,8 +147,7 @@ function ConnectionsSettings() {
       <section className="section">
         <h2 className="section-title">TikTok</h2>
         <p className="muted">
-          Pronto. La API de TikTok no permite listar videos de forma simple en
-          dogfood gratis todavía.
+          Pronto podrás ver también tus videos de TikTok por aquí.
         </p>
         <button type="button" className="btn-secondary btn-block" disabled>
           Conectar TikTok

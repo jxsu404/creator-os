@@ -206,7 +206,7 @@ function DraftPreview() {
         {previewOpen ? (
           <div className="preview-body">
             <p className="preview-plain">
-              <strong>Hook</strong>
+              <strong>Gancho</strong>
               {"\n"}
               {draft.hook || "—"}
             </p>

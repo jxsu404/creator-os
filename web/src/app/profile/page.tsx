@@ -286,7 +286,7 @@ function ProfileHub() {
           <div className="plan-pro-teaser">
             <p className="plan-pro-title">Próximamente · Creator OS Pro</p>
             <p className="plan-pro-desc">
-              Mejores modelos y más capacidad para generar sin parar.
+              Más potencia y más capacidad para crear sin frenar.
             </p>
           </div>
         </div>
@@ -303,8 +303,8 @@ function ProfileHub() {
                 </p>
                 <p className="settings-desc">
                   {isCloudSyncEnabled()
-                    ? "Sync nube activo · celular ↔ PC"
-                    : "Conectando sync…"}
+                    ? "Tus datos van entre celular y PC"
+                    : "Conectando tu cuenta…"}
                 </p>
               </div>
             </div>

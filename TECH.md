@@ -3,7 +3,7 @@
 **Fecha:** 26 de julio de 2026  
 **Nombre:** Creator OS (provisional)  
 **Versión:** **0.1.1**  
-**Fase:** Primer build para Usuario 1 (dogfooding)
+**Fase:** App pública en Vercel (cuentas por usuario)
 
 ---
 
@@ -13,14 +13,14 @@
 |---|---|---|
 | App | **Next.js** (App Router) + TypeScript | Web móvil-first rápida de iterar; una sola codebase |
 | UI | React + CSS modules / CSS variables | Simple, sin design system pesado |
-| Datos (fase dogfood) | **localStorage** + capa `storage` abstraída | Cero setup de DB para empezar a usar hoy; migrable |
-| IA | **Google Gemini** (API gratuita AI Studio, `GEMINI_API_KEY`) | Dogfooding sin coste; OpenAI queda fuera del stack por defecto |
-| Auth | Ninguna en dogfood local | Un solo usuario (tú); añadir después si hace falta |
-| Deploy | **Vercel** (hobby) — ver `DEPLOY.md` | HTTPS + URL pública; Root Directory = `web/` |
+| Datos | **localStorage** + sync opcional Supabase | Empieza simple; migrable |
+| IA | **Google Gemini** (+ failover) | Cuota compartida del plan; vigilar límites |
+| Auth | Supabase (Google / email) cuando está configurado | Cada cuenta con su workspace |
+| Deploy | **Vercel** — ver `DEPLOY.md` | HTTPS + URL pública; Root Directory = `web/` |
 
 ### Principio de coste
 
-> Stack de dogfooding = **gratis**: localStorage (o Supabase free), Next.js / Vercel hobby, Gemini free tier.  
+> Stack base = **gratis**: localStorage (o Supabase free), Next.js / Vercel hobby, Gemini free tier.  
 > Los free tiers tienen límites de ritmo; en producción **todos los visitantes comparten** las API keys del proyecto — vigila cuotas.
 
 ### Principios técnicos alineados al producto

@@ -2,7 +2,7 @@ import type { GameBrief, RecordingStyle } from "./types";
 import { BRAND_KIT, SEED_GAMES, SHORT_VOICE_RULES } from "./content-os-seed";
 
 /**
- * Defaults Usuario 1 — alineados a Content OS (Notion).
+ * Defaults del perfil fundador (modo content_os / importación).
  */
 export const DEFAULT_GAME_BRIEF: GameBrief =
   SEED_GAMES.find((g) => g.id === "anime-fighting-simulator")!.brief;
@@ -11,26 +11,26 @@ export const DEFAULT_GAMES_LIBRARY: GameBrief[] = SEED_GAMES.map((g) => g.brief)
 
 export const DEFAULT_RECORDING_STYLE: RecordingStyle = {
   howIRecord:
-    "Josué Valles / Crimson Core. Gameplay Roblox en pantalla + voz en off. Short-form vertical (TikTok + YouTube Shorts) es el loop de Creator OS; long-form vive en Notion Content OS. Ritmo ágil: gancho en los primeros segundos, una idea clara, CTA Crimson Core cuando encaje.",
+    "Josué Valles / Crimson Core. Gameplay de Roblox en pantalla con voz en off. Videos verticales cortos (TikTok y YouTube Shorts). Ritmo ágil: gancho al inicio, una idea clara, y mención a Crimson Core cuando encaje.",
   typicalShots: [
-    "Hook visual fuerte (combate, poder nuevo, fail→win, UI del update, Torre)",
+    "Apertura visual fuerte (combate, poder nuevo, fail→win, menú del update, Torre)",
     "Gameplay mientras explico (ruta spawn → isla, raid, menú)",
     "Insertos de inventario / stats / NPC de canje",
-    "Clip de resultado (unlock, kill, before/after, tier moment)",
-    "Cierre con CTA verbal + loop visual si encaja",
+    "Clip del resultado (unlock, kill, before/after)",
+    "Cierre hablando a cámara o con loop visual si encaja",
   ],
   voiceAndPacing: [
     "Tono cercano gamer hispano: directo, claro, sin anuncio.",
     "Guías = pasos concretos. Rankings = criterio + #1 + cómo conseguirlo.",
-    "Updates = qué conseguir primero. Errors = problema → consecuencia → fix.",
+    "Updates = qué conseguir primero. Errors = problema → consecuencia → solución.",
     ...SHORT_VOICE_RULES,
   ].join(" "),
   avoid: [
-    "No asumir facecam salvo que la idea lo pida.",
-    "No guiones long-form (1200+ palabras) en este producto — eso es Notion.",
+    "No asumir cámara al frente salvo que la idea lo pida.",
+    "No guiones de video largo (1200+ palabras) en este producto.",
     "No intros largas (“hola chicos bienvenidos…”).",
-    "No editar en CapCut como parte del guion; solo qué decir y qué mostrar.",
-    "No omitir CTA Crimson Core si el ángulo es comunidad / farm en grupo.",
+    "No meter edición de CapCut en el guion; solo qué decir y qué mostrar.",
+    "No omitir Crimson Core si el ángulo es comunidad o farm en grupo.",
   ],
   videoTypes: [
     "Guide",

@@ -1,10 +1,6 @@
 /**
- * Snapshot migrado desde Notion Content OS (Josué Valles / Crimson Core).
- * Fuente: https://app.notion.com/p/3a486f5337a681d0b2bfe2b7c657abbf
- * Fecha de extracción: 2026-07-26
- *
- * Creator OS NO clona el pipeline long-form de Notion.
- * Aquí entra: brand, juegos, CTAs, hooks probados, ideas activas y memoria de piezas.
+ * Snapshot de marca, juegos e ideas del fundador (import opcional).
+ * No se aplica a cuentas nuevas en blanco.
  */
 
 import type { ContentAngle, GameBrief, Idea, IdeaStatus } from "./types";
@@ -66,7 +62,7 @@ export const BRAND_KIT: BrandKit = {
   },
 };
 
-/** Hooks probados / de Content OS (para tono de la IA) */
+/** Ganchos de tono para la IA (perfil fundador) */
 export const PROVEN_HOOKS: string[] = [
   "¿Siempre intentas hacer a Kurama tú solo… y terminas muriendo una y otra vez?",
   "¡La tercera actualización de Anime Fighting Simulator ya llegó y trae muchísimo contenido!",
@@ -188,7 +184,7 @@ export const SEED_IDEAS: SeedIdeaRow[] = [
     gameId: "shindo-life",
     angle: "Promo",
     timing: "Timely",
-    source: "Content OS",
+    source: "Importado",
   },
   {
     notionKey: "idea-afs-beginners",
@@ -198,7 +194,7 @@ export const SEED_IDEAS: SeedIdeaRow[] = [
     gameId: "anime-fighting-simulator",
     angle: "Guide",
     timing: "Evergreen",
-    source: "Content OS",
+    source: "Importado",
   },
   {
     notionKey: "idea-errores-afs",
@@ -208,7 +204,7 @@ export const SEED_IDEAS: SeedIdeaRow[] = [
     gameId: "anime-fighting-simulator",
     angle: "Errors",
     timing: "Evergreen",
-    source: "Content OS",
+    source: "Importado",
   },
   {
     notionKey: "idea-vale-pena-2026",
@@ -217,7 +213,7 @@ export const SEED_IDEAS: SeedIdeaRow[] = [
     gameId: "anime-fighting-simulator",
     angle: "Opinion",
     timing: "Timely",
-    source: "Content OS",
+    source: "Importado",
   },
   {
     notionKey: "idea-admin-abuse-3",
@@ -226,7 +222,7 @@ export const SEED_IDEAS: SeedIdeaRow[] = [
     gameId: "anime-fighting-simulator",
     angle: "Event",
     timing: "Event Window",
-    source: "Content OS",
+    source: "Importado",
   },
   {
     notionKey: "short-susanoo",
@@ -235,7 +231,7 @@ export const SEED_IDEAS: SeedIdeaRow[] = [
     gameId: "anime-fighting-simulator",
     angle: "Ranking",
     timing: "Timely",
-    source: "Content OS",
+    source: "Importado",
   },
 ];
 
@@ -259,10 +255,10 @@ export function buildSeedIdeas(now = new Date().toISOString()): Idea[] {
 
 export const SHORT_VOICE_RULES = [
   "Idioma creativo: español. Estructura interna puede pensarse en inglés, salida siempre ES.",
-  "Habla a new + mid players; veterans aún reciben matiz.",
+  "Habla a jugadores nuevos y medios; los veteranos aún reciben matiz.",
   "Números concretos > “está roto” vago — pero verifica in-game; si no está en contexto, [CONFIRMAR].",
-  "Guion short = líneas habladas + tomas [VISUAL]. Sin intros largas.",
-  "CTA cuando encaje: suscripción + Crimson Core (Discord).",
-  "Ángulos de Content OS: Guide, Update, Ranking, Errors, Tutorial, Collab, Event, Opinion, Promo, Codes.",
-  "Shorts ≤45–60s. No uses densidad de long-form (1200+ palabras) en este producto.",
+  "Guion corto = líneas habladas + tomas [VISUAL]. Sin intros largas.",
+  "Cuando encaje: invita a suscribirse y a Crimson Core (Discord).",
+  "Ángulos útiles: guía, update, ranking, errores, tutorial, collab, evento, opinión, promo, códigos.",
+  "Videos cortos ≤45–60s. No uses densidad de video largo (1200+ palabras) aquí.",
 ];

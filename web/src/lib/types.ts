@@ -8,7 +8,7 @@ export type IdeaStatus =
 /** "guide" es el único formato de v1; script/beats/both quedan por ideas legacy en localStorage */
 export type DraftFormat = "guide" | "script" | "beats" | "both";
 
-/** Ángulos de Content OS (Josué) */
+/** Ángulos de contenido (guía, update, ranking, etc.) */
 export type ContentAngle =
   | "Guide"
   | "Update"
@@ -21,7 +21,7 @@ export type ContentAngle =
   | "Promo"
   | "Codes";
 
-/** Ficha de juego curada (dogfood User 1; luego multi-juego) */
+/** Ficha de juego del canal (biblioteca multi-juego) */
 export interface GameBrief {
   id: string;
   name: string;
@@ -86,8 +86,8 @@ export interface CreatorProfile {
   customDescription: string;
   onboardedAt: string;
   /**
-   * blank = canal propio (nuevos usuarios / testers).
-   * content_os = dogfood fundador (AFS / Crimson Core).
+   * blank = canal propio (nuevos usuarios).
+   * content_os = perfil con biblioteca importada del fundador.
    */
   workspaceMode?: "blank" | "content_os";
   /** Si true, se inyecta ficha de juego + estilo de grabación en la IA */
@@ -95,7 +95,7 @@ export interface CreatorProfile {
   /** Juego activo para prompts (id de SEED_GAMES / gameBrief) */
   activeGameId?: string;
   gameBrief?: GameBrief;
-  /** Biblioteca multi-juego (Content OS Games) */
+  /** Biblioteca multi-juego del canal */
   gamesLibrary?: GameBrief[];
   recordingStyle?: RecordingStyle;
   brand?: BrandKitStored;
@@ -156,7 +156,7 @@ export interface Idea {
   draft?: Draft;
   /** Paquete para subir a YouTube (título, desc, tags, idea de miniatura) */
   youtubePackage?: YoutubeUploadPackage;
-  /** Content OS / multi-game */
+  /** Origen / nota libre (p. ej. importación) */
   gameId?: string;
   contentAngle?: ContentAngle;
   timing?: "Evergreen" | "Timely" | "Event Window";

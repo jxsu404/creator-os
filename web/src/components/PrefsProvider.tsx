@@ -25,6 +25,7 @@ type PrefsContextValue = {
   setTheme: (theme: ThemePref) => void;
   setLocale: (locale: LocalePref) => void;
   setReduceMotion: (value: boolean) => void;
+  setThumbnailStylePrompt: (value: string) => void;
   t: (key: MessageKey, vars?: Record<string, string | number>) => string;
 };
 
@@ -86,6 +87,13 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
     [commit]
   );
 
+  const setThumbnailStylePrompt = useCallback(
+    (thumbnailStylePrompt: string) => {
+      commit({ ...readPrefs(), thumbnailStylePrompt });
+    },
+    [commit]
+  );
+
   const t = useCallback(
     (key: MessageKey, vars?: Record<string, string | number>) =>
       translate(prefs.locale, key, vars),
@@ -93,8 +101,22 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ prefs, setTheme, setLocale, setReduceMotion, t }),
-    [prefs, setTheme, setLocale, setReduceMotion, t]
+    () => ({
+      prefs,
+      setTheme,
+      setLocale,
+      setReduceMotion,
+      setThumbnailStylePrompt,
+      t,
+    }),
+    [
+      prefs,
+      setTheme,
+      setLocale,
+      setReduceMotion,
+      setThumbnailStylePrompt,
+      t,
+    ]
   );
 
   return (

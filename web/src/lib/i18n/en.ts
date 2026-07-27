@@ -59,6 +59,13 @@ export const en: MessageTree = {
     motion: "Motion",
     motionDesc: "Fewer interface animations",
     reduceMotion: "Reduce motion",
+    thumbnails: "Thumbnails",
+    thumbnailsDesc:
+      "Base style prompt when generating AI thumbnails. Empty = Ideazo default style.",
+    thumbnailsPlaceholder:
+      "E.g. Gaming Roblox style, strong contrast, 2–3 big words, no watermarks…",
+    thumbnailsReset: "Use default style",
+    thumbnailsSaved: "Style saved",
     versionsLink: "Version history",
     versionsLinkDesc: "Notes for each release",
     versionFooter: "Ideazo v{version}",

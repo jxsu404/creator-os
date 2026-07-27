@@ -6,6 +6,10 @@ import {
   rejectIfAnyTooLong,
 } from "@/lib/ai-input";
 import { gateAiGeneration } from "@/lib/billing/gate";
+import {
+  buildThumbnailPrompt,
+  THUMBNAIL_STYLE_PROMPT_MAX,
+} from "@/lib/thumbnail-prompt";
 
 export async function POST(request: Request) {
   try {
@@ -18,11 +22,15 @@ export async function POST(request: Request) {
       title,
       ideaText,
       profileContext,
+      stylePrompt,
+      extraInstructions,
     } = body as {
       thumbnailIdea?: string;
       title?: string;
       ideaText?: string;
       profileContext?: string;
+      stylePrompt?: string;
+      extraInstructions?: string;
     };
 
     const idea = thumbnailIdea?.trim();
@@ -54,24 +62,27 @@ export async function POST(request: Request) {
         max: AI_INPUT_CAPS.profileContext,
         label: "el contexto del perfil",
       },
+      {
+        value: stylePrompt,
+        max: THUMBNAIL_STYLE_PROMPT_MAX,
+        label: "el estilo de miniatura",
+      },
+      {
+        value: extraInstructions,
+        max: AI_INPUT_CAPS.thumbnailIdea,
+        label: "las instrucciones extra",
+      },
     ]);
     if (tooLong) return tooLong;
 
-    const prompt = [
-      "Create a YouTube thumbnail image (16:9).",
-      "Bold contrast, readable face-or-subject energy, 2-4 short overlay words max if any text.",
-      "No watermarks, no logos of real brands, no tiny unreadable text.",
-      "Gaming / Roblox creator style is OK when the context says so.",
-      "",
-      `Thumbnail concept: ${idea}`,
-      title?.trim() ? `Video title: ${title.trim()}` : "",
-      ideaText?.trim() ? `Video idea: ${ideaText.trim().slice(0, 400)}` : "",
-      profileContext?.trim()
-        ? `Creator context: ${profileContext.trim().slice(0, 400)}`
-        : "",
-    ]
-      .filter(Boolean)
-      .join("\n");
+    const prompt = buildThumbnailPrompt({
+      stylePrompt,
+      thumbnailIdea: idea,
+      title,
+      ideaText,
+      profileContext,
+      extraInstructions,
+    });
 
     const imageDataUrl = await generateImage(prompt);
 

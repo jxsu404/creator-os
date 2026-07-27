@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Prompt de miniaturas personalizable: estilo base en Perfil → Ajustes, e instrucciones extra por generación en el paquete YouTube/TikTok
+
 ## 2.0.0 — 2026-07-27
 
 Primera feature de la línea 2.x: miniaturas con IA.

@@ -28,13 +28,24 @@ describe("prefs", () => {
       theme: "system",
       locale: "es",
       reduceMotion: false,
+      thumbnailStylePrompt: "",
     });
   });
 
   it("keeps valid prefs", () => {
     expect(
-      normalizePrefs({ theme: "light", locale: "en", reduceMotion: true })
-    ).toEqual({ theme: "light", locale: "en", reduceMotion: true });
+      normalizePrefs({
+        theme: "light",
+        locale: "en",
+        reduceMotion: true,
+        thumbnailStylePrompt: "neon anime",
+      })
+    ).toEqual({
+      theme: "light",
+      locale: "en",
+      reduceMotion: true,
+      thumbnailStylePrompt: "neon anime",
+    });
   });
 
   it("maps locale to speech BCP-47", () => {

@@ -5,7 +5,9 @@ import {
   isUsageLimitPayload,
   UpgradePrompt,
 } from "@/components/UpgradePrompt";
+import { usePrefsOptional } from "@/components/PrefsProvider";
 import { applyGenerationBilling } from "@/lib/apply-generation-billing";
+import { readPrefs } from "@/lib/prefs";
 import type { Idea, YoutubeUploadPackage } from "@/lib/types";
 
 type Props = {
@@ -33,12 +35,14 @@ export function YoutubePackagePanel({
   onThumbnail,
 }: Props) {
   const pkg = idea.youtubePackage;
+  const prefsCtx = usePrefsOptional();
   const [options, setOptions] = useState<YoutubeUploadPackage[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [thumbBusy, setThumbBusy] = useState(false);
   const [error, setError] = useState("");
   const [needsUpgrade, setNeedsUpgrade] = useState(false);
   const [copied, setCopied] = useState("");
+  const [extraThumbPrompt, setExtraThumbPrompt] = useState("");
 
   async function generate() {
     setBusy(true);
@@ -126,6 +130,9 @@ export function YoutubePackagePanel({
     setError("");
     setNeedsUpgrade(false);
     try {
+      const stylePrompt =
+        prefsCtx?.prefs.thumbnailStylePrompt ??
+        readPrefs().thumbnailStylePrompt;
       const res = await fetch("/api/generate-thumbnail", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -134,6 +141,8 @@ export function YoutubePackagePanel({
           title: pkg.title || idea.title,
           ideaText: idea.rawText,
           profileContext,
+          stylePrompt: stylePrompt.trim() || undefined,
+          extraInstructions: extraThumbPrompt.trim() || undefined,
         }),
       });
       const data = await res.json();
@@ -326,6 +335,25 @@ export function YoutubePackagePanel({
           >
             {copied === "thumb" ? "Copiado" : "Copiar idea"}
           </button>
+
+          <details className="yt-thumb-prompt-details">
+            <summary className="text-link">Personalizar prompt (esta vez)</summary>
+            <label className="field-label" htmlFor="yt-pkg-thumb-extra">
+              Instrucciones extra para esta miniatura
+            </label>
+            <textarea
+              id="yt-pkg-thumb-extra"
+              className="field"
+              rows={3}
+              maxLength={200}
+              placeholder="Ej. Más zoom a la cara, texto rojo, fondo del mapa X…"
+              value={extraThumbPrompt}
+              onChange={(e) => setExtraThumbPrompt(e.target.value)}
+            />
+            <p className="idea-meta">
+              El estilo base se edita en Perfil → Ajustes → Miniaturas.
+            </p>
+          </details>
 
           {idea.thumbnailUrl ? (
             <div className="yt-thumb-preview">

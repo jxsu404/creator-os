@@ -5,6 +5,11 @@ export type AppPrefs = {
   theme: ThemePref;
   locale: LocalePref;
   reduceMotion: boolean;
+  /**
+   * Estilo base del prompt de miniaturas.
+   * Vacío = usa el default de Ideazo.
+   */
+  thumbnailStylePrompt: string;
 };
 
 export const PREFS_STORAGE_KEY = "creatoros_prefs_v1";
@@ -13,6 +18,7 @@ export const DEFAULT_PREFS: AppPrefs = {
   theme: "system",
   locale: "es",
   reduceMotion: false,
+  thumbnailStylePrompt: "",
 };
 
 export function normalizePrefs(raw: unknown): AppPrefs {
@@ -28,7 +34,11 @@ export function normalizePrefs(raw: unknown): AppPrefs {
     typeof o.reduceMotion === "boolean"
       ? o.reduceMotion
       : DEFAULT_PREFS.reduceMotion;
-  return { theme, locale, reduceMotion };
+  const thumbnailStylePrompt =
+    typeof o.thumbnailStylePrompt === "string"
+      ? o.thumbnailStylePrompt
+      : DEFAULT_PREFS.thumbnailStylePrompt;
+  return { theme, locale, reduceMotion, thumbnailStylePrompt };
 }
 
 export function readPrefs(): AppPrefs {

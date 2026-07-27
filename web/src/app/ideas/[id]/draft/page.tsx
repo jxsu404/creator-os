@@ -256,7 +256,19 @@ function DraftPreview() {
       />
       {needsUpgrade ? <UpgradePrompt message={reviseError} /> : null}
       {reviseError && !needsUpgrade ? (
-        <p className="error">{reviseError}</p>
+        <div className="error-box" role="alert">
+          <p className="error">{reviseError}</p>
+          {adjustment.trim() ? (
+            <button
+              type="button"
+              className="btn-secondary btn-block"
+              disabled={revising}
+              onClick={applyAdjustments}
+            >
+              Reintentar
+            </button>
+          ) : null}
+        </div>
       ) : null}
       {adjustment.trim() ? (
         <button
@@ -276,7 +288,7 @@ function DraftPreview() {
           disabled={revising}
           onClick={continueToScript}
         >
-          Continuar
+          Continuar al guion
         </button>
         <Link href={`/ideas/${id}/directions`} className="text-link">
           Cambiar enfoque

@@ -3,12 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const NAV = [
-  { href: "/", label: "Inicio" },
-  { href: "/ideas", label: "Ideas" },
-  { href: "/profile", label: "Perfil" },
-] as const;
-
 function navActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -27,6 +21,7 @@ export function AppShell({
   showNav?: boolean;
 }) {
   const pathname = usePathname();
+  const createActive = navActive(pathname, "/capture");
 
   return (
     <div className={`app-shell${showNav ? " app-shell-nav" : ""}`}>
@@ -48,18 +43,36 @@ export function AppShell({
       <main className="app-main">{children}</main>
       {showNav ? (
         <nav className="bottom-nav" aria-label="Principal">
-          {NAV.map((item) => {
-            const active = navActive(pathname, item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`bottom-nav-item${active ? " bottom-nav-item-active" : ""}`}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
+          <Link
+            href="/"
+            className={`bottom-nav-item${
+              navActive(pathname, "/") ? " bottom-nav-item-active" : ""
+            }`}
+          >
+            Inicio
+          </Link>
+
+          <Link
+            href="/capture"
+            className={`bottom-nav-create${
+              createActive ? " bottom-nav-create-active" : ""
+            }`}
+            aria-label="Nueva idea para un video"
+          >
+            <span className="bottom-nav-create-orb" aria-hidden>
+              <span className="bottom-nav-create-plus">+</span>
+            </span>
+            <span className="bottom-nav-create-label">Nueva</span>
+          </Link>
+
+          <Link
+            href="/profile"
+            className={`bottom-nav-item${
+              navActive(pathname, "/profile") ? " bottom-nav-item-active" : ""
+            }`}
+          >
+            Perfil
+          </Link>
         </nav>
       ) : null}
     </div>

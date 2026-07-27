@@ -197,11 +197,11 @@ function HomeHub() {
         </div>
         {recent.length === 0 ? (
           <p className="muted">
-            Aún no hay ideas.{" "}
+            Aún no hay ideas. Toca el{" "}
             <Link href="/capture" className="inline-link">
-              Captura una
-            </Link>
-            .
+              + del centro
+            </Link>{" "}
+            para crear tu primer video.
           </p>
         ) : (
           <div className="stack">
@@ -220,8 +220,8 @@ function HomeHub() {
             ))}
           </div>
         )}
-        <Link href="/capture" className="text-link">
-          Nueva idea
+        <Link href="/ideas" className="text-link">
+          Ver todas las ideas
         </Link>
       </section>
 

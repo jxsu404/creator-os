@@ -2,39 +2,73 @@
 
 import Link from "next/link";
 
+function FlowPreview() {
+  return (
+    <div className="lp-flow">
+      <div className="lp-flow-step lp-flow-step-1">
+        <span className="lp-flow-label">Idea</span>
+        <p className="lp-flow-text">Cómo explicar un tip sin aburrir</p>
+      </div>
+      <div className="lp-flow-step lp-flow-step-2">
+        <span className="lp-flow-label">3 enfoques</span>
+        <ul className="lp-flow-list">
+          <li>Error común → fix rápido</li>
+          <li>Showcase en 20s</li>
+          <li>Opinión con prueba</li>
+        </ul>
+      </div>
+      <div className="lp-flow-step lp-flow-step-3">
+        <span className="lp-flow-label">Lista</span>
+        <p className="lp-flow-text">Hook + guion + cierre</p>
+        <span className="lp-flow-ready">Lista para grabar</span>
+      </div>
+    </div>
+  );
+}
+
 function ProductStage() {
   return (
     <div className="lp-stage" aria-hidden>
       <div className="lp-stage-glow" />
-      <div className="lp-phone">
-        <div className="lp-phone-bezel">
-          <div className="lp-phone-notch" />
-          <div className="lp-phone-screen">
-            <p className="lp-phone-brand">Ideazo</p>
-            <div className="lp-flow">
-              <div className="lp-flow-step lp-flow-step-1">
-                <span className="lp-flow-label">Idea</span>
-                <p className="lp-flow-text">
-                  Cómo explicar un tip sin aburrir
-                </p>
-              </div>
-              <div className="lp-flow-step lp-flow-step-2">
-                <span className="lp-flow-label">3 enfoques</span>
-                <ul className="lp-flow-list">
-                  <li>Error común → fix rápido</li>
-                  <li>Showcase en 20s</li>
-                  <li>Opinión con prueba</li>
-                </ul>
-              </div>
-              <div className="lp-flow-step lp-flow-step-3">
-                <span className="lp-flow-label">Lista</span>
-                <p className="lp-flow-text">Hook + guion</p>
-                <span className="lp-flow-ready">Lista para grabar</span>
-              </div>
+
+      {/* Móvil: mockup de teléfono */}
+      <div className="lp-device lp-device-mobile">
+        <div className="lp-phone">
+          <div className="lp-phone-bezel">
+            <div className="lp-phone-notch" />
+            <div className="lp-phone-screen">
+              <p className="lp-phone-brand">Ideazo</p>
+              <FlowPreview />
             </div>
           </div>
         </div>
       </div>
+
+      {/* PC: mockup de ventana de escritorio */}
+      <div className="lp-device lp-device-desktop">
+        <div className="lp-desk">
+          <div className="lp-desk-chrome">
+            <span className="lp-desk-dot" />
+            <span className="lp-desk-dot" />
+            <span className="lp-desk-dot" />
+            <span className="lp-desk-url">ideazo.app</span>
+          </div>
+          <div className="lp-desk-body">
+            <aside className="lp-desk-rail">
+              <p className="lp-desk-brand">Ideazo</p>
+              <span className="lp-desk-rail-item lp-desk-rail-active">
+                Inicio
+              </span>
+              <span className="lp-desk-rail-item lp-desk-rail-new">+ Nueva</span>
+              <span className="lp-desk-rail-item">Perfil</span>
+            </aside>
+            <div className="lp-desk-canvas">
+              <FlowPreview />
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="lp-orbit lp-orbit-a" />
       <div className="lp-orbit lp-orbit-b" />
     </div>

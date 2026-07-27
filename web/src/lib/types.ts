@@ -92,7 +92,7 @@ export interface CreatorProfile {
    * content_os = perfil con biblioteca importada del fundador.
    */
   workspaceMode?: "blank" | "content_os";
-  /** Si true, se inyecta ficha de juego + estilo de grabación en la IA */
+  /** Si true (y nicho Gaming), se inyecta ficha de juego en la IA */
   useGameContext?: boolean;
   /** Juego activo para prompts (id de SEED_GAMES / gameBrief) */
   activeGameId?: string;

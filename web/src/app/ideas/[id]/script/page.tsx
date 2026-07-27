@@ -147,6 +147,7 @@ function ScriptEditor() {
     const next: Idea = {
       ...current,
       youtubePackage: pkg,
+      thumbnailIdea: pkg.thumbnailIdea || current.thumbnailIdea,
       updatedAt: new Date().toISOString(),
     };
     commit(next);

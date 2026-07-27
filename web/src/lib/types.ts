@@ -149,6 +149,13 @@ export interface Idea {
   rawText: string;
   /** Título corto generado con IA a partir de rawText (para listas) */
   title?: string;
+  /**
+   * Concepto visual de posible miniatura (1 línea).
+   * Se usa para pintar un preview tipo YouTube en Home / Ideas.
+   */
+  thumbnailIdea?: string;
+  /** URL de miniatura real (YouTube o IA de imagen futura). */
+  thumbnailUrl?: string;
   status: IdeaStatus;
   createdAt: string;
   updatedAt: string;

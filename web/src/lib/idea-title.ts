@@ -8,6 +8,15 @@ export function ideaTitle(idea: Idea, max = 110): string {
   return t || ideaPreview(idea.rawText, max);
 }
 
+/** Concepto visual de posible miniatura (idea top-level o del paquete YT). */
+export function ideaThumbnailConcept(idea: Idea): string {
+  return (
+    idea.thumbnailIdea?.trim() ||
+    idea.youtubePackage?.thumbnailIdea?.trim() ||
+    ""
+  );
+}
+
 const inFlight = new Map<string, Promise<string | null>>();
 /** Evita reintentos en bucle desde backfill tras un fallo */
 const attempted = new Set<string>();
@@ -17,7 +26,7 @@ function flightKey(ideaId: string, rawText: string): string {
 }
 
 /**
- * Genera y persiste el título con IA si la idea aún no tiene.
+ * Genera y persiste el título (+ concepto de miniatura) con IA si falta.
  * Deduplica peticiones concurrentes y no toca updatedAt (no reordena listas).
  */
 export function ensureIdeaTitle(
@@ -52,15 +61,22 @@ async function requestTitle(
       body: JSON.stringify({ ideaText: idea.rawText }),
     });
     if (!res.ok) return null;
-    const data = (await res.json()) as { title?: string };
+    const data = (await res.json()) as {
+      title?: string;
+      thumbnailIdea?: string;
+    };
     const title = data.title?.trim();
     if (!title) return null;
+    const thumbnailIdea = data.thumbnailIdea?.trim() || undefined;
 
     // Merge atómico: descarta si el texto cambió (respuesta stale)
     const next = patchIdea(idea.id, (current) => {
       if (current.rawText.trim() !== requestText) return {};
       if (!force && current.title?.trim()) return {};
-      return { title };
+      return {
+        title,
+        ...(thumbnailIdea ? { thumbnailIdea } : {}),
+      };
     });
     return next?.title?.trim() || null;
   } catch {
@@ -94,11 +110,14 @@ export function backfillIdeaTitles(
     });
 }
 
-/** Invalida título al editar el texto de la idea (regenera en segundo plano). */
+/** Invalida título/miniatura al editar el texto de la idea (regenera en segundo plano). */
 export function invalidateAndRegenerateTitle(
   idea: Idea
 ): Promise<string | null> {
   attempted.delete(idea.id);
-  patchIdea(idea.id, { title: undefined });
-  return ensureIdeaTitle({ ...idea, title: undefined }, { force: true });
+  patchIdea(idea.id, { title: undefined, thumbnailIdea: undefined });
+  return ensureIdeaTitle(
+    { ...idea, title: undefined, thumbnailIdea: undefined },
+    { force: true }
+  );
 }

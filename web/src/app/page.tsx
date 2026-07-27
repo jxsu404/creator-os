@@ -8,6 +8,7 @@ import { RequireOnboarding } from "@/components/RequireOnboarding";
 import { quoteForSession, tipsForSession, type HomeTip } from "@/lib/home-copy";
 import { ideaHref } from "@/lib/idea-href";
 import { backfillIdeaTitles, ideaTitle } from "@/lib/idea-title";
+import { IdeaThumb } from "@/components/IdeaThumb";
 import {
   getIdeas,
   getProfile,
@@ -140,10 +141,10 @@ function HomeHub() {
       .join("|");
     if (!missingKey || missingKey === backfillKeyRef.current) return;
     backfillKeyRef.current = missingKey;
-    backfillIdeaTitles(ideas, (id, title) => {
-      setIdeas((prev) =>
-        prev.map((i) => (i.id === id ? { ...i, title } : i))
-      );
+    backfillIdeaTitles(ideas, (id) => {
+      const fresh = getIdeas().find((x) => x.id === id);
+      if (!fresh) return;
+      setIdeas((prev) => prev.map((i) => (i.id === id ? fresh : i)));
     });
   }, [hydrated, ideas]);
 
@@ -183,6 +184,7 @@ function HomeHub() {
       title: ideaTitle(idea, 80),
       meta: "En Ideazo",
       href: ideaHref(idea),
+      thumb: idea.thumbnailUrl?.trim() || undefined,
     })),
   ].slice(0, 6);
 
@@ -212,8 +214,13 @@ function HomeHub() {
         ) : (
           <div className="stack">
             {recent.map((idea) => (
-              <Link key={idea.id} href={ideaHref(idea)} className="idea-row">
-                <div>
+              <Link
+                key={idea.id}
+                href={ideaHref(idea)}
+                className="idea-row idea-row-media"
+              >
+                <IdeaThumb idea={idea} />
+                <div className="idea-row-body">
                   <p className="idea-text">{ideaTitle(idea)}</p>
                   <span className="idea-meta">
                     {STATUS_LABEL[idea.status]}

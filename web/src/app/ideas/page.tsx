@@ -4,12 +4,11 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
+import { IdeaThumb } from "@/components/IdeaThumb";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
 import { ideaHref } from "@/lib/idea-href";
 import { backfillIdeaTitles, ideaTitle } from "@/lib/idea-title";
-import {
-  getIdeas,
-} from "@/lib/storage";
+import { getIdeas } from "@/lib/storage";
 import { onSynced } from "@/lib/sync";
 import type { Idea } from "@/lib/types";
 import { STATUS_LABEL } from "@/lib/types";
@@ -19,8 +18,9 @@ const RECORDED_BANNER_KEY = "creatoros_recorded_banner";
 
 function IdeaRow({ idea }: { idea: Idea }) {
   return (
-    <Link href={ideaHref(idea)} className="idea-row">
-      <div>
+    <Link href={ideaHref(idea)} className="idea-row idea-row-media">
+      <IdeaThumb idea={idea} />
+      <div className="idea-row-body">
         <p className="idea-text">{ideaTitle(idea)}</p>
         <span className="idea-meta">{STATUS_LABEL[idea.status]}</span>
       </div>
@@ -83,10 +83,10 @@ function IdeasList() {
       .join("|");
     if (!missingKey || missingKey === backfillKeyRef.current) return;
     backfillKeyRef.current = missingKey;
-    backfillIdeaTitles(ideas, (id, title) => {
-      setIdeas((prev) =>
-        prev.map((i) => (i.id === id ? { ...i, title } : i))
-      );
+    backfillIdeaTitles(ideas, (id) => {
+      const fresh = getIdeas().find((x) => x.id === id);
+      if (!fresh) return;
+      setIdeas((prev) => prev.map((i) => (i.id === id ? fresh : i)));
     });
   }, [hydrated, ideas]);
 

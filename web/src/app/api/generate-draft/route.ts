@@ -6,6 +6,12 @@ import {
   rejectIfAnyTooLong,
 } from "@/lib/ai-input";
 import { gateAiGeneration } from "@/lib/billing/gate";
+import {
+  buildDraftPrompt,
+  isTooLongForShortPayload,
+  TOO_LONG_FOR_SHORT_MESSAGE,
+  validateShortDraft,
+} from "@/lib/short-generation";
 
 export async function POST(request: Request) {
   try {
@@ -36,20 +42,51 @@ export async function POST(request: Request) {
     };
 
     if (!ideaText?.trim() || !direction) {
-      return NextResponse.json({ error: "Faltan datos del borrador." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Faltan datos del borrador." },
+        { status: 400 }
+      );
     }
 
     const currentDraftJson = currentDraft ? JSON.stringify(currentDraft) : null;
     const tooLong = rejectIfAnyTooLong([
       { value: ideaText, max: AI_INPUT_CAPS.ideaText, label: "La idea" },
-      { value: profileContext, max: AI_INPUT_CAPS.profileContext, label: "El contexto del perfil" },
+      {
+        value: profileContext,
+        max: AI_INPUT_CAPS.profileContext,
+        label: "El contexto del perfil",
+      },
       { value: adjustment, max: AI_INPUT_CAPS.adjustment, label: "Los ajustes" },
-      { value: currentDraftJson, max: AI_INPUT_CAPS.currentDraftJson, label: "El borrador actual" },
-      { value: direction.name, max: AI_INPUT_CAPS.directionField, label: "El nombre del enfoque" },
-      { value: direction.promise, max: AI_INPUT_CAPS.directionField, label: "La promesa del enfoque" },
-      { value: direction.angle, max: AI_INPUT_CAPS.directionField, label: "El ángulo del enfoque" },
-      { value: direction.hook, max: AI_INPUT_CAPS.directionField, label: "El hook del enfoque" },
-      { value: direction.why, max: AI_INPUT_CAPS.directionField, label: "El porqué del enfoque" },
+      {
+        value: currentDraftJson,
+        max: AI_INPUT_CAPS.currentDraftJson,
+        label: "El borrador actual",
+      },
+      {
+        value: direction.name,
+        max: AI_INPUT_CAPS.directionField,
+        label: "El nombre del enfoque",
+      },
+      {
+        value: direction.promise,
+        max: AI_INPUT_CAPS.directionField,
+        label: "La promesa del enfoque",
+      },
+      {
+        value: direction.angle,
+        max: AI_INPUT_CAPS.directionField,
+        label: "El ángulo del enfoque",
+      },
+      {
+        value: direction.hook,
+        max: AI_INPUT_CAPS.directionField,
+        label: "El hook del enfoque",
+      },
+      {
+        value: direction.why,
+        max: AI_INPUT_CAPS.directionField,
+        label: "El porqué del enfoque",
+      },
     ]);
     if (tooLong) return tooLong;
 
@@ -57,47 +94,14 @@ export async function POST(request: Request) {
     if (preflight.blocked) return preflight.blocked;
 
     const isRevision = Boolean(adjustment?.trim() && currentDraft);
-
-    const prompt = `Eres un compañero creativo. Armas una GUÍA PARA GRABAR de video short-form (TikTok/Reels/Shorts).
-Idioma: español. Sin relleno. Sin promesas de viralidad.
-
-Incluye solo el guion hablado (hook + cuerpo + cierre). No inventes plan de cámara ni tomas.
-
-Responde SOLO JSON:
-{
-  "hook": "gancho hablado primeros segundos",
-  "scriptBody": "cuerpo del guion palabra por palabra",
-  "closing": "cierre/CTA verbal una línea",
-  "estimatedSeconds": 45
-}
-Si hay contexto de juego: usa términos correctos; no inventes stats, códigos ni patch notes que no estén en el update pegado.
-Si hay bloque "ASÍ SUENA TU CONTENIDO": síguelo de forma obligatoria. "Cómo grabo" = formato/estructura del guion; "Voz y ritmo" = tono al escribir (como habla el creador). Ignora "Descripciones de YouTube" aquí. Prioriza esas reglas sobre convenciones genéricas de shorts. No asumas facecam salvo que lo diga.
-Si la idea no es de ese juego, no fuerces el contexto del juego.
-
-Contexto del creador:
-${profileContext || "No especificado"}
-
-Idea:
-${ideaText.trim()}
-
-Enfoque elegido:
-- Nombre: ${direction.name}
-- Promesa: ${direction.promise}
-- Ángulo: ${direction.angle}
-- Hook base: ${direction.hook}
-- Por qué: ${direction.why}
-
-${
-  isRevision
-    ? `El creador ya tiene este borrador y pide AJUSTES. Reescribe la guía completa aplicando los ajustes, sin perder lo que funciona:
-
-Borrador actual:
-${JSON.stringify(currentDraft, null, 2)}
-
-Ajustes pedidos:
-${adjustment!.trim()}`
-    : `Ajuste inicial del creador: ${adjustment?.trim() || "Ninguno"}`
-}`;
+    const prompt = buildDraftPrompt({
+      ideaText,
+      profileContext,
+      direction,
+      adjustment,
+      currentDraft,
+      isRevision,
+    });
 
     const raw = await generateJson(prompt);
     const parsed = parseJsonLoose<{
@@ -105,18 +109,26 @@ ${adjustment!.trim()}`
       scriptBody?: string;
       closing?: string;
       estimatedSeconds?: number;
+      tooLongForShort?: boolean;
+      error?: string;
     }>(raw);
 
-    const hook = typeof parsed.hook === "string" ? parsed.hook.trim() : "";
-    const scriptBody =
-      typeof parsed.scriptBody === "string" ? parsed.scriptBody.trim() : "";
-    const closing =
-      typeof parsed.closing === "string" ? parsed.closing.trim() : "";
-
-    if (!hook || !scriptBody) {
+    if (isTooLongForShortPayload(parsed)) {
       return NextResponse.json(
-        { error: "La guía llegó incompleta. Intenta de nuevo." },
-        { status: 502 }
+        { error: TOO_LONG_FOR_SHORT_MESSAGE, code: "too_long_for_short" },
+        { status: 422 }
+      );
+    }
+
+    const validated = validateShortDraft(parsed);
+    if (!validated.ok) {
+      const status = validated.error === TOO_LONG_FOR_SHORT_MESSAGE ? 422 : 502;
+      return NextResponse.json(
+        {
+          error: validated.error,
+          ...(status === 422 ? { code: "too_long_for_short" } : {}),
+        },
+        { status }
       );
     }
 
@@ -125,20 +137,17 @@ ${adjustment!.trim()}`
 
     return NextResponse.json({
       draft: {
-        hook,
-        scriptBody,
-        closing,
+        ...validated.draft,
         beats: [],
-        estimatedSeconds:
-          typeof parsed.estimatedSeconds === "number" &&
-          parsed.estimatedSeconds > 0
-            ? parsed.estimatedSeconds
-            : 45,
         format: "guide" as const,
       },
       billing: gate.billing,
     });
   } catch (err) {
-    return aiRouteError("generate-draft", err, "No pudimos generar la guía. Intenta de nuevo en un momento.");
+    return aiRouteError(
+      "generate-draft",
+      err,
+      "No pudimos generar la guía. Intenta de nuevo en un momento."
+    );
   }
 }

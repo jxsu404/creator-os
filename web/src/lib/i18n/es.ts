@@ -17,6 +17,8 @@ export const es = {
     connections: "Conexiones",
     connectionsDescYt: "YouTube · {channel}",
     connectionsDescDefault: "YouTube · TikTok",
+    notes: "Notas",
+    notesDesc: "Guiones y apuntes de texto",
     settings: "Ajustes",
     settingsDesc: "Apariencia, idioma y más",
     versions: "Historial de versiones",

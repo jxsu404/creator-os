@@ -7,7 +7,9 @@ import { AppShell } from "@/components/AppShell";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
 import { YoutubePackagePanel } from "@/components/YoutubePackagePanel";
 import { ideaAiContext } from "@/lib/idea-ai-context";
+import { ideaTitle } from "@/lib/idea-title";
 import { trackFunnel } from "@/lib/metrics";
+import { saveTextAsNote } from "@/lib/notes";
 import { buildUnifiedScript } from "@/lib/script";
 import { getIdea, upsertIdea } from "@/lib/storage";
 import type { Idea, YoutubeUploadPackage } from "@/lib/types";
@@ -23,6 +25,7 @@ function ScriptEditor() {
   const [editing, setEditing] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const [statusNote, setStatusNote] = useState("");
+  const [noteSavedId, setNoteSavedId] = useState<string | null>(null);
   const saveTimer = useRef<number | null>(null);
   const savedLabelTimer = useRef<number | null>(null);
   const ideaRef = useRef<Idea | null>(null);
@@ -204,6 +207,22 @@ function ScriptEditor() {
     commit(next);
   }
 
+  function saveScriptToNotes() {
+    const current = ideaRef.current ?? idea;
+    if (!current?.draft) return;
+    const text =
+      current.draft.creatorScript?.trim() ||
+      buildUnifiedScript(current.draft);
+    if (!text.trim()) return;
+    const note = saveTextAsNote({
+      body: text,
+      title: ideaTitle(current, 80),
+      sourceIdeaId: current.id,
+    });
+    setNoteSavedId(note.id);
+    setStatusNote("Guion copiado a Notas.");
+  }
+
   const creatorScript = idea.draft.creatorScript || buildUnifiedScript(idea.draft);
   const isReady = idea.status === "ready";
   const isRecorded = idea.status === "recorded";
@@ -291,6 +310,14 @@ function ScriptEditor() {
       {statusNote ? (
         <p className="muted" role="status">
           {statusNote}
+          {noteSavedId ? (
+            <>
+              {" "}
+              <Link href={`/notas/${noteSavedId}`} className="inline-link">
+                Abrir nota
+              </Link>
+            </>
+          ) : null}
         </p>
       ) : null}
 
@@ -334,6 +361,13 @@ function ScriptEditor() {
             </Link>
             <button
               type="button"
+              className="text-link"
+              onClick={saveScriptToNotes}
+            >
+              Guardar en notas
+            </button>
+            <button
+              type="button"
               className="btn-danger"
               onClick={() =>
                 setStatus("archived", {
@@ -371,6 +405,13 @@ function ScriptEditor() {
             >
               Editar guion
             </button>
+            <button
+              type="button"
+              className="text-link"
+              onClick={saveScriptToNotes}
+            >
+              Guardar en notas
+            </button>
           </div>
         </>
       ) : (
@@ -401,6 +442,13 @@ function ScriptEditor() {
             <Link href={`/ideas/${id}/draft`} className="text-link">
               Ajustes IA
             </Link>
+            <button
+              type="button"
+              className="text-link"
+              onClick={saveScriptToNotes}
+            >
+              Guardar en notas
+            </button>
             {(isReady || isRecorded) && editing ? (
               <button
                 type="button"

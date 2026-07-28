@@ -7,6 +7,7 @@ import {
   buildSeedIdeas,
 } from "./content-os-seed";
 import { normalizeProfile } from "./profile-context";
+import { clearNotes } from "./notes";
 import type { CreatorProfile, Idea } from "./types";
 import { DEFAULT_BRAND } from "./user1-defaults";
 
@@ -29,12 +30,13 @@ export function setLocalOwnerId(userId: string): void {
   localStorage.setItem(LOCAL_OWNER_KEY, userId);
 }
 
-/** Borra perfil/ideas/import flag locales (cambio de cuenta). */
+/** Borra perfil/ideas/notas/import flag locales (cambio de cuenta). */
 export function clearLocalWorkspace(): void {
   if (!canUseStorage()) return;
   localStorage.removeItem(PROFILE_KEY);
   localStorage.removeItem(IDEAS_KEY);
   localStorage.removeItem(CONTENT_OS_IMPORT_KEY);
+  clearNotes();
 }
 
 /** Avisa al módulo de sync sin import circular. */

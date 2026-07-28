@@ -85,6 +85,18 @@ export interface YoutubeVideoCache {
   fetchedAt: string;
 }
 
+/** Nota de texto simple (guiones, apuntes) — solo local, sin IA. */
+export interface TextNote {
+  id: string;
+  /** Opcional; si falta, la UI usa la primera línea del body. */
+  title?: string;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+  /** Idea de origen si se guardó desde un guion. */
+  sourceIdeaId?: string;
+}
+
 export interface CreatorProfile {
   niches: string[];
   customDescription: string;

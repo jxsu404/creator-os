@@ -99,6 +99,9 @@ function IdeasList() {
       <Link href="/capture" className="btn-primary btn-block">
         Nueva idea
       </Link>
+      <Link href="/notas" className="btn-secondary btn-block">
+        Notas
+      </Link>
 
       {banner ? (
         <p className="banner-success" role="status" aria-live="polite">

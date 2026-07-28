@@ -343,3 +343,62 @@ Enfoque elegido (NO lo traiciones):
 
 ${revisionBlock}`;
 }
+
+/**
+ * Guion directo: el creador YA decidió qué decir. No inventar 3 enfoques ni otro ángulo.
+ */
+export function buildDirectDraftPrompt(opts: {
+  ideaText: string;
+  profileContext?: string;
+  adjustment?: string;
+  currentDraft?: {
+    hook: string;
+    scriptBody: string;
+    closing: string;
+    estimatedSeconds: number;
+  };
+  isRevision: boolean;
+}): string {
+  const { ideaText, profileContext, adjustment, currentDraft, isRevision } = opts;
+
+  const revisionBlock = isRevision
+    ? `El creador ya tiene este borrador y pide AJUSTES. Reescribe la guía completa aplicando los ajustes, sin traicionar lo que YA decidió decir:
+
+Borrador actual:
+${JSON.stringify(currentDraft, null, 2)}
+
+Ajustes pedidos:
+${adjustment!.trim()}`
+    : `Ajuste inicial del creador: ${adjustment?.trim() || "Ninguno"}`;
+
+  return `Eres un compañero creativo. El creador YA tiene la idea DECIDIDA (qué va a decir / qué cubre el video).
+Tu trabajo: convertir ESA idea en una GUÍA PARA GRABAR de un SHORT (TikTok / Reels / Shorts).
+NO inventes un ángulo nuevo. NO propongas otro video. NO “mejorés” el concepto cambiándolo.
+Orden, hechos y promesa deben respetar lo que escribió el creador; solo pásalo a español hablado listo para grabar.
+
+Idioma: español hablado. Sin relleno. Sin promesas de viralidad. Sin plan de cámara ni tomas.
+
+${DURATION_RULES}
+- hook: 1 frase corta (máx ~${SHORT_SPEAK.hookMaxWords} palabras), alineada con el inicio que el creador ya tiene en mente.
+- scriptBody: guion palabra por palabra que SIGUE el contenido/orden de la idea decidida, calibrado a la duración (~2–2.5 palabras/s).
+- closing: 1 línea de cierre/CTA verbal (máx ~${SHORT_SPEAK.closingMaxWords} palabras), coherente con su idea.
+
+HECHOS: conserva claims concretos. No inventes stats, códigos ni patch notes.
+Si hay "ASÍ SUENA TU CONTENIDO": síguelo. Ignora "Descripciones de YouTube".
+
+Si cabe en short, responde SOLO JSON:
+{
+  "hook": "gancho hablado",
+  "scriptBody": "cuerpo del guion palabra por palabra",
+  "closing": "cierre/CTA verbal una línea",
+  "estimatedSeconds": 30 | 60 | 90 | 120 | 150
+}
+
+Contexto del creador:
+${profileContext?.trim() || "No especificado"}
+
+Idea YA DECIDIDA (respétala):
+${ideaText.trim()}
+
+${revisionBlock}`;
+}

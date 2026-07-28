@@ -378,3 +378,70 @@ Enfoque elegido (NO lo traiciones):
 
 ${revisionBlock}`;
 }
+
+/**
+ * Guion largo directo: idea YA decidida → bloques sin inventar otro ángulo.
+ */
+export function buildDirectLongDraftPrompt(opts: {
+  ideaText: string;
+  profileContext?: string;
+  adjustment?: string;
+  currentDraft?: {
+    hook: string;
+    scriptBody?: string;
+    closing: string;
+    estimatedSeconds: number;
+    blocks?: Array<{ title: string; body: string }>;
+  };
+  isRevision: boolean;
+}): string {
+  const { ideaText, profileContext, adjustment, currentDraft, isRevision } = opts;
+
+  const revisionBlock = isRevision
+    ? `El creador ya tiene este borrador y pide AJUSTES. Reescribe la guía completa (hook + bloques + cierre) aplicando los ajustes, sin traicionar lo que YA decidió cubrir:
+
+Borrador actual:
+${JSON.stringify(currentDraft, null, 2)}
+
+Ajustes pedidos:
+${adjustment!.trim()}`
+    : `Ajuste inicial del creador: ${adjustment?.trim() || "Ninguno"}`;
+
+  return `Eres un compañero creativo. El creador YA tiene la idea DECIDIDA (temas, orden, qué va a decir).
+Tu trabajo: convertir ESA idea en una GUÍA PARA GRABAR de YouTube largo (3–30 min) en bloques temáticos.
+NO inventes un ángulo nuevo ni otro video. NO reordenes de forma que cambie el sentido de su plan.
+Los bloques deben reflejar los temas que ya trajo; solo pásalos a español hablado listo para grabar/editar.
+
+Idioma: español hablado. Sin relleno. Sin promesas de viralidad.
+PROHIBIDO: plan de cámara, tomas, beats, "show", B-roll, timeline de edición.
+
+${LONG_DURATION_RULES}
+
+ESTRUCTURA OBLIGATORIA:
+- hook: gancho hablado (máx ~${LONG_SPEAK.hookMaxWords} palabras), alineado con su apertura.
+- blocks: ${LONG_SPEAK.minBlocks}–${LONG_SPEAK.maxBlocks} bloques TEMÁTICOS sacados de SU idea:
+  - title: nombre corto del tema
+  - body: guion hablado de esa sección
+- closing: cierre + CTA verbal (máx ~${LONG_SPEAK.closingMaxWords} palabras).
+
+HECHOS: conserva claims concretos. No inventes stats/códigos/patch notes.
+Si hay "ASÍ SUENA TU CONTENIDO": síguelo. Ignora "Descripciones de YouTube".
+
+Si la idea da para un largo, responde SOLO JSON:
+{
+  "hook": "gancho hablado",
+  "blocks": [
+    { "title": "Tema corto", "body": "guion hablado de la sección…" }
+  ],
+  "closing": "cierre/CTA verbal",
+  "estimatedSeconds": 180 | 300 | 480 | 720 | 900 | 1200 | 1800
+}
+
+Contexto del creador:
+${profileContext?.trim() || "No especificado"}
+
+Idea YA DECIDIDA (respétala; estructura en bloques sin reinventar):
+${ideaText.trim()}
+
+${revisionBlock}`;
+}

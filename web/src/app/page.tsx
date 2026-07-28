@@ -319,7 +319,11 @@ function HomeHub() {
             <Link href="/capture" className="inline-link">
               Nueva idea
             </Link>{" "}
-            para crear tu primer video.
+            (si aún eliges enfoque) o{" "}
+            <Link href="/guion" className="inline-link">
+              Nuevo guion
+            </Link>{" "}
+            (si ya sabes qué vas a decir).
           </p>
         </section>
       ) : (

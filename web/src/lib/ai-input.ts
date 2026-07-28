@@ -6,11 +6,13 @@ export const AI_INPUT_CAPS = {
   adjustment: 2000,
   /** Perfiles content_os (brand + juego + estilo) suelen pasar de 3k. */
   profileContext: 4500,
-  script: 6000,
+  /** Guiones largos por bloques pueden superar el short (~6k). */
+  script: 20000,
   recentContent: 3000,
   existingTitle: 200,
   directionField: 500,
-  currentDraftJson: 6000,
+  /** Revisiones de guion largo (hook + bloques + cierre). */
+  currentDraftJson: 24000,
   thumbnailIdea: 200,
 } as const;
 

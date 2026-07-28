@@ -16,7 +16,11 @@ import { aiResponseError, safeAiJson } from "@/lib/fetch-ai-json";
 import { ideaAiContext } from "@/lib/idea-ai-context";
 import { buildUnifiedScript } from "@/lib/script";
 import { getIdea, upsertIdea } from "@/lib/storage";
-import type { Direction, Idea } from "@/lib/types";
+import type { Direction, Idea, ScriptBlock, VideoMode } from "@/lib/types";
+
+function ideaVideoMode(idea: Idea): VideoMode {
+  return idea.videoMode === "long" ? "long" : "short";
+}
 
 function DirectionsFlow() {
   const params = useParams();
@@ -70,6 +74,7 @@ function DirectionsFlow() {
         body: JSON.stringify({
           ideaText: current.rawText,
           profileContext: ideaAiContext(current),
+          videoMode: ideaVideoMode(current),
         }),
       });
       const data = await safeAiJson(res);
@@ -145,6 +150,7 @@ function DirectionsFlow() {
     setDirectionsError("");
     setFailedDirection(null);
     setNeedsUpgrade(false);
+    const videoMode = ideaVideoMode(idea);
     try {
       const res = await fetch("/api/generate-draft", {
         method: "POST",
@@ -153,6 +159,7 @@ function DirectionsFlow() {
           ideaText: idea.rawText,
           profileContext: ideaAiContext(idea),
           direction: selected,
+          videoMode,
         }),
       });
       const data = await safeAiJson(res);
@@ -178,11 +185,22 @@ function DirectionsFlow() {
                   scriptBody?: string;
                   closing?: string;
                   estimatedSeconds?: number;
+                  blocks?: ScriptBlock[];
                 };
               }
             ).draft
           : undefined;
-      if (!draftPayload?.hook?.trim() || !draftPayload?.scriptBody?.trim()) {
+      if (!draftPayload?.hook?.trim()) {
+        throw new Error("La guía llegó incompleta. Intenta de nuevo.");
+      }
+      const blocks = Array.isArray(draftPayload.blocks)
+        ? draftPayload.blocks.filter((b) => b?.title?.trim() && b?.body?.trim())
+        : undefined;
+      if (videoMode === "long") {
+        if (!blocks?.length) {
+          throw new Error("La guía llegó incompleta. Intenta de nuevo.");
+        }
+      } else if (!draftPayload.scriptBody?.trim()) {
         throw new Error("La guía llegó incompleta. Intenta de nuevo.");
       }
       trackFunnel("draft_ready");
@@ -191,9 +209,12 @@ function DirectionsFlow() {
       const draft = {
         format: "guide" as const,
         hook: draftPayload.hook,
-        scriptBody: draftPayload.scriptBody,
+        scriptBody:
+          draftPayload.scriptBody ||
+          (blocks ? blocks.map((b) => b.body).join("\n\n") : ""),
         closing: draftPayload.closing || "",
         beats: [],
+        ...(blocks?.length ? { blocks } : {}),
         estimatedSeconds: draftPayload.estimatedSeconds || 45,
         creatorScript: "",
         updatedAt: now,
@@ -232,10 +253,14 @@ function DirectionsFlow() {
 
   const isCreating = Boolean(creatingId);
   const cardsBusy = loading || isCreating;
+  const isLong = ideaVideoMode(idea) === "long";
 
   return (
     <AppShell title="Enfoques" backHref={`/ideas/${id}`}>
       <p className="idea-snippet">{ideaPreview(idea.rawText, 120)}</p>
+      {isLong ? (
+        <p className="muted">Direcciones para tu video largo de YouTube.</p>
+      ) : null}
 
       {loading ? (
         <p className="muted" aria-live="polite" aria-busy="true">

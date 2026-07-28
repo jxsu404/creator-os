@@ -13,9 +13,13 @@ import { applyGenerationBilling } from "@/lib/apply-generation-billing";
 import { trackFunnel } from "@/lib/metrics";
 import { aiResponseError, safeAiJson } from "@/lib/fetch-ai-json";
 import { ideaAiContext } from "@/lib/idea-ai-context";
-import { buildUnifiedScript } from "@/lib/script";
+import { buildUnifiedScript, formatEstimatedDuration } from "@/lib/script";
 import { getIdea, upsertIdea } from "@/lib/storage";
-import type { Direction, Idea } from "@/lib/types";
+import type { Direction, Idea, ScriptBlock, VideoMode } from "@/lib/types";
+
+function ideaVideoMode(idea: Idea): VideoMode {
+  return idea.videoMode === "long" ? "long" : "short";
+}
 
 function DraftPreview() {
   const params = useParams();
@@ -86,6 +90,7 @@ function DraftPreview() {
     setRevising(true);
     setReviseError("");
     setNeedsUpgrade(false);
+    const videoMode = ideaVideoMode(current);
     try {
       const res = await fetch("/api/generate-draft", {
         method: "POST",
@@ -95,11 +100,15 @@ function DraftPreview() {
           profileContext: ideaAiContext(current),
           direction,
           adjustment: adjustment.trim(),
+          videoMode,
           currentDraft: {
             hook: current.draft.hook,
             scriptBody: current.draft.scriptBody,
             closing: current.draft.closing,
             estimatedSeconds: current.draft.estimatedSeconds,
+            ...(current.draft.blocks?.length
+              ? { blocks: current.draft.blocks }
+              : {}),
             creatorScript:
               current.draft.creatorScript || buildUnifiedScript(current.draft),
           },
@@ -128,20 +137,34 @@ function DraftPreview() {
                   scriptBody?: string;
                   closing?: string;
                   estimatedSeconds?: number;
+                  blocks?: ScriptBlock[];
                 };
               }
             ).draft
           : undefined;
-      if (!draftPayload?.hook?.trim() || !draftPayload?.scriptBody?.trim()) {
+      if (!draftPayload?.hook?.trim()) {
+        throw new Error("La guía llegó incompleta. Intenta de nuevo.");
+      }
+      const blocks = Array.isArray(draftPayload.blocks)
+        ? draftPayload.blocks.filter((b) => b?.title?.trim() && b?.body?.trim())
+        : undefined;
+      if (videoMode === "long") {
+        if (!blocks?.length) {
+          throw new Error("La guía llegó incompleta. Intenta de nuevo.");
+        }
+      } else if (!draftPayload.scriptBody?.trim()) {
         throw new Error("La guía llegó incompleta. Intenta de nuevo.");
       }
       const now = new Date().toISOString();
       const revised = {
         format: "guide" as const,
         hook: draftPayload.hook,
-        scriptBody: draftPayload.scriptBody,
+        scriptBody:
+          draftPayload.scriptBody ||
+          (blocks ? blocks.map((b) => b.body).join("\n\n") : ""),
         closing: draftPayload.closing || "",
         beats: [],
+        ...(blocks?.length ? { blocks } : {}),
         estimatedSeconds: draftPayload.estimatedSeconds || 45,
         updatedAt: now,
         creatorScript: "",
@@ -198,11 +221,14 @@ function DraftPreview() {
   }
 
   const { draft } = idea;
+  const hasBlocks = Boolean(draft.blocks?.length);
 
   return (
     <AppShell title="Guía" backHref={`/ideas/${id}`}>
       <div className="draft-meta">
-        <span className="idea-meta">~{draft.estimatedSeconds}s</span>
+        <span className="idea-meta">
+          {formatEstimatedDuration(draft.estimatedSeconds)}
+        </span>
         <span className="save-indicator" aria-live="polite">
           {revising ? "Ajustando…" : ""}
         </span>
@@ -228,11 +254,23 @@ function DraftPreview() {
               {"\n"}
               {draft.hook || "—"}
             </p>
-            <p className="preview-plain">
-              <strong>Guion</strong>
-              {"\n"}
-              {draft.scriptBody || "—"}
-            </p>
+            {hasBlocks
+              ? draft.blocks!.map((block, i) => (
+                  <p key={block.id || i} className="preview-plain">
+                    <strong>
+                      Bloque {i + 1}: {block.title}
+                    </strong>
+                    {"\n"}
+                    {block.body || "—"}
+                  </p>
+                ))
+              : (
+                  <p className="preview-plain">
+                    <strong>Guion</strong>
+                    {"\n"}
+                    {draft.scriptBody || "—"}
+                  </p>
+                )}
             <p className="preview-plain">
               <strong>Cierre</strong>
               {"\n"}

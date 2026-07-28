@@ -8,7 +8,7 @@ export const SHORT_DURATION_OPTIONS = [30, 60, 90, 120, 150] as const;
 export type ShortDurationSeconds = (typeof SHORT_DURATION_OPTIONS)[number];
 
 export const TOO_LONG_FOR_SHORT_MESSAGE =
-  "Este texto es demasiado largo para un short (máx. ~2 min 30 s). Pronto podrás crear ideas para videos largos de YouTube.";
+  "Este texto es demasiado largo para un short (máx. ~2 min 30 s). Al crear la idea, elige YouTube largo para videos de 3–30 min.";
 
 export type RawDirection = {
   name: string;

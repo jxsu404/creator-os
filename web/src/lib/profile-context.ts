@@ -22,6 +22,7 @@ export const BLANK_RECORDING_STYLE: RecordingStyle = {
   howIRecord: "",
   typicalShots: [],
   voiceAndPacing: "",
+  youtubeDescriptionStyle: "",
   avoid: [],
   videoTypes: [],
 };
@@ -281,23 +282,37 @@ export function profileContextFor(
   // Estilo de grabación: siempre (no depende de Gaming / useGameContext).
   if (p.recordingStyle) {
     const r = p.recordingStyle;
+    const ytDesc = (r.youtubeDescriptionStyle ?? "").trim();
     const hasStyle = Boolean(
       r.howIRecord.trim() ||
         r.voiceAndPacing.trim() ||
+        ytDesc ||
         r.typicalShots.length ||
         r.avoid.length
     );
     if (hasStyle) {
       parts.push("");
-      parts.push("=== CÓMO GRABA ESTE CREADOR (obligatorio) ===");
+      parts.push("=== ASÍ SUENA TU CONTENIDO (obligatorio) ===");
       parts.push(
-        "Sigue estas reglas en el guion. Si pide saludo, intro o cierre fijo, inclúyelo."
+        "La IA usa esto al escribir guiones y descripciones. Si pide saludo, intro o cierre fijo, inclúyelo."
       );
-      if (r.howIRecord.trim()) parts.push(`Formato: ${r.howIRecord}`);
+      if (r.howIRecord.trim()) {
+        parts.push(
+          `Cómo grabo (formato / estructura del video): ${r.howIRecord}`
+        );
+      }
       if (r.videoTypes.length)
         parts.push(`Tipos / ángulos: ${r.videoTypes.join(", ")}`);
-      if (r.voiceAndPacing.trim())
-        parts.push(`Voz y ritmo (obligatorio): ${r.voiceAndPacing}`);
+      if (r.voiceAndPacing.trim()) {
+        parts.push(
+          `Voz y ritmo (tono al escribir el guion, imita cómo habla el creador): ${r.voiceAndPacing}`
+        );
+      }
+      if (ytDesc) {
+        parts.push(
+          `Descripciones de YouTube (formato al generar paquete de subida): ${ytDesc}`
+        );
+      }
       if (r.typicalShots.length) {
         parts.push(`Tomas típicas:\n- ${r.typicalShots.join("\n- ")}`);
       }

@@ -15,7 +15,7 @@ export const en: MessageTree = {
     games: "Games",
     gamesDesc: "Active: {game}",
     personalization: "Personalization",
-    personalizationDesc: "How you record and tone",
+    personalizationDesc: "Format, voice, and YouTube descriptions",
     connections: "Connections",
     connectionsDescYt: "YouTube · {channel}",
     connectionsDescDefault: "YouTube · TikTok",

@@ -13,7 +13,7 @@ export const es = {
     games: "Juegos",
     gamesDesc: "Activo: {game}",
     personalization: "Personalización",
-    personalizationDesc: "Cómo grabas y tono",
+    personalizationDesc: "Formato, voz y descripciones de YouTube",
     connections: "Conexiones",
     connectionsDescYt: "YouTube · {channel}",
     connectionsDescDefault: "YouTube · TikTok",

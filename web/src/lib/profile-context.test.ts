@@ -28,9 +28,9 @@ describe("profileContextFor — personalización", () => {
       })
     );
 
-    expect(ctx).toContain("CÓMO GRABA ESTE CREADOR (obligatorio)");
+    expect(ctx).toContain("ASÍ SUENA TU CONTENIDO (obligatorio)");
     expect(ctx).toContain("En todos mis videos incluyo un saludo");
-    expect(ctx).toContain("Voz y ritmo (obligatorio)");
+    expect(ctx).toContain("Voz y ritmo (tono al escribir el guion");
     expect(ctx).not.toContain("CONTEXTO DEL JUEGO");
   });
 
@@ -50,5 +50,24 @@ describe("profileContextFor — personalización", () => {
     );
 
     expect(ctx).toContain("Empiezo con hola familia");
+  });
+
+  it("incluye descripciones de YouTube cuando están definidas", () => {
+    const ctx = profileContextFor(
+      blankProfile({
+        recordingStyle: {
+          howIRecord: "",
+          typicalShots: [],
+          voiceAndPacing: "",
+          youtubeDescriptionStyle:
+            "Gancho en la primera línea, hashtags al final",
+          avoid: [],
+          videoTypes: [],
+        },
+      })
+    );
+
+    expect(ctx).toContain("Descripciones de YouTube");
+    expect(ctx).toContain("Gancho en la primera línea");
   });
 });

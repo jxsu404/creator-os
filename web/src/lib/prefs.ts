@@ -36,7 +36,7 @@ export function normalizePrefs(raw: unknown): AppPrefs {
       : DEFAULT_PREFS.reduceMotion;
   const thumbnailStylePrompt =
     typeof o.thumbnailStylePrompt === "string"
-      ? o.thumbnailStylePrompt
+      ? o.thumbnailStylePrompt.slice(0, 5000)
       : DEFAULT_PREFS.thumbnailStylePrompt;
   return { theme, locale, reduceMotion, thumbnailStylePrompt };
 }

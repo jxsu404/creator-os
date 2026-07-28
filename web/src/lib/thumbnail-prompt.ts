@@ -6,7 +6,7 @@ export const DEFAULT_THUMBNAIL_STYLE_PROMPT = [
   "Gaming / Roblox creator style is OK when the context says so.",
 ].join("\n");
 
-export const THUMBNAIL_STYLE_PROMPT_MAX = 1200;
+export const THUMBNAIL_STYLE_PROMPT_MAX = 5000;
 
 export type ThumbnailPromptInput = {
   /** Estilo / instrucciones del creador (vacío = default). */

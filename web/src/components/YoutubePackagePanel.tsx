@@ -1,13 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   isUsageLimitPayload,
   UpgradePrompt,
 } from "@/components/UpgradePrompt";
 import { usePrefsOptional } from "@/components/PrefsProvider";
 import { applyGenerationBilling } from "@/lib/apply-generation-billing";
+import {
+  compressImageDataUrl,
+  downloadDataUrl,
+  thumbFilename,
+} from "@/lib/image-compress";
 import { readPrefs } from "@/lib/prefs";
+import {
+  addGalleryThumb,
+  listThumbRefs,
+} from "@/lib/thumbnail-gallery";
 import type { Idea, YoutubeUploadPackage } from "@/lib/types";
 
 type Props = {
@@ -133,6 +143,12 @@ export function YoutubePackagePanel({
       const stylePrompt =
         prefsCtx?.prefs.thumbnailStylePrompt ??
         readPrefs().thumbnailStylePrompt;
+      let referenceImages: string[] = [];
+      try {
+        referenceImages = (await listThumbRefs()).map((r) => r.imageDataUrl);
+      } catch {
+        referenceImages = [];
+      }
       const res = await fetch("/api/generate-thumbnail", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -143,6 +159,8 @@ export function YoutubePackagePanel({
           profileContext,
           stylePrompt: stylePrompt.trim() || undefined,
           extraInstructions: extraThumbPrompt.trim() || undefined,
+          referenceImages:
+            referenceImages.length > 0 ? referenceImages : undefined,
         }),
       });
       const data = await res.json();
@@ -153,12 +171,24 @@ export function YoutubePackagePanel({
         throw new Error(data.error || "Error al generar la miniatura");
       }
       void applyGenerationBilling(data.billing);
-      const url =
+      const rawUrl =
         typeof data.imageDataUrl === "string" ? data.imageDataUrl.trim() : "";
-      if (!url.startsWith("data:image/")) {
+      if (!rawUrl.startsWith("data:image/")) {
         throw new Error("No llegó una imagen válida.");
       }
+      // Comprimir: data URLs crudos rompen localStorage y el listado.
+      const url = await compressImageDataUrl(rawUrl);
       onThumbnail(url);
+      try {
+        await addGalleryThumb({
+          imageDataUrl: url,
+          ideaId: idea.id,
+          title: pkg.title || idea.title,
+          thumbnailIdea: pkg.thumbnailIdea,
+        });
+      } catch (galleryErr) {
+        console.warn("[gallery] no se pudo guardar:", galleryErr);
+      }
     } catch (e) {
       setError(
         e instanceof Error ? e.message : "No pude generar la miniatura."
@@ -351,7 +381,8 @@ export function YoutubePackagePanel({
               onChange={(e) => setExtraThumbPrompt(e.target.value)}
             />
             <p className="idea-meta">
-              El estilo base se edita en Perfil → Ajustes → Miniaturas.
+              El estilo base y las fotos de referencia se editan en Perfil →
+              Ajustes → Miniaturas.
             </p>
           </details>
 
@@ -359,6 +390,23 @@ export function YoutubePackagePanel({
             <div className="yt-thumb-preview">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={idea.thumbnailUrl} alt="Miniatura generada" />
+              <div className="yt-thumb-actions">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() =>
+                    downloadDataUrl(
+                      idea.thumbnailUrl!,
+                      thumbFilename(pkg.title || idea.title)
+                    )
+                  }
+                >
+                  Descargar
+                </button>
+                <Link href="/gallery" className="text-link">
+                  Ver galería
+                </Link>
+              </div>
             </div>
           ) : null}
 
@@ -375,7 +423,7 @@ export function YoutubePackagePanel({
                 : "Generar miniatura"}
           </button>
           <p className="idea-meta">
-            Usa 1 generación del cupo. La imagen queda en esta idea.
+            Usa 1 generación del cupo. Queda en esta idea y en Galería.
           </p>
 
           <button

@@ -280,10 +280,53 @@ function friendlyProviderError(err: unknown): string {
 
 /**
  * Genera una imagen (miniatura) con failover:
- * Grok Imagine (xAI) → Gemini Imagen.
+ * - Con referencias: Grok Imagine edits (hasta 3 imgs)
+ * - Sin referencias: Grok Imagine → Gemini Imagen
  * Devuelve un data URL (image/jpeg o image/png).
  */
-export async function generateImage(prompt: string): Promise<string> {
+export async function generateImage(
+  prompt: string,
+  opts?: { referenceImages?: string[] }
+): Promise<string> {
+  const refs = (opts?.referenceImages || [])
+    .map((u) => u.trim())
+    .filter((u) => u.startsWith("data:image/") || u.startsWith("http"))
+    .slice(0, 3);
+
+  if (refs.length > 0) {
+    const xai = process.env.XAI_API_KEY?.trim();
+    if (!xai || xai.includes("tu-clave")) {
+      throw new Error(
+        "Para usar fotos de referencia necesitás XAI_API_KEY (Grok Imagine edits)."
+      );
+    }
+    if (isInCooldown("grok")) {
+      throw new Error(
+        "Capacidad de imagen recargando. Prueba de nuevo en un momento (Perfil → Uso de IA)."
+      );
+    }
+    try {
+      const dataUrl = await runXaiImageEdit(xai, prompt, refs);
+      if (!dataUrl?.startsWith("data:image/")) {
+        throw new Error("Respuesta de imagen inválida");
+      }
+      clearCooldown("grok");
+      return dataUrl;
+    } catch (err) {
+      const parsed = cooldownMsFromError(err);
+      if (parsed) {
+        setCooldown({
+          id: "grok",
+          label: "Grok Imagine",
+          until: new Date(Date.now() + parsed.ms).toISOString(),
+          reason: parsed.reason,
+          detail: parsed.detail,
+        });
+      }
+      throw err;
+    }
+  }
+
   const providers = buildImageProviders();
   if (providers.length === 0) {
     throw new Error(
@@ -371,8 +414,59 @@ async function runXaiImage(apiKey: string, prompt: string): Promise<string> {
       prompt,
       n: 1,
       response_format: "b64_json",
+      aspect_ratio: "16:9",
     }),
   });
+  return parseXaiImageResponse(res, "Grok Imagine");
+}
+
+/** Edits con hasta 3 imágenes de referencia (cara / marca / estilo). */
+async function runXaiImageEdit(
+  apiKey: string,
+  prompt: string,
+  refs: string[]
+): Promise<string> {
+  const model =
+    process.env.XAI_IMAGE_EDIT_MODEL ||
+    process.env.XAI_IMAGE_MODEL ||
+    "grok-imagine-image";
+  const refLines = refs
+    .map((_, i) => `<IMAGE_${i}>`)
+    .join(", ");
+  const fullPrompt = [
+    prompt,
+    "",
+    `Reference images: ${refLines}. Use them as face / brand / style references for a YouTube thumbnail (16:9). Do not copy them 1:1 — compose a new thumbnail that clearly features the subject from the references.`,
+  ].join("\n");
+
+  const body: Record<string, unknown> = {
+    model,
+    prompt: fullPrompt,
+    n: 1,
+    response_format: "b64_json",
+    aspect_ratio: "16:9",
+  };
+  if (refs.length === 1) {
+    body.image = { url: refs[0] };
+  } else {
+    body.images = refs.map((url) => ({ url }));
+  }
+
+  const res = await fetch("https://api.x.ai/v1/images/edits", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(body),
+  });
+  return parseXaiImageResponse(res, "Grok Imagine edits");
+}
+
+async function parseXaiImageResponse(
+  res: Response,
+  label: string
+): Promise<string> {
   const raw = await res.text();
   if (!res.ok) {
     const retryAfter = res.headers.get("retry-after");
@@ -385,13 +479,13 @@ async function runXaiImage(apiKey: string, prompt: string): Promise<string> {
   try {
     parsed = JSON.parse(raw) as typeof parsed;
   } catch {
-    throw new Error("Respuesta Grok Imagine no es JSON");
+    throw new Error(`Respuesta ${label} no es JSON`);
   }
   const b64 = parsed.data?.[0]?.b64_json?.trim();
   if (b64) return `data:image/jpeg;base64,${b64}`;
   const url = parsed.data?.[0]?.url?.trim();
   if (url) return await fetchImageAsDataUrl(url);
-  throw new Error("Grok Imagine no devolvió imagen");
+  throw new Error(`${label} no devolvió imagen`);
 }
 
 async function runGeminiImagen(apiKey: string, prompt: string): Promise<string> {

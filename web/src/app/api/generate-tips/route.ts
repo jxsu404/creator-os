@@ -10,9 +10,6 @@ import { normalizeTips } from "@/lib/tips-context";
 
 export async function POST(request: Request) {
   try {
-    const gate = await gateAiGeneration();
-    if (gate.blocked) return gate.blocked;
-
     const body = await request.json();
     const { profileContext, recentContent } = body as {
       profileContext?: string;
@@ -24,6 +21,9 @@ export async function POST(request: Request) {
       { value: recentContent, max: AI_INPUT_CAPS.recentContent, label: "El contenido reciente" },
     ]);
     if (tooLong) return tooLong;
+
+    const preflight = await gateAiGeneration({ consume: false });
+    if (preflight.blocked) return preflight.blocked;
 
     const prompt = `Eres un compañero creativo para creadores de TikTok/Reels/Shorts (Ideazo).
 Generas exactamente 3 consejos de OFICIO CREATIVO, accionables y DISTINTOS, personalizados al nicho y al contenido reciente del creador.
@@ -72,6 +72,9 @@ ${recentContent?.trim() || "Ninguno aún — personaliza solo con el nicho."}`;
         { status: 502 }
       );
     }
+
+    const gate = await gateAiGeneration();
+    if (gate.blocked) return gate.blocked;
 
     return NextResponse.json({ tips, billing: gate.billing });
   } catch (err) {

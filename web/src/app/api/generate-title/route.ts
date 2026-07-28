@@ -9,9 +9,6 @@ import { gateAiGeneration } from "@/lib/billing/gate";
 
 export async function POST(request: Request) {
   try {
-    const gate = await gateAiGeneration();
-    if (gate.blocked) return gate.blocked;
-
     const body = await request.json();
     const { ideaText } = body as { ideaText?: string };
 
@@ -21,6 +18,9 @@ export async function POST(request: Request) {
 
     const tooLong = rejectIfTooLong(ideaText, AI_INPUT_CAPS.ideaText, "la idea");
     if (tooLong) return tooLong;
+
+    const gate = await gateAiGeneration({ bill: false });
+    if (gate.blocked) return gate.blocked;
 
     const prompt = `Eres un compañero creativo para creadores de TikTok/Reels/Shorts.
 A partir de una idea de video escrita de forma rápida y desordenada, eliges UN título corto y claro para identificarla en una lista.

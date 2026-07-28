@@ -21,8 +21,7 @@
     "@supabase/supabase-js": "^2.110.8",
     "next": "^15.1.11",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "stripe": "^22.3.2"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

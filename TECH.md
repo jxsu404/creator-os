@@ -4,7 +4,7 @@
 **Nombre de marca:** Ideazo  
 **Repo técnico:** creator-os  
 **Versión:** **1.6.0**  
-**Fase:** Lanzamiento Web/PWA + freemium Pro
+**Fase:** Lanzamiento Web/PWA + donaciones PayPal
 
 ---
 
@@ -16,7 +16,7 @@
 | UI | React + CSS modules / CSS variables | Simple, sin design system pesado |
 | Datos | **Supabase** (auth + sync) + localStorage abstraído | Cuenta + celular ↔ PC |
 | IA | **Google Gemini** (+ failover Grok/Groq) | Dogfood barato; keys de pago al monetizar |
-| Billing | **Stripe** Checkout + Portal + webhooks | Free (15 gen/mes) / Pro |
+| Billing | **PayPal** (donaciones) + cupo free | Free 15 gen/mes; sin suscripción |
 | Deploy | **Vercel** — Root Directory `web/` | Ver `DEPLOY.md` + `LAUNCH.md` |
 
 ### Principio de coste

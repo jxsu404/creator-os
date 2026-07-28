@@ -9,11 +9,26 @@ const ALLOWED = new Set([
   "draft_ready",
   "marked_ready",
   "hit_limit",
-  "upgrade_click",
   "donate_click",
-  "checkout_started",
-  "checkout_success",
 ]);
+
+const META_KEYS = new Set(["ideaId", "plan", "source", "path"]);
+const MAX_META_BYTES = 2048;
+
+function sanitizeMeta(meta: Record<string, unknown> | undefined): Record<string, unknown> {
+  if (!meta || typeof meta !== "object") return {};
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(meta)) {
+    if (!META_KEYS.has(key)) continue;
+    if (typeof value === "string") {
+      out[key] = value.slice(0, 200);
+    } else if (typeof value === "number" || typeof value === "boolean") {
+      out[key] = value;
+    }
+  }
+  if (JSON.stringify(out).length > MAX_META_BYTES) return {};
+  return out;
+}
 
 export async function POST(request: Request) {
   try {
@@ -35,7 +50,7 @@ export async function POST(request: Request) {
     const { error } = await auth.supabase.from("funnel_events").insert({
       user_id: auth.user.id,
       event,
-      meta: body.meta || {},
+      meta: sanitizeMeta(body.meta),
     });
 
     if (error) {

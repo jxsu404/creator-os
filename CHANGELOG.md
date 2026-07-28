@@ -3,6 +3,9 @@
 ## Unreleased
 
 - Prompt de miniaturas personalizable: estilo base en Perfil → Ajustes, e instrucciones extra por generación en el paquete YouTube/TikTok
+- Eliminado Stripe por completo; monetización solo con donaciones PayPal
+- Hardening de cupo IA: validar → generar → cobrar; títulos de lista sin consumir cupo
+- RLS: sin escritura cliente en `usage_monthly`; invite codes no listables
 
 ## 2.0.0 — 2026-07-27
 
@@ -25,7 +28,7 @@ Estable: ajustes, versión visible e historial en la app.
 ## 1.6.0 — 2026-07-27
 
 - Lanzamiento Ideazo: landing pública, `/pricing`, `/waitlist`, `/invite`
-- Freemium: límites mensuales de IA + Ideazo Pro (Stripe Checkout/Portal/webhooks)
+- Freemium: límites mensuales de IA (suscripción Stripe retirada; apoyo vía PayPal)
 - Soft launch: `INVITE_ONLY`, códigos, waitlist, eventos de funnel
 - Legal: `/terms` y `/privacy`
 - Gate Usuario 1 in-app: Perfil → Validación (`/profile/validacion`)
@@ -34,7 +37,6 @@ Estable: ajustes, versión visible e historial en la app.
 - CI en GitHub Actions (`lint` / `typecheck` / `test` + scan de conflict markers)
 - Template de PR + reglas de agentes en `AGENTS.md`
 - Plan Free endurecido (snapshot seguro + RLS billing); Validación Usuario 1 fuera de Perfil (diferida)
-- Checkout Pro exige `SUPABASE_SERVICE_ROLE_KEY` (el cliente ya no puede auto-asignarse Pro)
 - Medidor de plan por **usuario**: % gastado del cupo mensual, se actualiza al generar (y en Perfil)
 
 ## Unreleased (previo)

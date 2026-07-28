@@ -9,9 +9,6 @@ import { gateAiGeneration } from "@/lib/billing/gate";
 
 export async function POST(request: Request) {
   try {
-    const gate = await gateAiGeneration();
-    if (gate.blocked) return gate.blocked;
-
     const body = await request.json();
     const {
       ideaText,
@@ -55,6 +52,9 @@ export async function POST(request: Request) {
       { value: direction.why, max: AI_INPUT_CAPS.directionField, label: "El porqué del enfoque" },
     ]);
     if (tooLong) return tooLong;
+
+    const preflight = await gateAiGeneration({ consume: false });
+    if (preflight.blocked) return preflight.blocked;
 
     const isRevision = Boolean(adjustment?.trim() && currentDraft);
 
@@ -119,6 +119,9 @@ ${adjustment!.trim()}`
         { status: 502 }
       );
     }
+
+    const gate = await gateAiGeneration();
+    if (gate.blocked) return gate.blocked;
 
     return NextResponse.json({
       draft: {

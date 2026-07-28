@@ -6,12 +6,14 @@ const {
   getApiAuth,
   unauthorizedApiResponse,
   consumeGeneration,
+  getBillingSnapshot,
   userHasInviteAccess,
   inviteOnlyEnabled,
 } = vi.hoisted(() => ({
   getApiAuth: vi.fn(),
   unauthorizedApiResponse: vi.fn(),
   consumeGeneration: vi.fn(),
+  getBillingSnapshot: vi.fn(),
   userHasInviteAccess: vi.fn(),
   inviteOnlyEnabled: vi.fn(),
 }));
@@ -29,6 +31,7 @@ vi.mock("@/lib/billing/usage", async (importOriginal) => {
   return {
     ...actual,
     consumeGeneration,
+    getBillingSnapshot,
   };
 });
 
@@ -47,8 +50,6 @@ const freeSnapshot: BillingSnapshot = {
   limit: 15,
   remaining: 14,
   month: "2026-07",
-  stripeCustomerId: null,
-  currentPeriodEnd: null,
 };
 
 describe("gateAiGeneration", () => {
@@ -58,6 +59,7 @@ describe("gateAiGeneration", () => {
     inviteOnlyEnabled.mockReturnValue(false);
     userHasInviteAccess.mockResolvedValue(true);
     consumeGeneration.mockResolvedValue(freeSnapshot);
+    getBillingSnapshot.mockResolvedValue(freeSnapshot);
   });
 
   it("returns 401 when unauthorized", async () => {
@@ -121,5 +123,35 @@ describe("gateAiGeneration", () => {
     expect(result.blocked?.status).toBe(402);
     const body = await result.blocked!.json();
     expect(body.code).toBe("usage_limit");
+  });
+
+  it("preflight blocks at limit without consuming", async () => {
+    getApiAuth.mockResolvedValue({
+      user: { id: "user-1" },
+      supabase: {},
+    });
+    getBillingSnapshot.mockResolvedValue({
+      ...freeSnapshot,
+      used: 15,
+      remaining: 0,
+    });
+
+    const result = await gateAiGeneration({ consume: false });
+
+    expect(result.blocked?.status).toBe(402);
+    expect(consumeGeneration).not.toHaveBeenCalled();
+  });
+
+  it("bill false reads snapshot without consuming", async () => {
+    getApiAuth.mockResolvedValue({
+      user: { id: "user-1" },
+      supabase: {},
+    });
+
+    const result = await gateAiGeneration({ bill: false });
+
+    expect(result).toEqual({ blocked: null, billing: freeSnapshot });
+    expect(getBillingSnapshot).toHaveBeenCalledOnce();
+    expect(consumeGeneration).not.toHaveBeenCalled();
   });
 });

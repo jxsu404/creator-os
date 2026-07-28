@@ -87,8 +87,6 @@ export function mergeUsageForDisplay(
     limit,
     remaining: Math.max(0, limit - used),
     month,
-    stripeCustomerId: server?.stripeCustomerId ?? null,
-    currentPeriodEnd: server?.currentPeriodEnd ?? null,
   };
 }
 

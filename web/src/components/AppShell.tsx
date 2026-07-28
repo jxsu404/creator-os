@@ -136,9 +136,11 @@ function backAriaLabel(backHref: string, backLabel?: string) {
   if (backHref === "/") return "Volver a Inicio";
   if (backHref === "/ideas") return "Volver a Ideas";
   if (backHref === "/capture") return "Volver a Nueva idea";
+  if (backHref === "/guion") return "Volver a Nuevo guion";
   if (backHref === "/profile") return "Volver a Perfil";
   if (backHref.endsWith("/draft")) return "Volver a la guía";
   if (backHref.endsWith("/directions")) return "Volver a enfoques";
+  if (backHref.endsWith("/direct")) return "Volver al guion directo";
   if (backHref.endsWith("/script")) return "Volver al guion";
   if (/^\/ideas\/[^/]+$/.test(backHref)) return "Volver a la idea";
   return "Volver";

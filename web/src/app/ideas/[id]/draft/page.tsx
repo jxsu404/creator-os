@@ -15,6 +15,7 @@ import { aiResponseError, safeAiJson } from "@/lib/fetch-ai-json";
 import { ideaAiContext } from "@/lib/idea-ai-context";
 import { buildUnifiedScript, formatEstimatedDuration } from "@/lib/script";
 import { getIdea, upsertIdea } from "@/lib/storage";
+import { isDirectScriptFlow } from "@/lib/idea-flow";
 import type { Direction, Idea, ScriptBlock, VideoMode } from "@/lib/types";
 
 function ideaVideoMode(idea: Idea): VideoMode {
@@ -85,7 +86,9 @@ function DraftPreview() {
   async function applyAdjustments() {
     const current = ideaRef.current ?? idea;
     const direction = selectedDirection();
-    if (!current?.draft || !direction || !adjustment.trim() || revising) return;
+    if (!current?.draft || !adjustment.trim() || revising) return;
+    const isDirect = isDirectScriptFlow(current);
+    if (!isDirect && !direction) return;
 
     setRevising(true);
     setReviseError("");
@@ -98,7 +101,9 @@ function DraftPreview() {
         body: JSON.stringify({
           ideaText: current.rawText,
           profileContext: ideaAiContext(current),
-          direction,
+          ...(isDirect
+            ? { directFromIdea: true }
+            : { direction }),
           adjustment: adjustment.trim(),
           videoMode,
           currentDraft: {
@@ -222,6 +227,7 @@ function DraftPreview() {
 
   const { draft } = idea;
   const hasBlocks = Boolean(draft.blocks?.length);
+  const isDirect = isDirectScriptFlow(idea);
 
   return (
     <AppShell title="Guía" backHref={`/ideas/${id}`}>
@@ -328,9 +334,15 @@ function DraftPreview() {
         >
           Continuar al guion
         </button>
-        <Link href={`/ideas/${id}/directions`} className="text-link">
-          Cambiar enfoque
-        </Link>
+        {isDirect ? (
+          <Link href={`/ideas/${id}`} className="text-link">
+            Ver idea
+          </Link>
+        ) : (
+          <Link href={`/ideas/${id}/directions`} className="text-link">
+            Cambiar enfoque
+          </Link>
+        )}
       </div>
     </AppShell>
   );

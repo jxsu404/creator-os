@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildDirectLongDraftPrompt,
   buildLongDirectionsPrompt,
   buildLongDraftPrompt,
   IDEA_TOO_THIN_FOR_LONG_MESSAGE,
@@ -184,5 +185,16 @@ describe("long prompts", () => {
     expect(prompt).toMatch(/blocks/);
     expect(prompt).toMatch(/PROHIBIDO/);
     expect(prompt).not.toMatch(/plan de cámara obligatorio/);
+  });
+
+  it("buildDirectLongDraftPrompt respects decided idea", () => {
+    const prompt = buildDirectLongDraftPrompt({
+      ideaText: "Bloque 1 mapa, bloque 2 menú, bloque 3 bosses",
+      isRevision: false,
+    });
+    expect(prompt).toContain("YA DECIDIDA");
+    expect(prompt).toContain("NO inventes un ángulo nuevo");
+    expect(prompt).toContain("blocks");
+    expect(prompt).not.toContain("Enfoque elegido");
   });
 });

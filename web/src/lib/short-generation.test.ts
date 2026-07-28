@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildDirectDraftPrompt,
   buildDirectionsPrompt,
   buildDraftPrompt,
   clampEstimatedSeconds,
@@ -179,5 +180,16 @@ describe("helpers", () => {
     expect(draftPrompt).toContain("hook base");
     expect(draftPrompt).toContain("30, 60, 90, 120 o 150");
     expect(draftPrompt).toContain("tooLongForShort");
+  });
+
+  it("builds direct draft prompt that forbids reinventing the angle", () => {
+    const prompt = buildDirectDraftPrompt({
+      ideaText: "Voy a explicar X luego Y y cierro con Z",
+      isRevision: false,
+    });
+    expect(prompt).toContain("YA DECIDIDA");
+    expect(prompt).toContain("NO inventes un ángulo nuevo");
+    expect(prompt).toContain("Voy a explicar X luego Y y cierro con Z");
+    expect(prompt).not.toContain("Enfoque elegido");
   });
 });

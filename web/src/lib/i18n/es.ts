@@ -95,6 +95,7 @@ export const es = {
   },
   loop: {
     newIdea: "Nueva idea",
+    newScript: "Nuevo guion",
     continue: "Continuar",
     readyToRecord: "Listo para grabar",
     generateDirections: "Generar enfoques",

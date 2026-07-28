@@ -96,9 +96,14 @@ function IdeasList() {
 
   return (
     <AppShell title="Ideas">
-      <Link href="/capture" className="btn-primary btn-block">
-        Nueva idea
-      </Link>
+      <div className="create-actions">
+        <Link href="/capture" className="btn-primary btn-block">
+          Nueva idea
+        </Link>
+        <Link href="/guion" className="btn-secondary btn-block">
+          Nuevo guion
+        </Link>
+      </div>
 
       {banner ? (
         <p className="banner-success" role="status" aria-live="polite">

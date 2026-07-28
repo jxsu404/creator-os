@@ -98,6 +98,7 @@ export const en: MessageTree = {
   },
   loop: {
     newIdea: "New idea",
+    newScript: "New script",
     continue: "Continue",
     readyToRecord: "Ready to record",
     generateDirections: "Generate directions",

@@ -3426,6 +3426,13 @@ html[data-theme="light"] .app-glow {
   margin-top: var(--space-2);
 }
 
+.create-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
 /* Capture: Short vs YouTube largo (overlay misma pantalla) */
 .mode-picker-overlay {
   position: fixed;

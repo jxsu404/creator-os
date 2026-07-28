@@ -14,6 +14,7 @@ import {
   invalidateAndRegenerateTitle,
 } from "@/lib/idea-title";
 import { getIdea, upsertIdea } from "@/lib/storage";
+import { isDirectScriptFlow } from "@/lib/idea-flow";
 import type { Idea } from "@/lib/types";
 
 function IdeaDetail() {
@@ -152,12 +153,21 @@ function IdeaDetail() {
 
   const primary =
     idea.status === "captured" ? (
-      <Link
-        href={`/ideas/${idea.id}/directions`}
-        className="btn-primary btn-block"
-      >
-        Ver tres enfoques
-      </Link>
+      isDirectScriptFlow(idea) ? (
+        <Link
+          href={`/ideas/${idea.id}/direct`}
+          className="btn-primary btn-block"
+        >
+          Crear guía
+        </Link>
+      ) : (
+        <Link
+          href={`/ideas/${idea.id}/directions`}
+          className="btn-primary btn-block"
+        >
+          Ver tres enfoques
+        </Link>
+      )
     ) : idea.status === "in_progress" ? (
       idea.draft ? (
         <Link
@@ -165,6 +175,13 @@ function IdeaDetail() {
           className="btn-primary btn-block"
         >
           Seguir con la guía
+        </Link>
+      ) : isDirectScriptFlow(idea) ? (
+        <Link
+          href={`/ideas/${idea.id}/direct`}
+          className="btn-primary btn-block"
+        >
+          Crear guía
         </Link>
       ) : (
         <Link
@@ -182,6 +199,13 @@ function IdeaDetail() {
             className="btn-primary btn-block"
           >
             Abrir guion
+          </Link>
+        ) : isDirectScriptFlow(idea) ? (
+          <Link
+            href={`/ideas/${idea.id}/direct`}
+            className="btn-primary btn-block"
+          >
+            Crear guía
           </Link>
         ) : (
           <Link

@@ -4,15 +4,18 @@ import {
   AI_INPUT_CAPS,
   aiRouteError,
   rejectIfAnyTooLong,
+  type InputFieldCheck,
 } from "@/lib/ai-input";
 import { gateAiGeneration } from "@/lib/billing/gate";
 import {
+  buildDirectLongDraftPrompt,
   buildLongDraftPrompt,
   IDEA_TOO_THIN_FOR_LONG_MESSAGE,
   isIdeaTooThinForLongPayload,
   validateLongDraft,
 } from "@/lib/long-generation";
 import {
+  buildDirectDraftPrompt,
   buildDraftPrompt,
   isTooLongForShortPayload,
   TOO_LONG_FOR_SHORT_MESSAGE,
@@ -24,6 +27,14 @@ function resolveVideoMode(raw: unknown): VideoMode {
   return raw === "long" ? "long" : "short";
 }
 
+type DirectionPayload = {
+  name: string;
+  promise: string;
+  angle: string;
+  hook: string;
+  why: string;
+};
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -34,16 +45,11 @@ export async function POST(request: Request) {
       adjustment,
       currentDraft,
       videoMode: rawMode,
+      directFromIdea,
     } = body as {
       ideaText?: string;
       profileContext?: string;
-      direction?: {
-        name: string;
-        promise: string;
-        angle: string;
-        hook: string;
-        why: string;
-      };
+      direction?: DirectionPayload;
       adjustment?: string;
       currentDraft?: {
         hook: string;
@@ -53,10 +59,18 @@ export async function POST(request: Request) {
         blocks?: Array<{ title: string; body: string; id?: string }>;
       };
       videoMode?: VideoMode;
+      directFromIdea?: boolean;
     };
     const videoMode = resolveVideoMode(rawMode);
+    const isDirect = Boolean(directFromIdea);
 
-    if (!ideaText?.trim() || !direction) {
+    if (!ideaText?.trim()) {
+      return NextResponse.json(
+        { error: "Faltan datos del borrador." },
+        { status: 400 }
+      );
+    }
+    if (!isDirect && !direction) {
       return NextResponse.json(
         { error: "Faltan datos del borrador." },
         { status: 400 }
@@ -64,7 +78,7 @@ export async function POST(request: Request) {
     }
 
     const currentDraftJson = currentDraft ? JSON.stringify(currentDraft) : null;
-    const tooLong = rejectIfAnyTooLong([
+    const checks: InputFieldCheck[] = [
       { value: ideaText, max: AI_INPUT_CAPS.ideaText, label: "La idea" },
       {
         value: profileContext,
@@ -77,63 +91,90 @@ export async function POST(request: Request) {
         max: AI_INPUT_CAPS.currentDraftJson,
         label: "El borrador actual",
       },
-      {
-        value: direction.name,
-        max: AI_INPUT_CAPS.directionField,
-        label: "El nombre del enfoque",
-      },
-      {
-        value: direction.promise,
-        max: AI_INPUT_CAPS.directionField,
-        label: "La promesa del enfoque",
-      },
-      {
-        value: direction.angle,
-        max: AI_INPUT_CAPS.directionField,
-        label: "El ángulo del enfoque",
-      },
-      {
-        value: direction.hook,
-        max: AI_INPUT_CAPS.directionField,
-        label: "El hook del enfoque",
-      },
-      {
-        value: direction.why,
-        max: AI_INPUT_CAPS.directionField,
-        label: "El porqué del enfoque",
-      },
-    ]);
+    ];
+    if (direction) {
+      checks.push(
+        {
+          value: direction.name,
+          max: AI_INPUT_CAPS.directionField,
+          label: "El nombre del enfoque",
+        },
+        {
+          value: direction.promise,
+          max: AI_INPUT_CAPS.directionField,
+          label: "La promesa del enfoque",
+        },
+        {
+          value: direction.angle,
+          max: AI_INPUT_CAPS.directionField,
+          label: "El ángulo del enfoque",
+        },
+        {
+          value: direction.hook,
+          max: AI_INPUT_CAPS.directionField,
+          label: "El hook del enfoque",
+        },
+        {
+          value: direction.why,
+          max: AI_INPUT_CAPS.directionField,
+          label: "El porqué del enfoque",
+        }
+      );
+    }
+    const tooLong = rejectIfAnyTooLong(checks);
     if (tooLong) return tooLong;
 
     const preflight = await gateAiGeneration({ consume: false });
     if (preflight.blocked) return preflight.blocked;
 
     const isRevision = Boolean(adjustment?.trim() && currentDraft);
-    const prompt =
-      videoMode === "long"
-        ? buildLongDraftPrompt({
-            ideaText,
-            profileContext,
-            direction,
-            adjustment,
-            currentDraft,
-            isRevision,
-          })
-        : buildDraftPrompt({
-            ideaText,
-            profileContext,
-            direction,
-            adjustment,
-            currentDraft: currentDraft
-              ? {
-                  hook: currentDraft.hook,
-                  scriptBody: currentDraft.scriptBody || "",
-                  closing: currentDraft.closing,
-                  estimatedSeconds: currentDraft.estimatedSeconds,
-                }
-              : undefined,
-            isRevision,
-          });
+    const shortCurrent = currentDraft
+      ? {
+          hook: currentDraft.hook,
+          scriptBody: currentDraft.scriptBody || "",
+          closing: currentDraft.closing,
+          estimatedSeconds: currentDraft.estimatedSeconds,
+        }
+      : undefined;
+
+    let prompt: string;
+    if (isDirect) {
+      prompt =
+        videoMode === "long"
+          ? buildDirectLongDraftPrompt({
+              ideaText,
+              profileContext,
+              adjustment,
+              currentDraft,
+              isRevision,
+            })
+          : buildDirectDraftPrompt({
+              ideaText,
+              profileContext,
+              adjustment,
+              currentDraft: shortCurrent,
+              isRevision,
+            });
+    } else {
+      prompt =
+        videoMode === "long"
+          ? buildLongDraftPrompt({
+              ideaText,
+              profileContext,
+              direction: direction!,
+              adjustment,
+              currentDraft,
+              isRevision,
+            })
+          : buildDraftPrompt({
+              ideaText,
+              profileContext,
+              direction: direction!,
+              adjustment,
+              currentDraft: shortCurrent,
+              isRevision,
+            });
+    }
 
     const raw = await generateJson(prompt);
     const parsed = parseJsonLoose<{

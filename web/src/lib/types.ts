@@ -135,6 +135,12 @@ export interface ScriptBlock {
 /** short = TikTok/Shorts/Reels; long = YouTube 3–30 min. Legacy sin campo = short. */
 export type VideoMode = "short" | "long";
 
+/**
+ * explore = idea vaga → 3 enfoques → guía (default / legacy).
+ * direct = idea ya decidida → guía/guion sin elegir enfoques.
+ */
+export type IdeaFlow = "explore" | "direct";
+
 export interface Draft {
   format: DraftFormat;
   hook: string;
@@ -167,6 +173,8 @@ export interface Idea {
   rawText: string;
   /** short = vertical corto; long = YouTube largo. Ausente = short (legacy). */
   videoMode?: VideoMode;
+  /** explore = 3 enfoques; direct = guion desde idea ya decidida. Ausente = explore. */
+  ideaFlow?: IdeaFlow;
   /** Título corto generado con IA a partir de rawText (para listas) */
   title?: string;
   /**

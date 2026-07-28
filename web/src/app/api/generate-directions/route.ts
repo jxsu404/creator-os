@@ -9,9 +9,6 @@ import { gateAiGeneration } from "@/lib/billing/gate";
 
 export async function POST(request: Request) {
   try {
-    const gate = await gateAiGeneration();
-    if (gate.blocked) return gate.blocked;
-
     const body = await request.json();
     const { ideaText, profileContext } = body as {
       ideaText?: string;
@@ -27,6 +24,9 @@ export async function POST(request: Request) {
       { value: profileContext, max: AI_INPUT_CAPS.profileContext, label: "El contexto del perfil" },
     ]);
     if (tooLong) return tooLong;
+
+    const preflight = await gateAiGeneration({ consume: false });
+    if (preflight.blocked) return preflight.blocked;
 
     const prompt = `Eres un compañero creativo para creadores de TikTok/Reels/Shorts.
 Generas exactamente 3 enfoques DISTINTOS para convertir una idea vaga en un video short-form.
@@ -82,6 +82,9 @@ ${ideaText.trim()}`;
         { status: 502 }
       );
     }
+
+    const gate = await gateAiGeneration();
+    if (gate.blocked) return gate.blocked;
 
     return NextResponse.json({
       directions: directions.slice(0, 3),

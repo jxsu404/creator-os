@@ -17,7 +17,7 @@ npm run verify               # lint + typecheck + test
 |---|---|
 | `/` | Landing (sin sesión) o Home |
 | `/login` | Auth |
-| `/pricing` | Free vs Pro + Stripe |
+| `/pricing` | Free + donación PayPal |
 | `/invite` | Soft launch |
 | `/waitlist` | Lista de espera |
 | `/terms` `/privacy` | Legal |

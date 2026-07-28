@@ -1,13 +1,10 @@
-/** Planes y límites de Ideazo (freemium). */
+/** Planes y límites de Ideazo (free + cupo mensual). */
 
 export type PlanId = "free" | "pro";
 
 export const FREE_MONTHLY_GENERATIONS = 15;
-/** Soft cap Pro: suficiente para publicar cada 3 días con margen. */
+/** Soft cap interno (asignación manual en DB). No hay suscripción. */
 export const PRO_MONTHLY_GENERATIONS = 500;
-
-export const PRO_PRICE_MONTHLY_USD = 14;
-export const PRO_PRICE_YEARLY_USD = 119;
 
 export function monthlyLimitFor(plan: PlanId): number {
   return plan === "pro" ? PRO_MONTHLY_GENERATIONS : FREE_MONTHLY_GENERATIONS;
@@ -26,6 +23,4 @@ export type BillingSnapshot = {
   limit: number;
   remaining: number;
   month: string;
-  stripeCustomerId: string | null;
-  currentPeriodEnd: string | null;
 };

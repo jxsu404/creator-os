@@ -33,7 +33,7 @@ Key docs:
 |---|---|
 | [`PRODUCT_SYSTEM.md`](PRODUCT_SYSTEM.md) | Loop + states |
 | [`BRAND_VOICE.md`](BRAND_VOICE.md) / [`NAMING.md`](NAMING.md) | Copy + brand |
-| [`TECH.md`](TECH.md) / [`DEPLOY.md`](DEPLOY.md) | Stack + Vercel/Supabase/Stripe |
+| [`TECH.md`](TECH.md) / [`DEPLOY.md`](DEPLOY.md) | Stack + Vercel/Supabase/PayPal |
 | [`LAUNCH.md`](LAUNCH.md) | Go / no-go |
 
 ## Rule of thumb

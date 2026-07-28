@@ -10,9 +10,6 @@ import { normalizeYoutubePackages } from "@/lib/youtube-package";
 
 export async function POST(request: Request) {
   try {
-    const gate = await gateAiGeneration();
-    if (gate.blocked) return gate.blocked;
-
     const body = await request.json();
     const {
       ideaText,
@@ -51,6 +48,9 @@ export async function POST(request: Request) {
       { value: direction?.hook, max: AI_INPUT_CAPS.directionField, label: "El hook del enfoque" },
     ]);
     if (tooLong) return tooLong;
+
+    const preflight = await gateAiGeneration({ consume: false });
+    if (preflight.blocked) return preflight.blocked;
 
     const prompt = `Eres un editor de YouTube / TikTok / Shorts para un creador (gaming / Roblox / short + long).
 Generas exactamente 3 OPCIONES DISTINTAS de paquete de subida (título, descripción, etiquetas, idea de miniatura).
@@ -120,6 +120,9 @@ ${(script || "").trim()}`;
         { status: 502 }
       );
     }
+
+    const gate = await gateAiGeneration();
+    if (gate.blocked) return gate.blocked;
 
     const generatedAt = new Date().toISOString();
     return NextResponse.json({

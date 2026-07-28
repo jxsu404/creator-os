@@ -8,9 +8,7 @@ export function trackFunnel(
     | "draft_ready"
     | "marked_ready"
     | "hit_limit"
-    | "upgrade_click"
-    | "checkout_started"
-    | "checkout_success",
+    | "donate_click",
   meta?: Record<string, unknown>
 ) {
   if (typeof window === "undefined") return;

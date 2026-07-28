@@ -39,8 +39,6 @@ type DbErrorLike = { message?: string; code?: string } | null | undefined;
 type SubRow = {
   plan: string;
   status: string;
-  stripe_customer_id: string | null;
-  current_period_end: string | null;
 };
 
 /** Tabla/RPC aún no migrados (dogfood local sin schema). */
@@ -90,8 +88,6 @@ export async function getBillingSnapshot(
     limit: monthlyLimitFor("free"),
     remaining: monthlyLimitFor("free"),
     month,
-    stripeCustomerId: null,
-    currentPeriodEnd: null,
   });
 
   try {
@@ -99,7 +95,7 @@ export async function getBillingSnapshot(
       await Promise.all([
         supabase
           .from("billing_subscriptions")
-          .select("plan, status, stripe_customer_id, current_period_end")
+          .select("plan, status")
           .eq("user_id", userId)
           .maybeSingle(),
         supabase
@@ -110,8 +106,24 @@ export async function getBillingSnapshot(
           .maybeSingle(),
       ]);
 
-    if (subErr) console.warn("[billing] subscriptions read", subErr.message);
-    if (usageErr) console.warn("[billing] usage read", usageErr.message);
+    if (subErr) {
+      console.warn("[billing] subscriptions read", subErr.message);
+      if (
+        process.env.NODE_ENV === "production" &&
+        !isSchemaMissingError(subErr)
+      ) {
+        throw new UsagePersistenceError();
+      }
+    }
+    if (usageErr) {
+      console.warn("[billing] usage read", usageErr.message);
+      if (
+        process.env.NODE_ENV === "production" &&
+        !isSchemaMissingError(usageErr)
+      ) {
+        throw new UsagePersistenceError();
+      }
+    }
 
     const row = sub as SubRow | null;
     const plan = asPlan(row?.plan);
@@ -132,13 +144,20 @@ export async function getBillingSnapshot(
       limit,
       remaining: Math.max(0, limit - used),
       month,
-      stripeCustomerId: row?.stripe_customer_id ?? null,
-      currentPeriodEnd: row?.current_period_end ?? null,
     };
   } catch (err) {
-    console.warn("[billing] snapshot failed; defaulting to free", err);
+    if (err instanceof UsagePersistenceError) throw err;
+    console.warn("[billing] snapshot failed", err);
+    if (process.env.NODE_ENV === "production") {
+      throw new UsagePersistenceError();
+    }
     return emptyFree();
   }
+}
+
+function isUsageLimitRpcError(error: DbErrorLike): boolean {
+  const msg = (error?.message || "").toLowerCase();
+  return msg.includes("usage_limit");
 }
 
 /**
@@ -159,7 +178,10 @@ export async function consumeGeneration(
   });
 
   if (error) {
-    // Fallback si el RPC aún no está migrado: upsert manual (menos atómico).
+    if (isUsageLimitRpcError(error)) {
+      throw new UsageLimitError(before);
+    }
+    // Fallback solo si el RPC aún no está migrado (dogfood local).
     const nextCount = before.used + 1;
     const { error: upsertErr } = await supabase.from("usage_monthly").upsert(
       {

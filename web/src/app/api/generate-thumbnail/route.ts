@@ -16,9 +16,6 @@ const MAX_REF_CHARS = 900_000; // ~compact JPEG data URL
 
 export async function POST(request: Request) {
   try {
-    const gate = await gateAiGeneration();
-    if (gate.blocked) return gate.blocked;
-
     const body = await request.json();
     const {
       thumbnailIdea,
@@ -52,7 +49,7 @@ export async function POST(request: Request) {
           .map((u) => u.trim())
           .filter(
             (u) =>
-              (u.startsWith("data:image/") || u.startsWith("http")) &&
+              u.startsWith("data:image/") &&
               u.length <= MAX_REF_CHARS
           )
           .slice(0, MAX_REFS)
@@ -92,6 +89,9 @@ export async function POST(request: Request) {
     ]);
     if (tooLong) return tooLong;
 
+    const preflight = await gateAiGeneration({ consume: false });
+    if (preflight.blocked) return preflight.blocked;
+
     const prompt = buildThumbnailPrompt({
       stylePrompt,
       thumbnailIdea: idea,
@@ -104,6 +104,9 @@ export async function POST(request: Request) {
     const imageDataUrl = await generateImage(prompt, {
       referenceImages: refs,
     });
+
+    const gate = await gateAiGeneration();
+    if (gate.blocked) return gate.blocked;
 
     return NextResponse.json({
       imageDataUrl,

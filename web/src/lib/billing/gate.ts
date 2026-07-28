@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { BillingSnapshot } from "@/lib/billing/plans";
 import {
   consumeGeneration,
+  getBillingSnapshot,
   UsageLimitError,
   UsagePersistenceError,
   usageLimitResponse,
@@ -20,13 +21,22 @@ export type AiGateBlocked = {
   blocked: NextResponse;
 };
 
+export type GateAiOptions = {
+  /** false = auth + invite, sin consumir cupo (p. ej. título de lista). Default true. */
+  bill?: boolean;
+  /** false = auth + invite + comprobar cupo, sin reservar (preflight antes de IA). */
+  consume?: boolean;
+};
+
 /**
  * Auth + cupo de generación IA por usuario.
  * - Sin Supabase: pasa (modo local).
- * - Con sesión: consume 1 del cupo mensual de ese user_id.
+ * - Con sesión: consume 1 del cupo mensual de ese user_id (salvo bill: false).
  * - INVITE_ONLY: exige fila en user_access (misma regla que /api/invite).
  */
-export async function gateAiGeneration(): Promise<AiGateOk | AiGateBlocked> {
+export async function gateAiGeneration(
+  opts?: GateAiOptions
+): Promise<AiGateOk | AiGateBlocked> {
   const denied = await unauthorizedApiResponse();
   if (denied) return { blocked: denied };
 
@@ -49,6 +59,24 @@ export async function gateAiGeneration(): Promise<AiGateOk | AiGateBlocked> {
   }
 
   try {
+    if (opts?.bill === false) {
+      const billing = await getBillingSnapshot(auth.supabase, auth.user.id);
+      return { blocked: null, billing };
+    }
+
+    if (opts?.consume === false) {
+      const billing = await getBillingSnapshot(auth.supabase, auth.user.id);
+      if (billing.used >= billing.limit) {
+        return {
+          blocked: NextResponse.json(
+            usageLimitResponse(new UsageLimitError(billing)),
+            { status: 402 }
+          ),
+        };
+      }
+      return { blocked: null, billing };
+    }
+
     const billing = await consumeGeneration(auth.supabase, auth.user.id);
     return { blocked: null, billing };
   } catch (err) {

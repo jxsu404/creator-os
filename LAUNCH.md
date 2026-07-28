@@ -1,8 +1,8 @@
-# Lanzamiento — Ideazo (Web/PWA + Freemium Pro)
+# Lanzamiento — Ideazo (Web/PWA)
 
 **Fecha:** 27 de julio de 2026  
 **Canal:** Web / PWA móvil-first  
-**Monetización:** Free (límites IA) + Ideazo Pro (Stripe)
+**Monetización:** Free (límites IA) + donaciones PayPal (sin suscripción)
 
 Este doc es la checklist operativa de go/no-go. El detalle de dogfooding vive en `VALIDATION_USER1.md`.
 
@@ -34,7 +34,7 @@ Rellenar aquí (la UI in-app de Validación está diferida):
 ## Fase 1 — Presentable (producto)
 
 - [x] Marca pública Ideazo en UI / PWA / docs
-- [x] Landing pública con Free vs Pro
+- [x] Landing pública con Free + apoyo
 - [ ] Dominio custom apuntado a Vercel (ej. `ideazo.co` — ver `NAMING.md`)
 - [x] Hint “Añadir a inicio” / instalar PWA en Perfil
 - [ ] Checklist `DEPLOY.md` en verde (Supabase + Vercel + OAuth)
@@ -43,19 +43,17 @@ Rellenar aquí (la UI in-app de Validación está diferida):
 
 ## Fase 2 — Monetización
 
-- [x] Schema billing + usage (`web/supabase/schema.sql`)
+- [x] Schema usage (`web/supabase/schema.sql`)
 - [x] Enforcement de límites en APIs de IA
-- [x] Stripe Checkout + Portal + webhooks
-- [x] UI `/pricing` + paywall + Perfil → plan
-- [ ] Keys Stripe + `SUPABASE_SERVICE_ROLE_KEY` en Vercel (producción)
-- [ ] Productos/precios creados en Stripe Dashboard (IDs en env)
+- [x] Donaciones PayPal (`/pricing`, paywall, Perfil)
+- [ ] `NEXT_PUBLIC_PAYPAL_DONATE_URL` en Vercel si quieres override del default
 
 **Límites por defecto**
 
 | Plan | Generaciones IA / mes | Precio |
 |---|---|---|
 | Free | 15 | $0 |
-| Pro | 500 (soft) | $14/mes o $119/año |
+| Donación | — | Voluntaria (PayPal) |
 
 ---
 
@@ -65,7 +63,7 @@ Rellenar aquí (la UI in-app de Validación está diferida):
 - [x] Waitlist (`/waitlist`)
 - [x] Eventos de funnel (`/api/metrics/event`)
 - [ ] 5–10 creadores invitados
-- [ ] Revisar conversión Free → hit limit → upgrade → paid
+- [ ] Revisar conversión Free → hit limit → donación
 
 ---
 
@@ -75,14 +73,14 @@ Rellenar aquí (la UI in-app de Validación está diferida):
 - [x] Landing + pricing vivos
 - [ ] Dominio + legal revisados
 - [ ] Primer post orgánico (TikTok/Shorts mostrando idea → lista)
-- [ ] Objetivo: primeros **10 Pro** o evidencia clara de willingness-to-pay
+- [ ] Objetivo: primeras donaciones o evidencia clara de willingness-to-pay
 
 ---
 
 ## Orden de trabajo del fundador
 
 1. Correr SQL actualizado en Supabase  
-2. Poner env de Stripe + service role en Vercel  
+2. Confirmar link PayPal + service role en Vercel  
 3. Completar checklist Usuario 1  
 4. Soft launch con 5–10 invites  
 5. Comprar dominio y abrir público  

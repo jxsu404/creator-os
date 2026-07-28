@@ -112,7 +112,7 @@ Marca con honestidad brutal después de la Fase B (o en `/profile/validacion`):
 
 1. Soft launch 5–10 creadores (`INVITE_ONLY` + códigos) — ver `LAUNCH.md`
 2. 2–3 entrevistas externas (`VALIDATION.md`)
-3. Activar Stripe en vivo + primer objetivo de Pro pagando
+3. Confirmar donaciones PayPal + primer objetivo de apoyo voluntario
 
 ---
 

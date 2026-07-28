@@ -37,18 +37,21 @@ create policy "creator_ideas_own"
   with check ((select auth.uid()) = user_id);
 
 -- ---------------------------------------------------------------------------
--- Billing / usage (Freemium + Ideazo Pro)
+-- Billing / usage (cupo mensual free; plan pro solo asignación manual)
 -- ---------------------------------------------------------------------------
 
 create table if not exists public.billing_subscriptions (
   user_id uuid primary key references auth.users (id) on delete cascade,
   plan text not null default 'free' check (plan in ('free', 'pro')),
   status text not null default 'active',
-  stripe_customer_id text unique,
-  stripe_subscription_id text unique,
-  current_period_end timestamptz,
   updated_at timestamptz not null default now()
 );
+
+-- Limpieza si venía de schema con Stripe
+alter table public.billing_subscriptions
+  drop column if exists stripe_customer_id,
+  drop column if exists stripe_subscription_id,
+  drop column if exists current_period_end;
 
 create table if not exists public.usage_monthly (
   user_id uuid not null references auth.users (id) on delete cascade,
@@ -67,8 +70,7 @@ create policy "billing_subscriptions_own_select"
   for select
   using ((select auth.uid()) = user_id);
 
--- Escrituras solo via service role (Checkout / webhooks). El cliente no puede
--- auto-asignarse plan "pro".
+-- Escrituras solo via service role. El cliente no puede auto-asignarse plan "pro".
 drop policy if exists "billing_subscriptions_own_write" on public.billing_subscriptions;
 drop policy if exists "billing_subscriptions_own_update" on public.billing_subscriptions;
 
@@ -78,12 +80,8 @@ create policy "usage_monthly_own_select"
   for select
   using ((select auth.uid()) = user_id);
 
+-- Sin escritura directa del cliente: solo increment_ai_generation (security definer).
 drop policy if exists "usage_monthly_own_upsert" on public.usage_monthly;
-create policy "usage_monthly_own_upsert"
-  on public.usage_monthly
-  for all
-  using ((select auth.uid()) = user_id)
-  with check ((select auth.uid()) = user_id);
 
 create or replace function public.increment_ai_generation(p_month text)
 returns int
@@ -94,9 +92,22 @@ as $$
 declare
   uid uuid := auth.uid();
   new_count int;
+  user_plan text;
+  user_status text;
+  effective_limit int;
 begin
   if uid is null then
     raise exception 'not authenticated';
+  end if;
+
+  select plan, status into user_plan, user_status
+  from public.billing_subscriptions
+  where user_id = uid;
+
+  if user_plan = 'pro' and user_status in ('active', 'trialing') then
+    effective_limit := 500;
+  else
+    effective_limit := 15;
   end if;
 
   insert into public.usage_monthly as u (user_id, month, generations_count, updated_at)
@@ -105,7 +116,12 @@ begin
   do update set
     generations_count = u.generations_count + 1,
     updated_at = now()
+  where u.generations_count < effective_limit
   returning generations_count into new_count;
+
+  if new_count is null then
+    raise exception 'usage_limit';
+  end if;
 
   return new_count;
 end;
@@ -156,13 +172,8 @@ alter table public.user_access enable row level security;
 alter table public.waitlist enable row level security;
 alter table public.funnel_events enable row level security;
 
--- Invites: readable by authenticated to validate a code (not list all)
+-- Invites: sin SELECT público; canje solo vía redeem_invite_code (security definer).
 drop policy if exists "invite_codes_select_active" on public.invite_codes;
-create policy "invite_codes_select_active"
-  on public.invite_codes
-  for select
-  to authenticated
-  using (active = true);
 
 drop policy if exists "user_access_own" on public.user_access;
 create policy "user_access_own"

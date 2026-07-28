@@ -1,7 +1,7 @@
 import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
 import { createSupabaseServer } from "@/lib/supabase/server";
 
-/** Cliente service-role solo para webhooks / admin (nunca en el browser). */
+/** Cliente service-role solo para admin de servidor (nunca en el browser). */
 export function createSupabaseAdmin(): SupabaseClient | null {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();

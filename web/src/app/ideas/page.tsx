@@ -103,6 +103,9 @@ function IdeasList() {
         <Link href="/guion" className="btn-secondary btn-block">
           Nuevo guion
         </Link>
+        <Link href="/notas" className="btn-secondary btn-block">
+          Notas
+        </Link>
       </div>
 
       {banner ? (

@@ -264,6 +264,15 @@ function ProfileHub() {
             →
           </span>
         </Link>
+        <Link href="/notas" className="settings-row">
+          <div>
+            <p className="settings-title">{t("profile.notes")}</p>
+            <p className="settings-desc">{t("profile.notesDesc")}</p>
+          </div>
+          <span className="chevron" aria-hidden>
+            →
+          </span>
+        </Link>
         <Link href="/profile/ajustes" className="settings-row">
           <div>
             <p className="settings-title">{t("profile.settings")}</p>

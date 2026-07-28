@@ -19,6 +19,8 @@ export const en: MessageTree = {
     connections: "Connections",
     connectionsDescYt: "YouTube · {channel}",
     connectionsDescDefault: "YouTube · TikTok",
+    notes: "Notes",
+    notesDesc: "Plain-text scripts and jots",
     settings: "Settings",
     settingsDesc: "Appearance, language, and more",
     versions: "Version history",

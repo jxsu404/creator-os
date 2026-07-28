@@ -62,6 +62,7 @@ Cada opción debe diferir en estrategia, por ejemplo:
 - una más clara / beneficio directo (qué aprende el viewer)
 
 Idioma: español. Sin promesas de viralidad. Sin inventar stats, códigos ni actualizaciones que no estén en el contexto.
+Si hay bloque "Descripciones de YouTube" en el contexto del creador: las 3 descripciones deben seguir ese formato (estructura, tono, CTAs, hashtags). Priorízalo sobre plantillas genéricas.
 El título debe servir también como caption corta de TikTok/Shorts si el video es vertical.
 
 Límites reales:

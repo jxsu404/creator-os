@@ -36,9 +36,13 @@ export interface GameBrief {
 
 /** Cómo graba este creador (estilo reutilizable en prompts) */
 export interface RecordingStyle {
+  /** Formatos de video: gameplay, facecam, shorts, etc. — estructura del guion. */
   howIRecord: string;
   typicalShots: string[];
+  /** Tono y forma de escribir/hablar — la IA lo imita al convertir la idea en guion. */
   voiceAndPacing: string;
+  /** Formato deseado para descripciones del paquete YouTube. */
+  youtubeDescriptionStyle?: string;
   avoid: string[];
   videoTypes: string[];
 }

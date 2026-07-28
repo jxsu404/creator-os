@@ -5,6 +5,7 @@ export const en: MessageTree = {
     home: "Home",
     capture: "New idea",
     captureShort: "New",
+    gallery: "Gallery",
     ideas: "Ideas",
     profile: "Profile",
   },
@@ -61,14 +62,31 @@ export const en: MessageTree = {
     reduceMotion: "Reduce motion",
     thumbnails: "Thumbnails",
     thumbnailsDesc:
-      "Base style prompt when generating AI thumbnails. Empty = Ideazo default style.",
+      "Base style prompt when generating AI thumbnails. Empty = Ideazo default style. You can also upload up to 3 reference photos (face, logo, style).",
     thumbnailsPlaceholder:
       "E.g. Gaming Roblox style, strong contrast, 2–3 big words, no watermarks…",
     thumbnailsReset: "Use default style",
     thumbnailsSaved: "Style saved",
+    thumbRefs: "Reference photos",
+    thumbRefsDesc:
+      "Up to 3 images. AI uses them when generating thumbnails (face, brand, style).",
+    thumbRefsAdd: "Add image",
+    thumbRefsFull: "Maximum 3 images",
+    thumbRefsRemove: "Remove",
     versionsLink: "Version history",
     versionsLinkDesc: "Notes for each release",
     versionFooter: "Ideazo v{version}",
+  },
+  gallery: {
+    title: "Gallery",
+    lead: "Your generated thumbnails. Download anytime.",
+    empty:
+      "No thumbnails yet. Generate one from an idea’s YouTube package.",
+    download: "Download",
+    delete: "Delete",
+    deleteConfirm: "Delete this thumbnail from the gallery?",
+    openIdea: "Open idea",
+    count: "{count} thumbnails",
   },
   common: {
     back: "Back",

@@ -11,6 +11,9 @@ import {
   THUMBNAIL_STYLE_PROMPT_MAX,
 } from "@/lib/thumbnail-prompt";
 
+const MAX_REFS = 3;
+const MAX_REF_CHARS = 900_000; // ~compact JPEG data URL
+
 export async function POST(request: Request) {
   try {
     const gate = await gateAiGeneration();
@@ -24,6 +27,7 @@ export async function POST(request: Request) {
       profileContext,
       stylePrompt,
       extraInstructions,
+      referenceImages,
     } = body as {
       thumbnailIdea?: string;
       title?: string;
@@ -31,6 +35,7 @@ export async function POST(request: Request) {
       profileContext?: string;
       stylePrompt?: string;
       extraInstructions?: string;
+      referenceImages?: unknown;
     };
 
     const idea = thumbnailIdea?.trim();
@@ -40,6 +45,18 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    const refs = Array.isArray(referenceImages)
+      ? referenceImages
+          .filter((u): u is string => typeof u === "string")
+          .map((u) => u.trim())
+          .filter(
+            (u) =>
+              (u.startsWith("data:image/") || u.startsWith("http")) &&
+              u.length <= MAX_REF_CHARS
+          )
+          .slice(0, MAX_REFS)
+      : [];
 
     const tooLong = rejectIfAnyTooLong([
       {
@@ -84,7 +101,9 @@ export async function POST(request: Request) {
       extraInstructions,
     });
 
-    const imageDataUrl = await generateImage(prompt);
+    const imageDataUrl = await generateImage(prompt, {
+      referenceImages: refs,
+    });
 
     return NextResponse.json({
       imageDataUrl,

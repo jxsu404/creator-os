@@ -67,6 +67,15 @@ function PrimaryNav({
           </Link>
 
           <Link
+            href="/gallery"
+            className={`${item}${
+              navActive(pathname, "/gallery") ? ` ${itemActive}` : ""
+            }`}
+          >
+            {t("nav.gallery")}
+          </Link>
+
+          <Link
             href="/profile"
             className={`${item}${
               navActive(pathname, "/profile") ? ` ${itemActive}` : ""
@@ -84,6 +93,15 @@ function PrimaryNav({
             }`}
           >
             {t("nav.home")}
+          </Link>
+
+          <Link
+            href="/gallery"
+            className={`${item}${
+              navActive(pathname, "/gallery") ? ` ${itemActive}` : ""
+            }`}
+          >
+            {t("nav.gallery")}
           </Link>
 
           <Link

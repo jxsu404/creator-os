@@ -7,11 +7,22 @@ import {
 } from "@/lib/ai-input";
 import { gateAiGeneration } from "@/lib/billing/gate";
 import {
+  buildLongDraftPrompt,
+  IDEA_TOO_THIN_FOR_LONG_MESSAGE,
+  isIdeaTooThinForLongPayload,
+  validateLongDraft,
+} from "@/lib/long-generation";
+import {
   buildDraftPrompt,
   isTooLongForShortPayload,
   TOO_LONG_FOR_SHORT_MESSAGE,
   validateShortDraft,
 } from "@/lib/short-generation";
+import type { VideoMode } from "@/lib/types";
+
+function resolveVideoMode(raw: unknown): VideoMode {
+  return raw === "long" ? "long" : "short";
+}
 
 export async function POST(request: Request) {
   try {
@@ -22,6 +33,7 @@ export async function POST(request: Request) {
       direction,
       adjustment,
       currentDraft,
+      videoMode: rawMode,
     } = body as {
       ideaText?: string;
       profileContext?: string;
@@ -35,11 +47,14 @@ export async function POST(request: Request) {
       adjustment?: string;
       currentDraft?: {
         hook: string;
-        scriptBody: string;
+        scriptBody?: string;
         closing: string;
         estimatedSeconds: number;
+        blocks?: Array<{ title: string; body: string; id?: string }>;
       };
+      videoMode?: VideoMode;
     };
+    const videoMode = resolveVideoMode(rawMode);
 
     if (!ideaText?.trim() || !direction) {
       return NextResponse.json(
@@ -94,14 +109,31 @@ export async function POST(request: Request) {
     if (preflight.blocked) return preflight.blocked;
 
     const isRevision = Boolean(adjustment?.trim() && currentDraft);
-    const prompt = buildDraftPrompt({
-      ideaText,
-      profileContext,
-      direction,
-      adjustment,
-      currentDraft,
-      isRevision,
-    });
+    const prompt =
+      videoMode === "long"
+        ? buildLongDraftPrompt({
+            ideaText,
+            profileContext,
+            direction,
+            adjustment,
+            currentDraft,
+            isRevision,
+          })
+        : buildDraftPrompt({
+            ideaText,
+            profileContext,
+            direction,
+            adjustment,
+            currentDraft: currentDraft
+              ? {
+                  hook: currentDraft.hook,
+                  scriptBody: currentDraft.scriptBody || "",
+                  closing: currentDraft.closing,
+                  estimatedSeconds: currentDraft.estimatedSeconds,
+                }
+              : undefined,
+            isRevision,
+          });
 
     const raw = await generateJson(prompt);
     const parsed = parseJsonLoose<{
@@ -109,15 +141,58 @@ export async function POST(request: Request) {
       scriptBody?: string;
       closing?: string;
       estimatedSeconds?: number;
+      blocks?: Array<{ title?: string; body?: string; id?: string }>;
       tooLongForShort?: boolean;
+      ideaTooThinForLong?: boolean;
       error?: string;
     }>(raw);
 
-    if (isTooLongForShortPayload(parsed)) {
+    if (videoMode === "short" && isTooLongForShortPayload(parsed)) {
       return NextResponse.json(
         { error: TOO_LONG_FOR_SHORT_MESSAGE, code: "too_long_for_short" },
         { status: 422 }
       );
+    }
+
+    if (videoMode === "long" && isIdeaTooThinForLongPayload(parsed)) {
+      return NextResponse.json(
+        {
+          error: IDEA_TOO_THIN_FOR_LONG_MESSAGE,
+          code: "idea_too_thin_for_long",
+        },
+        { status: 422 }
+      );
+    }
+
+    if (videoMode === "long") {
+      const validated = validateLongDraft(parsed);
+      if (!validated.ok) {
+        const status =
+          validated.error === IDEA_TOO_THIN_FOR_LONG_MESSAGE ? 422 : 502;
+        return NextResponse.json(
+          {
+            error: validated.error,
+            ...(status === 422 ? { code: "idea_too_thin_for_long" } : {}),
+          },
+          { status }
+        );
+      }
+
+      const gate = await gateAiGeneration();
+      if (gate.blocked) return gate.blocked;
+
+      return NextResponse.json({
+        draft: {
+          hook: validated.draft.hook,
+          scriptBody: validated.draft.scriptBody,
+          closing: validated.draft.closing,
+          estimatedSeconds: validated.draft.estimatedSeconds,
+          blocks: validated.draft.blocks,
+          beats: [],
+          format: "guide" as const,
+        },
+        billing: gate.billing,
+      });
     }
 
     const validated = validateShortDraft(parsed);

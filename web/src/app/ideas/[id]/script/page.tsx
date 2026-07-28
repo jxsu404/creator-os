@@ -100,7 +100,14 @@ function ScriptEditor() {
       status,
       updatedAt: now,
       draft: current.draft
-        ? { ...current.draft, format: "guide", updatedAt: now }
+        ? {
+            ...current.draft,
+            format: "guide",
+            creatorScript:
+              current.draft.creatorScript?.trim() ||
+              buildUnifiedScript(current.draft),
+            updatedAt: now,
+          }
         : current.draft,
     };
     upsertIdea(next);
@@ -117,7 +124,7 @@ function ScriptEditor() {
     router.push("/ideas");
   }
 
-  function scheduleCreatorScript(value: string) {
+  function persistDraft(nextDraft: NonNullable<Idea["draft"]>) {
     const current = ideaRef.current;
     if (!current?.draft) return;
     setSaveState("saving");
@@ -126,12 +133,7 @@ function ScriptEditor() {
       current.status === "ready" || current.status === "recorded";
     const next: Idea = {
       ...current,
-      draft: {
-        ...current.draft,
-        format: "guide",
-        creatorScript: value,
-        updatedAt: now,
-      },
+      draft: { ...nextDraft, format: "guide", updatedAt: now },
       updatedAt: now,
       status: demoted ? "in_progress" : current.status,
     };
@@ -144,6 +146,40 @@ function ScriptEditor() {
     saveTimer.current = window.setTimeout(() => {
       if (ideaRef.current) commit(ideaRef.current);
     }, 350);
+  }
+
+  function scheduleStructuredUpdate(
+    patch: Partial<Pick<NonNullable<Idea["draft"]>, "hook" | "closing" | "blocks">>
+  ) {
+    const current = ideaRef.current;
+    if (!current?.draft) return;
+    const nextDraft = {
+      ...current.draft,
+      ...patch,
+    };
+    if (nextDraft.blocks?.length) {
+      nextDraft.scriptBody = nextDraft.blocks.map((b) => b.body).join("\n\n");
+    }
+    nextDraft.creatorScript = buildUnifiedScript(nextDraft);
+    persistDraft(nextDraft);
+  }
+
+  function scheduleCreatorScript(value: string) {
+    const current = ideaRef.current;
+    if (!current?.draft) return;
+    persistDraft({
+      ...current.draft,
+      creatorScript: value,
+    });
+  }
+
+  function updateBlock(index: number, field: "title" | "body", value: string) {
+    const current = ideaRef.current;
+    if (!current?.draft?.blocks) return;
+    const blocks = current.draft.blocks.map((b, i) =>
+      i === index ? { ...b, [field]: value } : b
+    );
+    scheduleStructuredUpdate({ blocks });
   }
 
   function saveYoutubePackage(pkg: YoutubeUploadPackage) {
@@ -172,6 +208,8 @@ function ScriptEditor() {
   const isReady = idea.status === "ready";
   const isRecorded = idea.status === "recorded";
   const aiContext = ideaAiContext(idea);
+  const hasBlocks = Boolean(idea.draft.blocks?.length);
+  const showBlockEditor = hasBlocks && (!(isReady || isRecorded) || editing);
 
   const youtubePanel = (
     <details className="yt-pack-details">
@@ -188,6 +226,55 @@ function ScriptEditor() {
 
   const backHref = isReady || isRecorded ? "/ideas" : `/ideas/${id}/draft`;
   const backLabel = isReady || isRecorded ? "Volver a Ideas" : "Volver a la guía";
+
+  const blockEditor = hasBlocks ? (
+    <div className="stack" style={{ padding: "var(--space-2)" }}>
+      <label className="field-label" htmlFor="long-hook">
+        Gancho
+      </label>
+      <textarea
+        id="long-hook"
+        className="field"
+        rows={3}
+        value={idea.draft.hook}
+        onChange={(e) => scheduleStructuredUpdate({ hook: e.target.value })}
+        aria-label="Gancho"
+      />
+      {idea.draft.blocks!.map((block, i) => (
+        <div key={block.id || i} className="script-block-edit">
+          <label className="field-label" htmlFor={`block-title-${i}`}>
+            Bloque {i + 1}
+          </label>
+          <input
+            id={`block-title-${i}`}
+            className="field script-block-title-field"
+            value={block.title}
+            onChange={(e) => updateBlock(i, "title", e.target.value)}
+            aria-label={`Título del bloque ${i + 1}`}
+          />
+          <textarea
+            id={`block-body-${i}`}
+            className="field"
+            rows={6}
+            value={block.body}
+            onChange={(e) => updateBlock(i, "body", e.target.value)}
+            aria-label={`Guion del bloque ${i + 1}`}
+          />
+        </div>
+      ))}
+      <label className="field-label" htmlFor="long-closing">
+        Cierre
+      </label>
+      <textarea
+        id="long-closing"
+        className="field"
+        rows={3}
+        value={idea.draft.closing}
+        onChange={(e) => scheduleStructuredUpdate({ closing: e.target.value })}
+        aria-label="Cierre"
+      />
+    </div>
+  ) : null;
 
   return (
     <AppShell title="Guion" backHref={backHref} backLabel={backLabel}>
@@ -209,17 +296,21 @@ function ScriptEditor() {
 
       {isReady && !editing ? (
         <>
-          <textarea
-            id="creator-script-ready"
-            className="field field-lg"
-            rows={12}
-            value={creatorScript}
-            onChange={(e) => {
-              setEditing(true);
-              scheduleCreatorScript(e.target.value);
-            }}
-            aria-label="Guion"
-          />
+          {hasBlocks ? (
+            <pre className="preview-plain">{creatorScript}</pre>
+          ) : (
+            <textarea
+              id="creator-script-ready"
+              className="field field-lg"
+              rows={12}
+              value={creatorScript}
+              onChange={(e) => {
+                setEditing(true);
+                scheduleCreatorScript(e.target.value);
+              }}
+              aria-label="Guion"
+            />
+          )}
           {youtubePanel}
           <div className="sticky-actions">
             <button
@@ -284,15 +375,18 @@ function ScriptEditor() {
         </>
       ) : (
         <>
-          <textarea
-            id="creator-script"
-            className="field field-lg"
-            rows={14}
-            value={creatorScript}
-            onChange={(e) => scheduleCreatorScript(e.target.value)}
-            autoFocus={editing}
-            aria-label="Guion"
-          />
+          {showBlockEditor ? blockEditor : null}
+          {!hasBlocks ? (
+            <textarea
+              id="creator-script"
+              className="field field-lg"
+              rows={14}
+              value={creatorScript}
+              onChange={(e) => scheduleCreatorScript(e.target.value)}
+              autoFocus={editing}
+              aria-label="Guion"
+            />
+          ) : null}
           {youtubePanel}
           <div className="sticky-actions">
             <button

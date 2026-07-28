@@ -125,6 +125,16 @@ export interface Beat {
   notes?: string;
 }
 
+/** Bloque temático de un guion YouTube largo (sin plan de cámara). */
+export interface ScriptBlock {
+  id: string;
+  title: string;
+  body: string;
+}
+
+/** short = TikTok/Shorts/Reels; long = YouTube 3–30 min. Legacy sin campo = short. */
+export type VideoMode = "short" | "long";
+
 export interface Draft {
   format: DraftFormat;
   hook: string;
@@ -132,6 +142,8 @@ export interface Draft {
   closing: string;
   /** Legacy: ya no se generan tomas; se guarda vacío */
   beats: Beat[];
+  /** Bloques temáticos (solo modo YouTube largo) */
+  blocks?: ScriptBlock[];
   /** Guion unificado editable por el creador (después de la vista previa de la IA) */
   creatorScript?: string;
   estimatedSeconds: number;
@@ -153,6 +165,8 @@ export interface YoutubeUploadPackage {
 export interface Idea {
   id: string;
   rawText: string;
+  /** short = vertical corto; long = YouTube largo. Ausente = short (legacy). */
+  videoMode?: VideoMode;
   /** Título corto generado con IA a partir de rawText (para listas) */
   title?: string;
   /**

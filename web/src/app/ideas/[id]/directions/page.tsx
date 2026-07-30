@@ -13,7 +13,7 @@ import { createId } from "@/lib/id";
 import { ideaPreview } from "@/lib/idea-preview";
 import { trackFunnel } from "@/lib/metrics";
 import { aiResponseError, safeAiJson } from "@/lib/fetch-ai-json";
-import { ideaAiContext } from "@/lib/idea-ai-context";
+import { ideaAiContextWithKnowledge } from "@/lib/idea-ai-context";
 import { buildUnifiedScript } from "@/lib/script";
 import { getIdea, upsertIdea } from "@/lib/storage";
 import type { Direction, Idea, ScriptBlock, VideoMode } from "@/lib/types";
@@ -73,7 +73,7 @@ function DirectionsFlow() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ideaText: current.rawText,
-          profileContext: ideaAiContext(current),
+          profileContext: await ideaAiContextWithKnowledge(current),
           videoMode: ideaVideoMode(current),
         }),
       });
@@ -157,7 +157,7 @@ function DirectionsFlow() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ideaText: idea.rawText,
-          profileContext: ideaAiContext(idea),
+          profileContext: await ideaAiContextWithKnowledge(idea),
           direction: selected,
           videoMode,
         }),

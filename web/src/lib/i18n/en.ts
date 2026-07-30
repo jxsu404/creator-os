@@ -14,6 +14,8 @@ export const en: MessageTree = {
     edit: "Edit profile",
     games: "Games",
     gamesDesc: "Active: {game}",
+    afsKnowledge: "AFS knowledge",
+    afsKnowledgeDesc: "Official Trello · search and sync",
     personalization: "Personalization",
     personalizationDesc: "Format, voice, and YouTube descriptions",
     connections: "Connections",

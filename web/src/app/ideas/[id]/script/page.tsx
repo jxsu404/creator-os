@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
 import { YoutubePackagePanel } from "@/components/YoutubePackagePanel";
-import { ideaAiContext } from "@/lib/idea-ai-context";
+import { ideaAiContext, ideaAiContextWithKnowledge } from "@/lib/idea-ai-context";
 import { ideaTitle } from "@/lib/idea-title";
 import { trackFunnel } from "@/lib/metrics";
 import { saveTextAsNote } from "@/lib/notes";
@@ -26,6 +26,7 @@ function ScriptEditor() {
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const [statusNote, setStatusNote] = useState("");
   const [noteSavedId, setNoteSavedId] = useState<string | null>(null);
+  const [aiContext, setAiContext] = useState("");
   const saveTimer = useRef<number | null>(null);
   const savedLabelTimer = useRef<number | null>(null);
   const ideaRef = useRef<Idea | null>(null);
@@ -54,6 +55,21 @@ function ScriptEditor() {
     // Lista / grabada: lectura con acciones. Resto: guion visible de entrada.
     setEditing(false);
   }, [id, router]);
+
+  useEffect(() => {
+    if (!idea) return;
+    const snapshot = idea;
+    setAiContext(ideaAiContext(snapshot));
+    let cancelled = false;
+    void ideaAiContextWithKnowledge(snapshot).then((ctx) => {
+      if (!cancelled) setAiContext(ctx);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Solo re-enriquece si cambia el texto/juego (no en cada tecla del guion).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idea?.id, idea?.rawText, idea?.gameId, idea?.contentAngle]);
 
   useEffect(() => {
     return () => {
@@ -226,7 +242,6 @@ function ScriptEditor() {
   const creatorScript = idea.draft.creatorScript || buildUnifiedScript(idea.draft);
   const isReady = idea.status === "ready";
   const isRecorded = idea.status === "recorded";
-  const aiContext = ideaAiContext(idea);
   const hasBlocks = Boolean(idea.draft.blocks?.length);
   const showBlockEditor = hasBlocks && (!(isReady || isRecorded) || editing);
 

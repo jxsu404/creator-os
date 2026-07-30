@@ -240,6 +240,17 @@ function ProfileHub() {
             </span>
           </Link>
         ) : null}
+        {showGames ? (
+          <Link href="/profile/conocimiento-afs" className="settings-row">
+            <div>
+              <p className="settings-title">{t("profile.afsKnowledge")}</p>
+              <p className="settings-desc">{t("profile.afsKnowledgeDesc")}</p>
+            </div>
+            <span className="chevron" aria-hidden>
+              →
+            </span>
+          </Link>
+        ) : null}
         <Link href="/profile/personalizacion" className="settings-row">
           <div>
             <p className="settings-title">{t("profile.personalization")}</p>

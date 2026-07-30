@@ -12,7 +12,7 @@ import {
 import { applyGenerationBilling } from "@/lib/apply-generation-billing";
 import { trackFunnel } from "@/lib/metrics";
 import { aiResponseError, safeAiJson } from "@/lib/fetch-ai-json";
-import { ideaAiContext } from "@/lib/idea-ai-context";
+import { ideaAiContextWithKnowledge } from "@/lib/idea-ai-context";
 import { buildUnifiedScript, formatEstimatedDuration } from "@/lib/script";
 import { getIdea, upsertIdea } from "@/lib/storage";
 import { isDirectScriptFlow } from "@/lib/idea-flow";
@@ -100,7 +100,7 @@ function DraftPreview() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ideaText: current.rawText,
-          profileContext: ideaAiContext(current),
+          profileContext: await ideaAiContextWithKnowledge(current),
           ...(isDirect
             ? { directFromIdea: true }
             : { direction }),

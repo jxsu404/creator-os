@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { RequireOnboarding } from "@/components/RequireOnboarding";
@@ -122,6 +123,12 @@ function GamesSettings() {
   return (
     <AppShell title="Juegos" backHref="/profile">
       <p className="muted">Elige el juego activo para la IA.</p>
+
+      <p className="idea-meta">
+        <Link href="/profile/conocimiento-afs" className="text-link">
+          Explorar conocimiento AFS (Trello oficial)
+        </Link>
+      </p>
 
       <div className="chip-grid">
         {library.map((g) => (

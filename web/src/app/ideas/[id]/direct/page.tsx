@@ -10,7 +10,7 @@ import {
 } from "@/components/UpgradePrompt";
 import { applyGenerationBilling } from "@/lib/apply-generation-billing";
 import { aiResponseError, safeAiJson } from "@/lib/fetch-ai-json";
-import { ideaAiContext } from "@/lib/idea-ai-context";
+import { ideaAiContextWithKnowledge } from "@/lib/idea-ai-context";
 import { isDirectScriptFlow } from "@/lib/idea-flow";
 import { ideaPreview } from "@/lib/idea-preview";
 import { trackFunnel } from "@/lib/metrics";
@@ -78,7 +78,7 @@ function DirectDraftFlow() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ideaText: current.rawText,
-          profileContext: ideaAiContext(current),
+          profileContext: await ideaAiContextWithKnowledge(current),
           videoMode,
           directFromIdea: true,
         }),

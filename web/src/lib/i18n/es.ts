@@ -12,6 +12,8 @@ export const es = {
     edit: "Editar perfil",
     games: "Juegos",
     gamesDesc: "Activo: {game}",
+    afsKnowledge: "Conocimiento AFS",
+    afsKnowledgeDesc: "Trello oficial · buscar y sincronizar",
     personalization: "Personalización",
     personalizationDesc: "Formato, voz y descripciones de YouTube",
     connections: "Conexiones",
